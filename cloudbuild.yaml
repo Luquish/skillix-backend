@@ -1,0 +1,3 @@
+# Configuración para desplegar en Cloud Run
+steps:
+  # Aquí puedes agregar los pasos necesarios para construir y desplegar tu app 
