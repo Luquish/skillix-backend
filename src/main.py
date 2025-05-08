@@ -7,24 +7,51 @@ def datetime_handler(obj):
         return obj.isoformat()
     raise TypeError(f'Object of type {type(obj)} is not JSON serializable')
 
-async def main():
-    if len(sys.argv) < 2:
-        print("Uso: python src/main.py \"<qué quiero aprender>\"")
-        sys.exit(1)
+def get_level_from_key(key: str) -> str:
+    """Convierte la tecla presionada en un nivel de dificultad."""
+    level_map = {
+        'p': 'beginner',
+        'i': 'intermediate',
+        'a': 'advanced'
+    }
+    return level_map.get(key.lower(), 'beginner')
 
-    print("\n=== Iniciando Generación de Curso ===")
-    topic = sys.argv[1]
+def get_user_input() -> tuple[str, str]:
+    """Obtiene el tema y nivel del curso del usuario."""
+    # Solicitar tema
+    print("\n=== Generador de Cursos ===")
+    topic = input("\n📚 ¿Qué tema te gustaría aprender? ")
+    
+    # Solicitar nivel
+    while True:
+        print("\n📊 Selecciona el nivel de dificultad:")
+        print("p - Principiante")
+        print("i - Intermedio")
+        print("a - Avanzado")
+        level_key = input("\nTu selección (p/i/a): ")
+        
+        if level_key.lower() in ['p', 'i', 'a']:
+            return topic, get_level_from_key(level_key)
+        else:
+            print("\n❌ Opción no válida. Por favor, selecciona 'p', 'i' o 'a'.")
+
+async def main():
+    # Obtener input del usuario
+    topic, level = get_user_input()
+    
+    print(f"\n=== Iniciando Generación de Curso ===")
     print(f"📚 Tema solicitado: {topic}")
+    print(f"📊 Nivel seleccionado: {level}")
     
     # Metadata básica inicial
     metadata = {
         "title": topic,
         "description": f"Curso sobre {topic}",
-        "level": "beginner",
+        "level": level,
         "tags": [topic.lower()],
         "canonical": False
     }
-    print("📋 Metadata inicial configurada:")
+    print("\n📋 Metadata inicial configurada:")
     print(json.dumps(metadata, ensure_ascii=False, indent=2))
     
     print("\n🔄 Iniciando proceso de orquestación...")

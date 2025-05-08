@@ -71,12 +71,12 @@ class OrchestratorAgent:
                         "role": "user",
                         "content": f"""Crear un curso sobre: {topic}
 
-Metadata del curso:
-- Título: {metadata.get('title', topic)}
-- Descripción: {metadata.get('description', '')}
-- Nivel: {metadata.get('level', 'beginner')}
-- Tags: {', '.join(metadata.get('tags', []))}
-- Canónico: {metadata.get('canonical', False)}"""
+                        Metadata del curso:
+                        - Título: {metadata.get('title', topic)}
+                        - Descripción: {metadata.get('description', '')}
+                        - Nivel: {metadata.get('level', 'beginner')}
+                        - Tags: {', '.join(metadata.get('tags', []))}
+                        - Canónico: {metadata.get('canonical', False)}"""
                     }
                 ],
                 run_config=run_config

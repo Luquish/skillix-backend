@@ -33,6 +33,7 @@ async def search_web(input_data: SearchWebInput) -> SearchWebOutput:
     Returns:
         Resultados de la búsqueda web
     """
+    print(f"\n🔍 [TOOL] search_web - Iniciando búsqueda web para query: {input_data.query}")
     try:
         headers = {
             "Accept": "application/json",
@@ -53,7 +54,7 @@ async def search_web(input_data: SearchWebInput) -> SearchWebOutput:
                 params=params
             ) as response:
                 if response.status != 200:
-                    print(f"Error from Brave Search API: {response.status}")
+                    print(f"❌ [TOOL] search_web - Error from Brave Search API: {response.status}")
                     return SearchWebOutput(results=[])
                     
                 data = await response.json()
@@ -69,8 +70,9 @@ async def search_web(input_data: SearchWebInput) -> SearchWebOutput:
                         )
                     )
                 
+                print(f"✅ [TOOL] search_web - Búsqueda completada. Resultados encontrados: {len(search_results)}")
                 return SearchWebOutput(results=search_results)
                 
     except Exception as e:
-        print(f"Error performing web search: {e}")
+        print(f"❌ [TOOL] search_web - Error performing web search: {e}")
         return SearchWebOutput(results=[]) 
