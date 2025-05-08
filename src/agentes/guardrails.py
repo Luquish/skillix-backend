@@ -1,14 +1,12 @@
-"""Guardrails para la validación de cursos."""
 from pydantic import BaseModel
-from openai import (
+from agents import (
     Agent,
     GuardrailFunctionOutput,
-    InputGuardrailTripwireTriggered,
     RunContextWrapper,
     Runner,
     input_guardrail,
 )
-
+from config import settings
 class TopicValidationOutput(BaseModel):
     """Resultado de la validación del tema."""
     is_valid: bool
@@ -28,7 +26,8 @@ validation_agent = Agent(
     
     Si el tema no es válido, sugiere una alternativa apropiada.
     """,
-    output_type=TopicValidationOutput
+    output_type=TopicValidationOutput,
+    model=settings.OPENAI_MODEL
 )
 
 @input_guardrail

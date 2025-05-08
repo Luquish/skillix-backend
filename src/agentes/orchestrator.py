@@ -1,32 +1,54 @@
 """OrchestratorAgent: Coordina el flujo completo de creación y gestión de cursos."""
 from typing import Optional
 from pydantic import BaseModel
-from openai import Agent, Runner
-from schemas.course import CourseDoc
+from agents import Agent, Runner
+from schemas.course import CourseDoc, Block
 from tools.course_builder import build_course_doc
 from services.course_service import CourseService
-from .content import generate_course_content
-from .planner import generate_course_plan
+from config import settings
+from .content import create_content_agent
+from .assessment import create_assessment_agent
 
 class OrchestrationOutput(BaseModel):
     """Salida del proceso de orquestación."""
     course: CourseDoc
     reasoning: str
 
+class CourseOutput(BaseModel):
+    """Salida estructurada del agente de contenido."""
+    blocks: list[Block]
+    reasoning: str
+
+# Crear los agentes especializados
+content_agent = create_content_agent()
+assessment_agent = create_assessment_agent()
+
 class OrchestratorAgent:
     def __init__(self):
         self._course_service = CourseService()
+        self._orchestrator = Agent(
+            name="Course Orchestrator",
+            instructions="""Coordinas la creación completa de cursos educativos.
+            Debes:
+            1. Analizar el tema solicitado
+            2. Coordinar con los agentes especializados
+            3. Asegurar la calidad del contenido final""",
+            handoffs=[content_agent, assessment_agent]
+        )
 
     async def create_new_course(self, topic: str, metadata: dict) -> Optional[OrchestrationOutput]:
         """Coordina la creación completa de un nuevo curso."""
         try:
-            # 1. Generar plan del curso
-            plan = await generate_course_plan(topic)
+            # 1. Ejecutar el orquestador
+            result = await Runner.run(
+                self._orchestrator,
+                f"Crear un curso sobre: {topic}",
+                metadata=metadata
+            )
             
-            # 2. Generar contenido basado en el plan
-            content = await generate_course_content(plan)
+            # 2. Procesar el resultado y construir el CourseDoc
+            content = result.final_output_as(CourseOutput)
             
-            # 3. Construir el CourseDoc
             course = build_course_doc(
                 blocks=content.blocks,
                 metadata={
@@ -38,13 +60,13 @@ class OrchestratorAgent:
                 }
             )
             
-            # 4. Persistir y indexar el curso
+            # 3. Persistir y indexar el curso
             created_course = await self._course_service.create_course(course)
             
             if created_course:
                 return OrchestrationOutput(
                     course=created_course,
-                    reasoning=f"Curso creado exitosamente: {content.reasoning}"
+                    reasoning=content.reasoning
                 )
             
             return None
@@ -61,13 +83,15 @@ class OrchestratorAgent:
     ) -> Optional[OrchestrationOutput]:
         """Coordina la actualización de un curso existente."""
         try:
-            # 1. Generar nuevo plan (considerando el contenido existente)
-            plan = await generate_course_plan(topic)
+            # Similar a create_new_course pero manteniendo el course_id
+            result = await Runner.run(
+                self._orchestrator,
+                f"Actualizar el curso {course_id} sobre: {topic}",
+                metadata=metadata
+            )
             
-            # 2. Generar contenido actualizado
-            content = await generate_course_content(plan)
+            content = result.final_output_as(CourseOutput)
             
-            # 3. Construir el CourseDoc actualizado
             course = build_course_doc(
                 blocks=content.blocks,
                 metadata={
@@ -77,16 +101,15 @@ class OrchestratorAgent:
                     "tags": metadata.get("tags", []),
                     "canonical": metadata.get("canonical", False)
                 },
-                course_id=course_id  # Mantener el mismo ID
+                course_id=course_id
             )
             
-            # 4. Actualizar y reindexar el curso
             updated_course = await self._course_service.update_course(course_id, course)
             
             if updated_course:
                 return OrchestrationOutput(
                     course=updated_course,
-                    reasoning=f"Curso actualizado exitosamente: {content.reasoning}"
+                    reasoning=content.reasoning
                 )
             
             return None

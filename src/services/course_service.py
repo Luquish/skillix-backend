@@ -3,12 +3,12 @@ from typing import Optional
 from datetime import datetime
 from google.cloud import firestore
 from schemas.course import CourseDoc
-from services.index_service import IndexService
+from services.vector_service import VectorService
 from config import settings
 
 class CourseService:
     def __init__(self):
-        self._index_service = IndexService()
+        self._vector_service = VectorService()
         self._db = firestore.Client(project=settings.PROJECT_ID)
         self._courses_collection = self._db.collection('courses')
     
@@ -27,7 +27,7 @@ class CourseService:
             doc_ref.set(course_data)
             
             # Añadimos al índice vectorial
-            index_success = await self._index_service.add_course_to_index(course)
+            index_success = await self._vector_service.add_course_to_index(course)
             
             if not index_success:
                 print(f"Warning: Course {course.courseId} created but not indexed")
@@ -52,7 +52,7 @@ class CourseService:
             doc_ref.update(course_data)
             
             # Actualizamos el índice vectorial
-            index_success = await self._index_service.update_course_in_index(updates)
+            index_success = await self._vector_service.update_course_in_index(updates)
             
             if not index_success:
                 print(f"Warning: Course {course_id} updated but index not updated")
@@ -71,7 +71,7 @@ class CourseService:
             doc_ref.delete()
             
             # Eliminamos del índice vectorial
-            index_success = await self._index_service.remove_course_from_index(course_id)
+            index_success = await self._vector_service.remove_course_from_index(course_id)
             
             if not index_success:
                 print(f"Warning: Course {course_id} deleted but not removed from index")

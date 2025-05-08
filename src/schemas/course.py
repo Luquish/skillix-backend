@@ -71,9 +71,9 @@ Block = (
 
 class CourseDoc(BaseModel):
     # Campos de identificación
-    courseId: Annotated[str, constr(regex=r'^[a-z0-9_]+$')]  # snake-case, único
-    version: str = Field(default="v1", regex=r'^v\d+$')  # para control de cambios
-    language: str = Field(default="es", regex=r'^[a-z]{2}$')  # ISO-639-1 (es, en, fr...)
+    courseId: Annotated[str, constr(pattern=r'^[a-z0-9_]+$')]  # snake-case, único
+    version: str = Field(default="v1", pattern=r'^v\d+$')  # para control de cambios
+    language: str = Field(default="es", pattern=r'^[a-z]{2}$')  # ISO-639-1 (es, en, fr...)
     
     # Campos descriptivos
     title: str
