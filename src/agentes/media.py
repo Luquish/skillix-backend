@@ -3,7 +3,7 @@ from typing import List
 from pydantic import BaseModel
 from agents import Agent, Runner
 from schemas.course import Block, CourseDoc
-from tools.synthesize_tts import synthesize_speech
+from tools.synthesize_tts import synthesize_text
 
 class MediaOutput(BaseModel):
     """Salida estructurada del MediaAgent."""
@@ -31,7 +31,7 @@ def create_media_agent() -> Agent:
         3. Tono profesional pero amigable
         4. Duración apropiada (30-90 segundos)
         """,
-        tools=[synthesize_speech],
+        tools=[synthesize_text],
         output_type=MediaOutput
     )
     
@@ -42,10 +42,19 @@ async def add_media_resources(blocks: List[Block], course_id: str) -> CourseDoc:
     agent = create_media_agent()
     result = await Runner.run(
         agent,
-        {
-            "blocks": [block.dict() for block in blocks],
-            "course_id": course_id
-        }
+        [
+            {
+                "role": "system",
+                "content": "Eres un experto en contenido multimedia educativo."
+            },
+            {
+                "role": "user",
+                "content": f"""Enriquecer los bloques del curso {course_id} con recursos multimedia.
+
+Bloques actuales:
+{chr(10).join(f'- {block.type}: {getattr(block, "title", "")}' for block in blocks)}"""
+            }
+        ]
     )
     
     # Construir el CourseDoc final con los bloques enriquecidos

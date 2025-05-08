@@ -58,6 +58,18 @@ async def enrich_course_assessment(blocks: List[Block]) -> AssessmentOutput:
     agent = create_assessment_agent()
     result = await Runner.run(
         agent,
-        {"blocks": [block.dict() for block in blocks]}
+        [
+            {
+                "role": "system",
+                "content": "Eres un experto en evaluación educativa."
+            },
+            {
+                "role": "user",
+                "content": f"""Revisar y mejorar las evaluaciones del curso.
+
+Bloques actuales:
+{chr(10).join(f'- {block.type}: {getattr(block, "title", "")}' for block in blocks)}"""
+            }
+        ]
     )
     return result.final_output_as(AssessmentOutput) 

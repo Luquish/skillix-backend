@@ -1,6 +1,6 @@
 # planner.py 
 import os
-from src.config import settings
+from config import settings
 from typing import List
 from pydantic import BaseModel
 from agents import Agent, Runner
@@ -30,9 +30,11 @@ def create_planner_agent() -> Agent:
     
     agent = Agent(
         name="Course Planner",
-        instructions="""
+        instructions=f"""
         Eres un experto en planificación educativa. Tu tarea es crear un plan detallado 
         para un curso sobre el tema proporcionado.
+        
+        IMPORTANTE: El plan debe tener entre {settings.MAX_BLOCKS // 2} y {settings.MAX_BLOCKS - 2} pasos en total.
         
         Para cada paso del plan debes:
         1. Definir el tipo de contenido (read, audio, quiz, etc)
@@ -45,6 +47,7 @@ def create_planner_agent() -> Agent:
         - Incluir variedad de tipos de contenido
         - Mantener el engagement del estudiante
         - Asegurar la comprensión del tema
+        - No exceder {settings.MAX_BLOCKS - 2} pasos
         """,
         output_type=PlanOutput
     )
@@ -56,6 +59,15 @@ async def generate_course_plan(topic: str) -> PlanOutput:
     agent = create_planner_agent()
     result = await Runner.run(
         agent,
-        f"Crear un plan de curso sobre: {topic}"
+        [
+            {
+                "role": "system",
+                "content": "Eres un experto en planificación educativa."
+            },
+            {
+                "role": "user",
+                "content": f"Crear un plan de curso sobre el tema: {topic}"
+            }
+        ]
     )
     return result.final_output_as(PlanOutput)

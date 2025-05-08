@@ -1,5 +1,5 @@
 """Tool for performing web searches using Brave Search API."""
-from typing import List, Dict, Any, Optional
+from typing import List
 from pydantic import BaseModel, Field
 import aiohttp
 from config import settings

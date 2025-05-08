@@ -43,7 +43,7 @@ class VectorService:
             datapoint = {
                 "id": course.courseId,
                 "vector": course_vector,
-                "datapoint_id": course.dict()  # Almacenamos el curso completo
+                "datapoint_id": course.model_dump()  # Almacenamos el curso completo
             }
             
             # Añadimos al índice

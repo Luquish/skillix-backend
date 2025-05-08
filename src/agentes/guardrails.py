@@ -5,8 +5,10 @@ from agents import (
     RunContextWrapper,
     Runner,
     input_guardrail,
+    RunConfig
 )
 from config import settings
+
 class TopicValidationOutput(BaseModel):
     """Resultado de la validación del tema."""
     is_valid: bool
@@ -37,7 +39,24 @@ async def topic_guardrail(
     input: str
 ) -> GuardrailFunctionOutput:
     """Valida el tema del curso antes de procesarlo."""
-    result = await Runner.run(validation_agent, input, context=ctx.context)
+    result = await Runner.run(
+        validation_agent,
+        [
+            {
+                "role": "system",
+                "content": "Validas si los temas propuestos son apropiados para cursos educativos."
+            },
+            {
+                "role": "user",
+                "content": f"Validar si el siguiente tema es apropiado para un curso educativo: {input}"
+            }
+        ],
+        run_config=RunConfig(
+            trace_id=ctx.context.trace_id if ctx.context else None,
+            group_id=ctx.context.group_id if ctx.context else None,
+            workflow_name=ctx.context.workflow_name if ctx.context else None
+        )
+    )
     
     return GuardrailFunctionOutput(
         output_info=result.final_output,
