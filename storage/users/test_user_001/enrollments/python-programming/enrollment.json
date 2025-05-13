@@ -1,1 +1,227 @@
-{"roadmap_json":{"sections":[{"title":"Getting Started with Python","days":[{"day_number":1,"title":"1) Introduction to Python","is_action_day":false,"description":"Understand what Python is, why it's popular, and its applications in web development."},{"day_number":2,"title":"2) Setting Up Your Environment","is_action_day":false,"description":"Install Python and set up your coding environment using an IDE or text editor."},{"day_number":3,"title":"3) Python Basics: Variables and Data Types","is_action_day":false,"description":"Learn about variables, different data types, and simple data operations."},{"day_number":4,"title":"4) Control Structures: If Statements","is_action_day":false,"description":"Explore conditional statements to control the flow of your programs."},{"day_number":5,"title":"5) Loops: For and While","is_action_day":false,"description":"Understand loops and how to use them to iterate through data."},{"day_number":6,"title":"6) Functions: Defining and Calling","is_action_day":false,"description":"Learn how to create functions to organize code efficiently."},{"day_number":7,"title":"7) Mini-Challenge: Build a Simple Calculator","is_action_day":true,"description":"Create a simple calculator that can perform basic arithmetic operations."}]},{"title":"Intermediate Concepts in Python","days":[{"day_number":8,"title":"8) Data Structures: Lists and Tuples","is_action_day":false,"description":"Discover different data structures and how to use them."},{"day_number":9,"title":"9) Dictionaries and Sets","is_action_day":false,"description":"Understand how to store key-value pairs and unique items."},{"day_number":10,"title":"10) Error Handling: Try and Except","is_action_day":false,"description":"Learn to handle errors gracefully in your code."},{"day_number":11,"title":"11) Introduction to Object-Oriented Programming","is_action_day":false,"description":"Get an overview of classes and objects in Python."},{"day_number":12,"title":"12) Working with Modules and Packages","is_action_day":false,"description":"Learn how to organize and reuse code with modules."},{"day_number":13,"title":"13) Introduction to Web Frameworks","is_action_day":false,"description":"Explore what web frameworks are and their role in web applications."},{"day_number":14,"title":"14) Mini-Challenge: Create a Simple Data Storage Program","is_action_day":true,"description":"Build a program that allows users to store and retrieve simple data."}]},{"title":"Building Web Applications with Python","days":[{"day_number":15,"title":"15) Introduction to Flask Framework","is_action_day":false,"description":"Discover Flask, a micro web framework for Python."},{"day_number":16,"title":"16) Setting Up a Flask Project","is_action_day":false,"description":"Learn to create a basic Flask application."},{"day_number":17,"title":"17) Routing and HTTP Methods","is_action_day":false,"description":"Understand routing and how to handle different HTTP requests."},{"day_number":18,"title":"18) HTML Basics for Web Applications","is_action_day":false,"description":"Get familiar with HTML and its role in web applications."},{"day_number":19,"title":"19) Templating in Flask with Jinja2","is_action_day":false,"description":"Learn how to use Jinja2 for dynamic web pages in Flask."},{"day_number":20,"title":"20) Connecting Flask to a Database","is_action_day":false,"description":"Understand how to integrate a database such as SQLite with Flask."},{"day_number":21,"title":"21) Mini-Challenge: Build Your First Web App","is_action_day":true,"description":"Create a simple web application using Flask that displays a welcoming message."}]},{"title":"Expanding Your Python Skills","days":[{"day_number":22,"title":"22) Advanced Flask Features: Forms and Validation","is_action_day":false,"description":"Learn to handle forms and validate user inputs in Flask."},{"day_number":23,"title":"23) REST APIs with Flask","is_action_day":false,"description":"Understand how to build RESTful APIs using Flask."},{"day_number":24,"title":"24) Authentication and Authorization","is_action_day":false,"description":"Learn to secure your web applications with user authentication."},{"day_number":25,"title":"25) Deploying Python Web Apps","is_action_day":false,"description":"Explore options for deploying your web application online."},{"day_number":26,"title":"26) Testing Your Application","is_action_day":false,"description":"Understand the fundamentals of testing Flask applications."},{"day_number":27,"title":"27) Mini-Challenge: Build and Deploy a Simple API","is_action_day":true,"description":"Create a REST API and deploy it using a free platform like Heroku."}]}],"overview":"This learning plan is designed to guide you through the fundamentals of Python programming, introducing you to the key concepts and gradually leading you to build web applications. With focused daily lessons and practical mini-challenges, you'll gain the confidence and skills to advance your career."},"last_generated_day":1,"streak":0,"xp_total":0,"created_at":"2025-05-13T00:18:23.280070+00:00","updated_at":"2025-05-13T00:18:36.982010+00:00","days":{"1":{"title":"1) Introduction to Python","is_action_day":false,"blocks":[{"type":"read","xp":5,"title":"What is Python?","body":"Python is a versatile programming language known for its simplicity and readability. It's an excellent choice for beginners, making it easy to learn basic programming concepts without getting lost in complex syntax. Its clear structure allows you to focus on problem-solving instead of code intricacies."},{"type":"read","xp":5,"title":"Why is Python Popular?","body":"Python's popularity stems from its extensive libraries and frameworks, which enhance its capabilities. It’s used by tech giants like Google and Netflix, proving its reliability and efficiency. Plus, the active community helps newbies find resources and support easily!"},{"type":"read","xp":5,"title":"Applications in Web Development","body":"Python is widely used in web development, particularly with frameworks like Django and Flask. These frameworks provide tools and libraries that streamline the development process, allowing you to create dynamic web applications quickly and efficiently."},{"type":"read","xp":5,"title":"Fun Fact About Python","body":"Did you know that Python is named after the British comedy series 'Monty Python's Flying Circus'? Its creator, Guido van Rossum, wanted a name that was short, unique, and slightly mysterious, just like the show!"},{"type":"quiz_mcq","xp":5,"question":"What is Python primarily known for?","options":["A) Complexity","B) Versatility","C) Limited functions","D) Lack of libraries"],"answer":1},{"type":"quiz_mcq","xp":5,"question":"Which framework is NOT typically associated with Python web development?","options":["A) Django","B) Flask","C) Express","D) Pyramid"],"answer":2},{"type":"quiz_tf","xp":5,"statement":"Python is hard to learn for beginners.","answer":false},{"type":"quiz_tf","xp":5,"statement":"Django is a Python web framework.","answer":true},{"type":"matching_pairs","xp":5,"left_items":["Python","Django","Monty Python","Framework"],"right_items":["A comedy series","A web framework","A programming language","A library of pre-built functions"],"answer":[2,1,0,3]},{"type":"scenario_mcq","xp":5,"context":"You need to build a simple web application. Which Python framework would you choose?","options":["A) Django","B) Angular","C) React","D) Ruby on Rails"],"answer":0}],"action_task":null,"score":null,"feedback":null,"completed_at":null}}}
+{
+  "roadmap_json": {
+    "sections": [
+      {
+        "title": "Getting Started with Python",
+        "days": [
+          {
+            "day_number": 1,
+            "title": "1) Introduction to Python",
+            "is_action_day": false,
+            "description": "Understand what Python is and its applications."
+          },
+          {
+            "day_number": 2,
+            "title": "2) Setting Up Your Environment",
+            "is_action_day": false,
+            "description": "Install Python and set up a basic IDE (e.g., VSCode)."
+          },
+          {
+            "day_number": 3,
+            "title": "3) Your First Python Program",
+            "is_action_day": true,
+            "description": "Write and run your first 'Hello, World!' program."
+          }
+        ]
+      },
+      {
+        "title": "Python Basics",
+        "days": [
+          {
+            "day_number": 4,
+            "title": "4) Variables and Data Types",
+            "is_action_day": false,
+            "description": "Learn about different data types in Python."
+          },
+          {
+            "day_number": 5,
+            "title": "5) Control Structures",
+            "is_action_day": false,
+            "description": "Understand if statements and loops."
+          },
+          {
+            "day_number": 6,
+            "title": "6) Functions and Modules",
+            "is_action_day": false,
+            "description": "Create reusable code with functions."
+          },
+          {
+            "day_number": 7,
+            "title": "7) Working with Lists and Dictionaries",
+            "is_action_day": true,
+            "description": "Use lists and dictionaries for data storage."
+          }
+        ]
+      },
+      {
+        "title": "Object-Oriented Programming (OOP)",
+        "days": [
+          {
+            "day_number": 8,
+            "title": "8) Introduction to OOP",
+            "is_action_day": false,
+            "description": "Learn the principles of Object-Oriented Programming."
+          },
+          {
+            "day_number": 9,
+            "title": "9) Creating Classes and Objects",
+            "is_action_day": false,
+            "description": "Define classes and create objects in Python."
+          },
+          {
+            "day_number": 10,
+            "title": "10) Inheritance and Polymorphism",
+            "is_action_day": false,
+            "description": "Understand key OOP concepts and use them in code."
+          },
+          {
+            "day_number": 11,
+            "title": "11) OOP Practice",
+            "is_action_day": true,
+            "description": "Build a simple class and utilize its methods."
+          }
+        ]
+      },
+      {
+        "title": "Web Development with Python",
+        "days": [
+          {
+            "day_number": 12,
+            "title": "12) Introduction to Web Development",
+            "is_action_day": false,
+            "description": "Understand web development basics and frameworks."
+          },
+          {
+            "day_number": 13,
+            "title": "13) Setting Up Flask",
+            "is_action_day": false,
+            "description": "Install Flask, a popular web framework for Python."
+          },
+          {
+            "day_number": 14,
+            "title": "14) Building Your First Web App",
+            "is_action_day": true,
+            "description": "Create a simple web application using Flask."
+          }
+        ]
+      },
+      {
+        "title": "Enhancing Your Web Applications",
+        "days": [
+          {
+            "day_number": 15,
+            "title": "15) Working with Templates in Flask",
+            "is_action_day": false,
+            "description": "Learn how to use templates in your web app."
+          },
+          {
+            "day_number": 16,
+            "title": "16) Handling Forms and Data",
+            "is_action_day": false,
+            "description": "Manage user input through forms in Flask."
+          },
+          {
+            "day_number": 17,
+            "title": "17) Keeping It Secure",
+            "is_action_day": true,
+            "description": "Implement basic security practices for your web application."
+          }
+        ]
+      }
+    ],
+    "overview": "This learning plan will guide you through the basics of Python programming, focusing on building web applications. You'll start with the fundamentals, move into Object-Oriented Programming, and then onto web development using Flask. By the end, you'll have the skills to create simple web applications as a foundation for your career growth."
+  },
+  "last_generated_day": 2,
+  "streak": 0,
+  "xp_total": 0,
+  "created_at": "2025-05-13T00:20:44.440331+00:00",
+  "updated_at": "2025-05-13T00:26:05.316815+00:00",
+  "days": {
+    "1": {
+      "title": "1) Introduction to Python",
+      "is_action_day": false,
+      "blocks": [
+        {
+          "type": "read",
+          "xp": 5,
+          "title": "What is Python?",
+          "body": "Python is a popular programming language known for its simplicity and readability. It’s great for beginners because you can focus on learning programming concepts rather than complicated syntax."
+        },
+        {
+          "type": "read",
+          "xp": 5,
+          "title": "Why Use Python?",
+          "body": "Python is versatile and can be used for various applications including web development, data analysis, artificial intelligence, and automation. Its large community and vast libraries make it a powerful tool."
+        },
+        {
+          "type": "read",
+          "xp": 5,
+          "title": "Getting Started with Python",
+          "body": "To start programming in Python, you need to install it on your computer. Once installed, you can write and execute Python code using an Integrated Development Environment (IDE) or text editor."
+        },
+        {
+          "type": "read",
+          "xp": 5,
+          "title": "Python Syntax Basics",
+          "body": "Python uses indentation to define blocks of code, which makes it easy to read. For example, a simple print statement looks like this: \n```python\nprint('Hello, World!')\n``` This will output: Hello, World!"
+        },
+        {
+          "type": "quiz_mcq",
+          "xp": 5,
+          "question": "What is one reason Python is a good choice for beginners?",
+          "options": [
+            "A) It's very complex",
+            "B) It's only used for web development",
+            "C) It has simple syntax",
+            "D) It requires a lot of coding knowledge"
+          ],
+          "answer": 2
+        },
+        {
+          "type": "quiz_tf",
+          "xp": 5,
+          "statement": "Python can only be used for web applications.",
+          "answer": false
+        },
+        {
+          "type": "matching_pairs",
+          "xp": 5,
+          "left_items": [
+            "Web Development",
+            "Data Science",
+            "Artificial Intelligence",
+            "Automation"
+          ],
+          "right_items": [
+            "Creating websites",
+            "Analyzing data",
+            "Machine learning applications",
+            "Scripting repetitive tasks"
+          ],
+          "answer": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "type": "scenario_mcq",
+          "xp": 5,
+          "context": "You want to create a website using Python. Which framework would you likely use?",
+          "options": [
+            "A) NumPy",
+            "B) Flask",
+            "C) TensorFlow",
+            "D) BeautifulSoup"
+          ],
+          "answer": 1
+        }
+      ],
+      "action_task": null,
+      "score": null,
+      "feedback": null,
+      "completed_at": null
+    }
+  }
+}

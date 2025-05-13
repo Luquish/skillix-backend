@@ -1,0 +1,110 @@
+{
+  "title": "2) Setting Up Your Environment",
+  "is_action_day": false,
+  "blocks": [
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Installing Python",
+      "body": "To start programming in Python, you need to install it on your computer. Visit the official Python website and download the latest version for your operating system. The setup is straightforward, just follow the installer instructions and ensure you check the box to add Python to your PATH for smooth execution from the command line. Did you know? Python is named after the British comedy group Monty Python!"
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Choosing an IDE",
+      "body": "An Integrated Development Environment (IDE) makes coding easier. Visual Studio Code (VSCode) is a popular choice for Python beginners due to its user-friendly interface. It provides helpful features like debugging, syntax highlighting, and extensions for additional functionalities. Fun fact: VSCode was created by Microsoft and is completely free!"
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Setting Up VSCode for Python",
+      "body": "After installing VSCode, you need to install the Python extension. Open VSCode, go to the Extensions tab, and search for 'Python'. Click 'Install' on the official Python extension provided by Microsoft. This extension adds essential features like IntelliSense and code navigation. Did you know? More than 88% of developers find that using an IDE increases their productivity!"
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Creating Your First Python File",
+      "body": "Once you've set up your IDE, it's time to write your first Python script! Open a new file in VSCode, save it as 'hello.py', and write the simple line: print('Hello, World!'). This classic first program in any language prints a greeting to the screen. Fun fact: This phrase is often the first program written when learning a new programming language!"
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Running Your Python Script",
+      "body": "To run your Python script, you can use the integrated terminal in VSCode. Open the terminal (View > Terminal), then type 'python hello.py' and hit enter. If everything is set up correctly, you'll see 'Hello, World!' displayed. This confirms that Python is installed correctly and is functional. Did you know? The first version of Python was released in 1991!"
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 5,
+      "question": "What is the first thing you should do to start programming in Python?",
+      "options": [
+        "Install an IDE",
+        "Install Python",
+        "Write your first script",
+        "Learn Python syntax"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 5,
+      "question": "Which IDE is suggested for Python beginners in this lesson?",
+      "options": [
+        "Pycharm",
+        "Eclipse",
+        "Visual Studio Code",
+        "Notepad++"
+      ],
+      "answer": 2
+    },
+    {
+      "type": "quiz_tf",
+      "xp": 5,
+      "statement": "VSCode is a paid software.",
+      "answer": false
+    },
+    {
+      "type": "quiz_tf",
+      "xp": 5,
+      "statement": "You must write 'print('Hello, World!')' to create your first script.",
+      "answer": true
+    },
+    {
+      "type": "matching_pairs",
+      "xp": 5,
+      "left_items": [
+        "Python",
+        "VSCode",
+        "Hello World",
+        "Extension"
+      ],
+      "right_items": [
+        "An IDE for Python",
+        "A basic program",
+        "A programming language",
+        "Additional features for an IDE"
+      ],
+      "answer": [
+        2,
+        0,
+        1,
+        3
+      ]
+    },
+    {
+      "type": "scenario_mcq",
+      "xp": 5,
+      "context": "You have just installed Python and VSCode. Now you want to write your first program. What should you do first?",
+      "options": [
+        "Open the terminal and run Python",
+        "Create a new file and write code",
+        "Install more extensions",
+        "Run an existing Python script"
+      ],
+      "answer": 1
+    }
+  ],
+  "action_task": null,
+  "score": null,
+  "feedback": null,
+  "completed_at": null
+}

@@ -4,7 +4,7 @@ from src.agentes.orchestrator import generate_next_day_content
 from src.services.storage_service import StorageService, EnrollmentDay
 from src.config import settings
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter()
 storage = StorageService(settings.STORAGE_PATH)
@@ -43,7 +43,7 @@ async def get_next_day(request: DayRequest) -> DayResponse:
         if current_day:
             current_day.score = request.score
             current_day.feedback = request.feedback
-            current_day.completed_at = datetime.now(datetime.UTC)
+            current_day.completed_at = datetime.now(timezone.utc)
             
             storage.save_day_content(
                 request.uid,

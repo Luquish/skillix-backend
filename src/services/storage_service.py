@@ -5,6 +5,24 @@ from typing import Optional, Dict, Any
 from src.schemas.course import Block
 from pydantic import BaseModel, ConfigDict
 
+class UserPreferences(BaseModel):
+    """Modelo para las preferencias del usuario guardadas durante el onboarding"""
+    name: str
+    skill: str
+    experience: str
+    motivation: str
+    time: str
+    learning_style: str
+    goal: str
+    created_at: datetime = datetime.now(timezone.utc)
+    updated_at: datetime = datetime.now(timezone.utc)
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat()
+        }
+    )
+
 class UserProfile(BaseModel):
     name: str
     email: str
@@ -56,12 +74,29 @@ class StorageService:
         """Ensures all directories in path exist"""
         os.makedirs(path, exist_ok=True)
 
+    def save_user_preferences(self, uid: str, preferences: UserPreferences):
+        """Guarda las preferencias del usuario"""
+        path = os.path.join(self.users_path, uid, "preferences.json")
+        self._ensure_dirs(os.path.dirname(path))
+        with open(path, 'w') as f:
+            json_data = preferences.model_dump_json(indent=2)
+            f.write(json_data)
+
+    def get_user_preferences(self, uid: str) -> Optional[UserPreferences]:
+        """Obtiene las preferencias del usuario"""
+        path = os.path.join(self.users_path, uid, "preferences.json")
+        if not os.path.exists(path):
+            return None
+        with open(path, 'r') as f:
+            return UserPreferences.model_validate(json.load(f))
+
     def save_user_profile(self, uid: str, profile: UserProfile):
         """Saves user profile"""
         path = os.path.join(self.users_path, uid, "profile")
         self._ensure_dirs(os.path.dirname(path))
         with open(path, 'w') as f:
-            f.write(profile.model_dump_json())
+            json_data = profile.model_dump_json(indent=2)
+            f.write(json_data)
 
     def get_user_profile(self, uid: str) -> Optional[UserProfile]:
         """Gets user profile"""
@@ -94,7 +129,8 @@ class StorageService:
         day_path = os.path.join(enrollment_path, "days", str(day_number))
         self._ensure_dirs(os.path.dirname(day_path))
         with open(day_path, 'w') as f:
-            f.write(content.model_dump_json())
+            json_data = content.model_dump_json(indent=2)
+            f.write(json_data)
 
     def get_day_content(self, uid: str, course_id: str, day_number: int) -> Optional[EnrollmentDay]:
         """Gets content for a specific day"""
@@ -107,7 +143,8 @@ class StorageService:
     def _save_enrollment(self, path: str, enrollment: Enrollment):
         """Saves enrollment data"""
         with open(os.path.join(path, "enrollment.json"), 'w') as f:
-            f.write(enrollment.model_dump_json())
+            json_data = enrollment.model_dump_json(indent=2)
+            f.write(json_data)
 
     def get_enrollment(self, uid: str, course_id: str) -> Optional[Enrollment]:
         """Gets enrollment data"""

@@ -1,1 +1,86 @@
-{"title":"1) Introduction to Python","is_action_day":false,"blocks":[{"type":"read","xp":5,"title":"What is Python?","body":"Python is a versatile programming language known for its simplicity and readability. It's an excellent choice for beginners, making it easy to learn basic programming concepts without getting lost in complex syntax. Its clear structure allows you to focus on problem-solving instead of code intricacies."},{"type":"read","xp":5,"title":"Why is Python Popular?","body":"Python's popularity stems from its extensive libraries and frameworks, which enhance its capabilities. It’s used by tech giants like Google and Netflix, proving its reliability and efficiency. Plus, the active community helps newbies find resources and support easily!"},{"type":"read","xp":5,"title":"Applications in Web Development","body":"Python is widely used in web development, particularly with frameworks like Django and Flask. These frameworks provide tools and libraries that streamline the development process, allowing you to create dynamic web applications quickly and efficiently."},{"type":"read","xp":5,"title":"Fun Fact About Python","body":"Did you know that Python is named after the British comedy series 'Monty Python's Flying Circus'? Its creator, Guido van Rossum, wanted a name that was short, unique, and slightly mysterious, just like the show!"},{"type":"quiz_mcq","xp":5,"question":"What is Python primarily known for?","options":["A) Complexity","B) Versatility","C) Limited functions","D) Lack of libraries"],"answer":1},{"type":"quiz_mcq","xp":5,"question":"Which framework is NOT typically associated with Python web development?","options":["A) Django","B) Flask","C) Express","D) Pyramid"],"answer":2},{"type":"quiz_tf","xp":5,"statement":"Python is hard to learn for beginners.","answer":false},{"type":"quiz_tf","xp":5,"statement":"Django is a Python web framework.","answer":true},{"type":"matching_pairs","xp":5,"left_items":["Python","Django","Monty Python","Framework"],"right_items":["A comedy series","A web framework","A programming language","A library of pre-built functions"],"answer":[2,1,0,3]},{"type":"scenario_mcq","xp":5,"context":"You need to build a simple web application. Which Python framework would you choose?","options":["A) Django","B) Angular","C) React","D) Ruby on Rails"],"answer":0}],"action_task":null,"score":null,"feedback":null,"completed_at":null}
+{
+  "title": "1) Introduction to Python",
+  "is_action_day": false,
+  "blocks": [
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "What is Python?",
+      "body": "Python is a popular programming language known for its simplicity and readability. It’s great for beginners because you can focus on learning programming concepts rather than complicated syntax."
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Why Use Python?",
+      "body": "Python is versatile and can be used for various applications including web development, data analysis, artificial intelligence, and automation. Its large community and vast libraries make it a powerful tool."
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Getting Started with Python",
+      "body": "To start programming in Python, you need to install it on your computer. Once installed, you can write and execute Python code using an Integrated Development Environment (IDE) or text editor."
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Python Syntax Basics",
+      "body": "Python uses indentation to define blocks of code, which makes it easy to read. For example, a simple print statement looks like this: \n```python\nprint('Hello, World!')\n``` This will output: Hello, World!"
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 5,
+      "question": "What is one reason Python is a good choice for beginners?",
+      "options": [
+        "A) It's very complex",
+        "B) It's only used for web development",
+        "C) It has simple syntax",
+        "D) It requires a lot of coding knowledge"
+      ],
+      "answer": 2
+    },
+    {
+      "type": "quiz_tf",
+      "xp": 5,
+      "statement": "Python can only be used for web applications.",
+      "answer": false
+    },
+    {
+      "type": "matching_pairs",
+      "xp": 5,
+      "left_items": [
+        "Web Development",
+        "Data Science",
+        "Artificial Intelligence",
+        "Automation"
+      ],
+      "right_items": [
+        "Creating websites",
+        "Analyzing data",
+        "Machine learning applications",
+        "Scripting repetitive tasks"
+      ],
+      "answer": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "type": "scenario_mcq",
+      "xp": 5,
+      "context": "You want to create a website using Python. Which framework would you likely use?",
+      "options": [
+        "A) NumPy",
+        "B) Flask",
+        "C) TensorFlow",
+        "D) BeautifulSoup"
+      ],
+      "answer": 1
+    }
+  ],
+  "action_task": null,
+  "score": 0.95,
+  "feedback": "¡Excelente primera lección!",
+  "completed_at": "2025-05-13T00:25:51.714391+00:00"
+}

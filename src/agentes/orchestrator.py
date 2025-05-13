@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from .planner import generate_learning_plan
 from .content_generator import generate_day_content
-from src.services.storage_service import StorageService, Enrollment, EnrollmentDay
+from src.services.storage_service import StorageService, Enrollment, EnrollmentDay, UserPreferences
 from src.config import settings
 import logging
 
@@ -15,6 +15,19 @@ async def orchestrate_course_creation(user_data: dict, uid: str) -> Optional[Enr
     try:
         logger.info(f"Iniciando creación de curso para usuario {uid}")
         logger.info(f"Datos del usuario: {user_data}")
+        
+        # Save user preferences
+        preferences = UserPreferences(
+            name=user_data['name'],
+            skill=user_data['skill'],
+            experience=user_data['experience'],
+            motivation=user_data['motivation'],
+            time=user_data['time'],
+            learning_style=user_data['learning_style'],
+            goal=user_data['goal']
+        )
+        storage.save_user_preferences(uid, preferences)
+        logger.info("Preferencias del usuario guardadas exitosamente")
         
         # Generate the learning plan
         logger.info("Generando plan de aprendizaje...")
@@ -98,9 +111,10 @@ async def generate_next_day_content(uid: str, course_id: str) -> bool:
         if not previous_day or not previous_day.completed_at:
             return False  # Previous day not completed
             
-        # Get user profile
-        user_profile = storage.get_user_profile(uid)
-        if not user_profile:
+        # Get user preferences
+        preferences = storage.get_user_preferences(uid)
+        if not preferences:
+            logger.error(f"No se encontraron preferencias para el usuario {uid}")
             return False
             
         # Find next day info from roadmap
@@ -116,10 +130,18 @@ async def generate_next_day_content(uid: str, course_id: str) -> bool:
         if not next_day:
             return False  # No more days
             
-        # Generate content for next day
+        # Generate content for next day using saved preferences
         day_content = await generate_day_content(
             day_info=next_day,
-            user_data=user_profile.preferences,
+            user_data={
+                'name': preferences.name,
+                'skill': preferences.skill,
+                'experience': preferences.experience,
+                'motivation': preferences.motivation,
+                'time': preferences.time,
+                'learning_style': preferences.learning_style,
+                'goal': preferences.goal
+            },
             previous_day_content=previous_day
         )
         
@@ -146,5 +168,5 @@ async def generate_next_day_content(uid: str, course_id: str) -> bool:
         return True
         
     except Exception as e:
-        print(f"Error generating next day content: {str(e)}")
+        logger.error(f"Error generating next day content: {str(e)}", exc_info=True)
         return False

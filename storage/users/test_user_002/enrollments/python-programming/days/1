@@ -1,0 +1,116 @@
+{
+  "title": "1) Python Functions Deep Dive",
+  "is_action_day": false,
+  "blocks": [
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Understanding Functions",
+      "body": "Functions in Python are reusable blocks of code designed to perform a specific task. They help organize your code and make it more manageable. You can think of a function as a mini-program within your larger program!"
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Parameters & Arguments",
+      "body": "Parameters are the variables listed inside the parentheses of a function definition. When you call a function, you provide values to these parameters known as arguments. This allows for dynamic and flexible code."
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Return Values explained",
+      "body": "The return statement is used to exit a function and send a value back to where the function was called. This makes functions powerful, allowing them to produce outputs based on inputs."
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Scope of Variables",
+      "body": "Scope defines where in the code a variable is accessible. Variables defined inside a function are local to that function, meaning they cannot be accessed from outside it. Understanding scope is crucial for managing your code effectively."
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 5,
+      "question": "What keyword is used to send a value back from a function?",
+      "options": [
+        "A) return",
+        "B) yield",
+        "C) send",
+        "D) output"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 5,
+      "question": "What are parameters in a function?",
+      "options": [
+        "A) Values returned by the function",
+        "B) Variables listed in the function definition",
+        "C) Blocks of code that do nothing",
+        "D) All of the above"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "quiz_tf",
+      "xp": 5,
+      "statement": "A variable defined inside a function can be accessed outside that function.",
+      "answer": false
+    },
+    {
+      "type": "quiz_tf",
+      "xp": 5,
+      "statement": "The 'return' statement can be used to exit a function early.",
+      "answer": true
+    },
+    {
+      "type": "matching_pairs",
+      "xp": 5,
+      "left_items": [
+        "Function",
+        "Parameter",
+        "Return Value",
+        "Scope"
+      ],
+      "right_items": [
+        "A value sent back from a function",
+        "A reusable block of code",
+        "Defines variable accessibility",
+        "Variable passed to a function"
+      ],
+      "answer": [
+        1,
+        0,
+        2,
+        3
+      ]
+    },
+    {
+      "type": "scenario_mcq",
+      "xp": 5,
+      "context": "You have a function that calculates the area of a rectangle. You pass the parameters width and height as 5 and 10. What will be the return value if the function correctly computes the area?",
+      "options": [
+        "A) 50",
+        "B) 15",
+        "C) 5",
+        "D) None"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "scenario_mcq",
+      "xp": 5,
+      "context": "If you declare a variable in a function and try to access it outside that function, what will happen?",
+      "options": [
+        "A) It will print the value",
+        "B) You'll get an error saying it is not defined",
+        "C) It will sum with global variables",
+        "D) None of the above"
+      ],
+      "answer": 1
+    }
+  ],
+  "action_task": null,
+  "score": 0.98,
+  "feedback": "Excelente repaso de funciones!",
+  "completed_at": "2025-05-13T00:33:40.483096+00:00"
+}

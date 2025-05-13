@@ -1,0 +1,128 @@
+{
+  "title": "2) Data Structures Refresh",
+  "is_action_day": false,
+  "blocks": [
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Understanding Lists",
+      "body": "Lists in Python are ordered collections that allow dynamic resizing. You can store multiple items in a single variable, and access them using their index. This makes them ideal for managing a sequence of data! **Fun Fact:** Did you know lists can store items of different data types? You can have integers, strings, and even other lists all in one! "
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Exploring Tuples",
+      "body": "Tuples are similar to lists, but they are immutable. Once created, you cannot change a tuple's values. This makes them safe for constants or fixed data collections. **Fun Fact:** Tuples can be faster than lists in terms of performance due to their immutable nature!"
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Discovering Sets",
+      "body": "Sets are unique collections that automatically remove duplicate entries. They are not ordered, meaning the items have no index. This feature is perfect for scenarios where you need to ensure all entries are distinct. **Fun Fact:** The empty set is created using `set()`, not `{}`, which is reserved for dictionaries!"
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Mastering Dictionaries",
+      "body": "Dictionaries are collections of key-value pairs. They allow you to store data in a way that you can easily look up values by their keys. This makes them incredibly powerful for mapping relationships. **Fun Fact:** The keys in a dictionary must be immutable types, such as strings or tuples."
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 10,
+      "question": "What is the main difference between lists and tuples?",
+      "options": [
+        "A) Lists are unordered",
+        "B) Tuples are mutable",
+        "C) Lists can have duplicates",
+        "D) Tuples can hold different data types"
+      ],
+      "answer": 2
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 10,
+      "question": "Which data structure would you use to store unique items?",
+      "options": [
+        "A) List",
+        "B) Tuple",
+        "C) Set",
+        "D) Dictionary"
+      ],
+      "answer": 2
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 10,
+      "question": "How do you define an empty dictionary in Python?",
+      "options": [
+        "A) {}",
+        "B) []",
+        "C) set()",
+        "D) ()"
+      ],
+      "answer": 0
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 10,
+      "question": "What will happen if you try to add a duplicate item to a set?",
+      "options": [
+        "A) It will throw an error",
+        "B) The duplicate will be removed automatically",
+        "C) It will add the item again",
+        "D) Nothing will happen"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "quiz_tf",
+      "xp": 5,
+      "statement": "Tuples in Python can be modified after creation.",
+      "answer": false
+    },
+    {
+      "type": "quiz_tf",
+      "xp": 5,
+      "statement": "Dictionaries can have mutable keys.",
+      "answer": false
+    },
+    {
+      "type": "matching_pairs",
+      "xp": 10,
+      "left_items": [
+        "List",
+        "Tuple",
+        "Set",
+        "Dictionary"
+      ],
+      "right_items": [
+        "Ordered collection",
+        "Immutable collection",
+        "Unique collection",
+        "Key-value pairs"
+      ],
+      "answer": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "type": "scenario_mcq",
+      "xp": 10,
+      "context": "You need to store a list of items in which each item must be unique. Which data structure should you choose?",
+      "options": [
+        "A) List",
+        "B) Tuple",
+        "C) Set",
+        "D) Dictionary"
+      ],
+      "answer": 2
+    }
+  ],
+  "action_task": null,
+  "score": null,
+  "feedback": null,
+  "completed_at": null
+}
