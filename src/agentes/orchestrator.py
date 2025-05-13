@@ -1,218 +1,150 @@
-"""OrchestratorAgent: Coordina el flujo completo de creación y gestión de cursos."""
+from datetime import datetime, timezone
 from typing import Optional
-from pydantic import BaseModel
-from agents import Agent, Runner, RunConfig, ModelSettings
-from schemas.course import CourseDoc, Block
-from tools.course_builder import build_course_doc
-from services.course_service import CourseService
-from .content import create_content_agent
-from .assessment import create_assessment_agent
-from config import settings
+from .planner import generate_learning_plan
+from .content_generator import generate_day_content
+from src.services.storage_service import StorageService, Enrollment, EnrollmentDay
+from src.config import settings
+import logging
 
-class OrchestrationOutput(BaseModel):
-    """Salida del proceso de orquestación."""
-    course: CourseDoc
-    reasoning: str
+logger = logging.getLogger(__name__)
 
-class CourseOutput(BaseModel):
-    """Salida estructurada del agente de contenido."""
-    blocks: list[Block]
-    reasoning: str
+storage = StorageService(settings.STORAGE_PATH)
 
-# Crear los agentes especializados
-content_agent = create_content_agent()
-assessment_agent = create_assessment_agent()
-
-class OrchestratorAgent:
-    def __init__(self):
-        print("\n🎭 Iniciando OrchestratorAgent")
-        self._course_service = CourseService()
-        self._orchestrator = Agent(
-            name="Course Orchestrator",
-            instructions="""Coordinas la creación completa de cursos educativos.
-            Debes:
-            1. Analizar el tema solicitado
-            2. Coordinar con los agentes especializados
-            3. Asegurar la calidad del contenido final""",
-            handoffs=[content_agent, assessment_agent],
-            model=settings.OPENAI_MODEL
+async def orchestrate_course_creation(user_data: dict, uid: str) -> Optional[Enrollment]:
+    """Orchestrates the course creation process"""
+    try:
+        logger.info(f"Iniciando creación de curso para usuario {uid}")
+        logger.info(f"Datos del usuario: {user_data}")
+        
+        # Generate the learning plan
+        logger.info("Generando plan de aprendizaje...")
+        learning_plan = await generate_learning_plan(user_data)
+        logger.info("Plan de aprendizaje generado exitosamente")
+        
+        # Create course ID from skill name
+        course_id = user_data['skill'].lower().replace(' ', '-')
+        logger.info(f"ID del curso generado: {course_id}")
+        
+        # Create enrollment with roadmap
+        logger.info("Creando inscripción...")
+        enrollment = storage.create_enrollment(
+            uid=uid,
+            course_id=course_id,
+            roadmap=learning_plan.model_dump()
         )
+        logger.info("Inscripción creada exitosamente")
+        
+        # Generate content for day 1
+        first_section = learning_plan.sections[0]
+        first_day = first_section.days[0]
+        logger.info(f"Generando contenido para el día 1: {first_day.title}")
+        
+        day_content = await generate_day_content(
+            day_info={
+                "day_number": first_day.day_number,
+                "title": first_day.title,
+                "is_action_day": first_day.is_action_day,
+                "description": first_day.description
+            },
+            user_data=user_data,
+            previous_day_content=None  # First day
+        )
+        logger.info("Contenido del día 1 generado exitosamente")
+        
+        # Save day content
+        enrollment_day = EnrollmentDay(
+            title=day_content.title,
+            is_action_day=day_content.is_action_day,
+            blocks=day_content.blocks,
+            action_task=day_content.action_task
+        )
+        
+        logger.info("Guardando contenido del día 1...")
+        storage.save_day_content(
+            uid=uid,
+            course_id=course_id,
+            day_number=first_day.day_number,
+            content=enrollment_day
+        )
+        logger.info("Contenido del día 1 guardado exitosamente")
+        
+        # Update enrollment and its days dictionary
+        enrollment.last_generated_day = 1
+        enrollment.updated_at = datetime.now(timezone.utc)
+        if not hasattr(enrollment, 'days'):
+            enrollment.days = {}
+        enrollment.days[1] = enrollment_day  # Add day content to enrollment object
+        storage.update_enrollment(uid, course_id, enrollment)
+        logger.info("Inscripción actualizada exitosamente")
+        
+        return enrollment
+        
+    except Exception as e:
+        logger.error(f"Error en la creación del curso: {str(e)}", exc_info=True)
+        return None
 
-    async def create_new_course(self, topic: str, metadata: dict) -> Optional[OrchestrationOutput]:
-        """Coordina la creación completa de un nuevo curso."""
-        try:
-            print("\n🎯 Iniciando creación de nuevo curso")
-            print(f"📝 Tema: {topic}")
+async def generate_next_day_content(uid: str, course_id: str) -> bool:
+    """Generates content for the next day if previous day was completed"""
+    try:
+        # Get enrollment
+        enrollment = storage.get_enrollment(uid, course_id)
+        if not enrollment:
+            return False
             
-            # Configuración del runner
-            run_config = RunConfig(
-                model=settings.OPENAI_MODEL,
-                model_settings=ModelSettings(
-                    temperature=0.7,  # Balancear creatividad con consistencia
-                    max_tokens=2000  # Suficiente para generar contenido detallado
-                ),
-                workflow_name="Creación de Curso",
-                trace_metadata={
-                    "topic": topic,
-                    "metadata": str(metadata)  # Convertir a string
-                }
-            )
+        current_day = enrollment.last_generated_day
+        
+        # Get previous day content
+        previous_day = storage.get_day_content(uid, course_id, current_day)
+        if not previous_day or not previous_day.completed_at:
+            return False  # Previous day not completed
             
-            print("\n🤖 Ejecutando agente orquestador...")
-            # 1. Ejecutar el orquestador
-            result = await Runner.run(
-                self._orchestrator,
-                [
-                    {
-                        "role": "system",
-                        "content": "Coordinas la creación completa de cursos educativos."
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""Crear un curso sobre: {topic}
-
-                        Metadata del curso:
-                        - Título: {metadata.get('title', topic)}
-                        - Descripción: {metadata.get('description', '')}
-                        - Nivel: {metadata.get('level', 'beginner')}
-                        - Tags: {', '.join(metadata.get('tags', []))}
-                        - Canónico: {metadata.get('canonical', False)}"""
-                    }
-                ],
-                run_config=run_config
-            )
+        # Get user profile
+        user_profile = storage.get_user_profile(uid)
+        if not user_profile:
+            return False
             
-            print("\n✨ Procesando resultado del orquestador...")
-            # 2. Procesar el resultado y construir el CourseDoc
-            try:
-                content = result.final_output_as(CourseOutput)
-                print("✅ Contenido procesado correctamente")
-                print(f"📊 Orquestador recibió {len(content.blocks)} bloques")
-            except Exception as e:
-                print(f"❌ Error al procesar la salida del modelo: {e}")
-                return None
+        # Find next day info from roadmap
+        next_day = None
+        for section in enrollment.roadmap_json['sections']:
+            for day in section['days']:
+                if day['day_number'] == current_day + 1:
+                    next_day = day
+                    break
+            if next_day:
+                break
+                
+        if not next_day:
+            return False  # No more days
             
-            print("\n🏗️  Construyendo documento del curso...")
-            course = build_course_doc(
-                blocks=content.blocks,
-                metadata={
-                    "title": metadata.get("title", topic),
-                    "description": metadata.get("description", ""),
-                    "level": metadata.get("level", "beginner"),
-                    "tags": metadata.get("tags", []),
-                    "canonical": metadata.get("canonical", False)
-                }
-            )
-            print(f"📦 CourseDoc construido con {len(course.blocks)} bloques")
-            
-            # 3. Persistir y indexar el curso
-            print("\n💾 Guardando curso...")
-            try:
-                created_course = await self._course_service.create_course(course)
-                if created_course:
-                    print("✅ Curso guardado exitosamente")
-                    return OrchestrationOutput(
-                        course=created_course,
-                        reasoning=content.reasoning
-                    )
-            except Exception as e:
-                print(f"❌ Error al persistir el curso: {e}")
-                return None
-            
-            return None
-            
-        except Exception as e:
-            print(f"❌ Error en la orquestación: {e}")
-            return None
-
-    async def update_existing_course(
-        self, 
-        course_id: str, 
-        topic: str, 
-        metadata: dict
-    ) -> Optional[OrchestrationOutput]:
-        """Coordina la actualización de un curso existente."""
-        try:
-            # Configuración del runner
-            run_config = RunConfig(
-                model=settings.OPENAI_MODEL,
-                model_settings=ModelSettings(
-                    temperature=0.7,
-                    max_tokens=2000
-                ),
-                workflow_name="Actualización de Curso",
-                trace_metadata={
-                    "course_id": course_id,
-                    "topic": topic,
-                    "metadata": str(metadata)  # Convertir a string
-                }
-            )
-            
-            # Similar a create_new_course pero manteniendo el course_id
-            result = await Runner.run(
-                self._orchestrator,
-                [
-                    {
-                        "role": "system",
-                        "content": "Coordinas la actualización de cursos educativos existentes."
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""Actualizar el curso {course_id} sobre: {topic}
-
-Metadata del curso:
-- Título: {metadata.get('title', topic)}
-- Descripción: {metadata.get('description', '')}
-- Nivel: {metadata.get('level', 'beginner')}
-- Tags: {', '.join(metadata.get('tags', []))}
-- Canónico: {metadata.get('canonical', False)}"""
-                    }
-                ],
-                run_config=run_config
-            )
-            
-            try:
-                content = result.final_output_as(CourseOutput)
-            except Exception as e:
-                print(f"Error al procesar la salida del modelo: {e}")
-                return None
-            
-            course = build_course_doc(
-                blocks=content.blocks,
-                metadata={
-                    "title": metadata.get("title", topic),
-                    "description": metadata.get("description", ""),
-                    "level": metadata.get("level", "beginner"),
-                    "tags": metadata.get("tags", []),
-                    "canonical": metadata.get("canonical", False)
-                },
-                course_id=course_id
-            )
-            
-            try:
-                updated_course = await self._course_service.update_course(course_id, course)
-            except Exception as e:
-                print(f"Error al actualizar el curso: {e}")
-                return None
-            
-            if updated_course:
-                return OrchestrationOutput(
-                    course=updated_course,
-                    reasoning=content.reasoning
-                )
-            
-            return None
-            
-        except Exception as e:
-            print(f"Error en la actualización: {e}")
-            return None
-
-    async def delete_course(self, course_id: str) -> bool:
-        """Coordina la eliminación de un curso."""
-        return await self._course_service.delete_course(course_id)
-
-# Función helper para uso directo
-async def orchestrate_course_creation(topic: str, metadata: dict) -> Optional[OrchestrationOutput]:
-    """Helper function para crear un nuevo curso."""
-    orchestrator = OrchestratorAgent()
-    return await orchestrator.create_new_course(topic, metadata) 
+        # Generate content for next day
+        day_content = await generate_day_content(
+            day_info=next_day,
+            user_data=user_profile.preferences,
+            previous_day_content=previous_day
+        )
+        
+        # Save new day content
+        enrollment_day = EnrollmentDay(
+            title=day_content.title,
+            is_action_day=day_content.is_action_day,
+            blocks=day_content.blocks,
+            action_task=day_content.action_task
+        )
+        
+        storage.save_day_content(
+            uid=uid,
+            course_id=course_id,
+            day_number=next_day['day_number'],
+            content=enrollment_day
+        )
+        
+        # Update enrollment
+        enrollment.last_generated_day = next_day['day_number']
+        enrollment.updated_at = datetime.now(timezone.utc)
+        storage.update_enrollment(uid, course_id, enrollment)
+        
+        return True
+        
+    except Exception as e:
+        print(f"Error generating next day content: {str(e)}")
+        return False

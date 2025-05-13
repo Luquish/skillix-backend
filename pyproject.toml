@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skillix-backend"
+version = "0.1.0"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+description = "A personalized learning journey creator"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "httpx",
+    "python-dotenv",
+    "openai"
+]
+
+[tool.setuptools]
+packages = ["src"] 

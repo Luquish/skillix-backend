@@ -1,20 +1,11 @@
 """Módulo de agentes para la generación de cursos."""
 
-from .orchestrator import orchestrate_course_creation, OrchestratorAgent
-from .content import create_content_agent, ContentOutput
-from .assessment import create_assessment_agent, AssessmentOutput
-from .planner import generate_course_plan, PlanOutput
-from .media import add_media_resources, MediaOutput
+from .orchestrator import orchestrate_course_creation
+from .planner import generate_learning_plan
+from .content_generator import generate_day_content
 
 __all__ = [
     'orchestrate_course_creation',
-    'OrchestratorAgent',
-    'create_content_agent',
-    'ContentOutput',
-    'create_assessment_agent',
-    'AssessmentOutput',
-    'generate_course_plan',
-    'PlanOutput',
-    'add_media_resources',
-    'MediaOutput'
+    'generate_learning_plan',
+    'generate_day_content'
 ] 

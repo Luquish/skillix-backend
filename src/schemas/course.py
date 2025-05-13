@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import List, Literal
 from pydantic import BaseModel, Field, field_validator
-from config import settings
 from datetime import datetime
+from datetime import timezone
 
 class BaseBlock(BaseModel):
     """Bloque base para todos los tipos de contenido."""
@@ -102,17 +102,9 @@ class CourseDoc(BaseModel):
     blocks: List[Block]
     
     # Timestamps
-    createdAt: datetime = Field(default_factory=datetime.utcnow)
-    updatedAt: datetime = Field(default_factory=datetime.utcnow)
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updatedAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    @field_validator("blocks")
-    @classmethod
-    def limit_blocks(cls, v):
-        if len(v) == 0:
-            raise ValueError("Course must contain at least one block")
-        if len(v) > settings.MAX_BLOCKS:
-            raise ValueError(f"Course too long (> {settings.MAX_BLOCKS} blocks)")
-        return v
 
     @field_validator("courseId")
     @classmethod

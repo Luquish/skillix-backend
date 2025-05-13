@@ -4,23 +4,32 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-# Load .env in local dev only
-env_path = Path(__file__).resolve().parent.parent / ".env"
-if env_path.exists():
-    load_dotenv(env_path)
+# Load environment variables
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(env_path)
 
-@lru_cache
-class Settings:  # type: ignore[misc]
-    OPENAI_API_KEY: str = os.environ["OPENAI_API_KEY"]
-    OPENAI_MODEL: str = os.environ["OPENAI_MODEL"]
-    OPENAI_EMBEDDING_MODEL: str = os.environ["OPENAI_EMBEDDING_MODEL"]
-    PROJECT_ID: str = os.getenv("PROJECT_ID", "skillix-dev")
-    REGION: str = os.getenv("GCP_REGION", "us-central1")
-    INDEX_ENDPOINT_NAME: str = os.environ.get("MATCHING_ENGINE_INDEX_ENDPOINT", "")
-    DEPLOYED_INDEX_ID: str = os.environ.get("MATCHING_ENGINE_DEPLOYED_INDEX_ID", "")
-    GCS_BUCKET: str = os.getenv("GCS_BUCKET", "skillix-assets")
-    TTS_VOICE: str = os.getenv("TTS_VOICE", "es-ES-Wavenet-A")
-    MAX_BLOCKS: int = int(os.getenv("MAX_BLOCKS", 12))
-    BRAVE_API_KEY: str = os.getenv("BRAVE_API_KEY", "")
+# Base directory
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Storage configuration
+STORAGE_PATH = BASE_DIR / "storage"
+
+class Settings:
+    # OpenAI configuration
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
+    
+    # Storage configuration
+    STORAGE_PATH: Path = STORAGE_PATH
+    
+    def __init__(self):
+        # Validate OpenAI settings
+        if not self.OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY must be set in environment variables")
+        
+        # Ensure storage directories exist
+        self.STORAGE_PATH.mkdir(exist_ok=True)
+        (self.STORAGE_PATH / "courses").mkdir(exist_ok=True)
+        (self.STORAGE_PATH / "users").mkdir(exist_ok=True)
 
 settings = Settings()
