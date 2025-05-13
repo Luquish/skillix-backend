@@ -64,6 +64,66 @@ Estructura del proyecto para FastAPI desplegado en Cloud Run.
   - `embeddings/`: Almacenamiento de embeddings
     - `skills.json`: Vectores de embedding y metadata
 
+## Lógica de Creación y Almacenamiento de Cursos
+
+### Proceso de Creación de Cursos
+
+1. **Generación de Cursos Personalizados**:
+   - El sistema analiza las preferencias del usuario (nivel, tiempo disponible, objetivos)
+   - Utiliza un sistema de embeddings para detectar cursos similares existentes
+   - Genera un plan de aprendizaje adaptado a las necesidades específicas
+
+2. **Estructura del Curso**:
+   - División en secciones temáticas
+   - Cada sección contiene múltiples días de contenido
+   - Contenido diario adaptado al tiempo disponible (5-20 minutos)
+   - Progresión gradual de dificultad
+
+3. **Sistema de Almacenamiento**:
+   - **Directorio Principal**: `storage/`
+     - `users/<email>/`: Datos específicos del usuario
+       - `preferences.json`: Preferencias y configuración
+       - `roadmaps/<course_id>/`: Cursos del usuario
+         - `roadmap.json`: Estructura completa del curso
+         - `days/`: Contenido diario generado
+     - `courses/`: Plantillas de cursos compartidos
+     - `embeddings/`: Vectores para búsqueda de similitud
+
+4. **Formato de Datos**:
+   - **roadmap.json**:
+     ```json
+     {
+       "course_id": "unique_id",
+       "title": "Nombre del Curso",
+       "duration": "número_de_días",
+       "level": "nivel",
+       "sections": [
+         {
+           "title": "Nombre de la Sección",
+           "days": ["day_1", "day_2", ...]
+         }
+       ]
+     }
+     ```
+   - **day_X.json**:
+     ```json
+     {
+       "title": "Título del Día",
+       "duration": "minutos",
+       "content": [
+         {
+           "type": "lectura|ejercicio|quiz",
+           "content": "contenido específico"
+         }
+       ]
+     }
+     ```
+
+5. **Mecanismo de Reutilización**:
+   - Identificación de cursos similares mediante embeddings
+   - Adaptación de contenido existente a nuevas necesidades
+   - Sistema de versionado para mejoras continuas
+
 ## Funcionalidades Implementadas
 
 ### Sistema de Almacenamiento
