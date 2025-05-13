@@ -141,19 +141,20 @@ class StorageService:
         """Ensures all directories in path exist"""
         os.makedirs(path, exist_ok=True)
 
-    def save_user_preferences(self, email: str, preferences: UserPreferences):
-        """Guarda las preferencias del usuario usando email como identificador"""
+    def save_user_preferences(self, email: str, preferences: UserPreferences, course_id: str):
+        """Guarda las preferencias del usuario en el directorio del curso"""
         safe_email = email
-        path = os.path.join(self.users_path, safe_email, "preferences.json")
-        self._ensure_dirs(os.path.dirname(path))
+        course_dir = os.path.join(self.users_path, safe_email, "courses", course_id)
+        self._ensure_dirs(course_dir)
+        path = os.path.join(course_dir, "preferences.json")
         with open(path, 'w') as f:
             json_data = preferences.model_dump_json(indent=2)
             f.write(json_data)
 
-    def get_user_preferences(self, email: str) -> Optional[UserPreferences]:
-        """Obtiene las preferencias del usuario usando email como identificador"""
+    def get_user_preferences(self, email: str, course_id: str) -> Optional[UserPreferences]:
+        """Obtiene las preferencias del usuario desde el directorio del curso"""
         safe_email = email
-        path = os.path.join(self.users_path, safe_email, "preferences.json")
+        path = os.path.join(self.users_path, safe_email, "courses", course_id, "preferences.json")
         if not os.path.exists(path):
             return None
         with open(path, 'r') as f:
@@ -365,38 +366,7 @@ class StorageService:
             return None
 
     def create_enrollment(self, email: str, course_id: str, roadmap: dict) -> Enrollment:
-        """Creates new course enrollment and saves shared roadmap"""
-        # Obtener preferencias del usuario
-        preferences = self.get_user_preferences(email)
-        if not preferences:
-            raise Exception("User preferences not found")
-            
-        # Generar ID único para el roadmap
-        roadmap_id = self._generate_roadmap_id(preferences)
-        
-        # Verificar si existe un roadmap similar
-        existing = self._get_shared_roadmap(roadmap_id)
-        if existing:
-            shared_roadmap, metadata = existing
-            # Actualizar metadata
-            metadata.used_by_users.append(email)
-            metadata.updated_at = datetime.now(timezone.utc)
-            metadata.version += 1
-            # Guardar roadmap actualizado
-            self._save_shared_roadmap(roadmap_id, roadmap, metadata)
-        else:
-            # Crear nuevo roadmap compartido
-            metadata = RoadmapMetadata(
-                skill=preferences.skill,
-                experience=preferences.experience,
-                time=preferences.time,
-                learning_style=preferences.learning_style,
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
-                used_by_users=[email]
-            )
-            self._save_shared_roadmap(roadmap_id, roadmap, metadata)
-
+        """Creates new course enrollment"""
         # Crear enrollment para el usuario usando email sanitizado
         safe_email = email
         enrollment = Enrollment(
@@ -409,7 +379,7 @@ class StorageService:
             days={}
         )
         
-        path = os.path.join(self.users_path, safe_email, "roadmaps", course_id)
+        path = os.path.join(self.users_path, safe_email, "courses", course_id)
         self._ensure_dirs(path)
         self._save_enrollment(path, enrollment)
         return enrollment
@@ -417,21 +387,11 @@ class StorageService:
     def save_day_content(self, email: str, course_id: str, day_number: int, content: EnrollmentDay):
         """Saves content for a specific day"""
         safe_email = email
-        # Obtener roadmap_id basado en las preferencias del usuario
-        preferences = self.get_user_preferences(email)
-        roadmap_id = self._generate_roadmap_id(preferences)
+        course_dir = os.path.join(self.users_path, safe_email, "courses", course_id)
+        days_dir = os.path.join(course_dir, "days")
+        self._ensure_dirs(days_dir)
         
-        # Obtener metadata del roadmap compartido
-        shared_data = self._get_shared_roadmap(roadmap_id)
-        if shared_data:
-            _, metadata = shared_data
-            # Asignar la versión actual del día al contenido
-            if day_number in metadata.day_versions:
-                content.version = metadata.day_versions[day_number][-1].version
-        
-        enrollment_path = os.path.join(self.users_path, safe_email, "roadmaps", course_id)
-        day_path = os.path.join(enrollment_path, "days", str(day_number))
-        self._ensure_dirs(os.path.dirname(day_path))
+        day_path = os.path.join(days_dir, f"day_{day_number}.json")
         with open(day_path, 'w') as f:
             json_data = content.model_dump_json(indent=2)
             f.write(json_data)
@@ -439,21 +399,8 @@ class StorageService:
     def get_day_content(self, email: str, course_id: str, day_number: int) -> Optional[EnrollmentDay]:
         """Gets content for a specific day"""
         safe_email = email
-        path = os.path.join(self.users_path, safe_email, "roadmaps", course_id, "days", str(day_number))
+        path = os.path.join(self.users_path, safe_email, "courses", course_id, "days", f"day_{day_number}.json")
         if not os.path.exists(path):
-            # Si el día no existe, obtener la última versión del roadmap compartido
-            preferences = self.get_user_preferences(email)
-            roadmap_id = self._generate_roadmap_id(preferences)
-            shared_data = self._get_shared_roadmap(roadmap_id)
-            
-            if shared_data:
-                roadmap, metadata = shared_data
-                if day_number in metadata.day_versions:
-                    latest_version = metadata.day_versions[day_number][-1]
-                    return EnrollmentDay(
-                        **latest_version.content,
-                        version=latest_version.version
-                    )
             return None
             
         with open(path, 'r') as f:
@@ -468,7 +415,7 @@ class StorageService:
     def get_enrollment(self, email: str, course_id: str) -> Optional[Enrollment]:
         """Gets enrollment data"""
         safe_email = email
-        path = os.path.join(self.users_path, safe_email, "roadmaps", course_id, "roadmap.json")
+        path = os.path.join(self.users_path, safe_email, "courses", course_id, "roadmap.json")
         if not os.path.exists(path):
             return None
         with open(path, 'r') as f:
@@ -477,5 +424,5 @@ class StorageService:
     def update_enrollment(self, email: str, course_id: str, enrollment: Enrollment):
         """Updates enrollment data"""
         safe_email = email
-        path = os.path.join(self.users_path, safe_email, "roadmaps", course_id)
+        path = os.path.join(self.users_path, safe_email, "courses", course_id)
         self._save_enrollment(path, enrollment)

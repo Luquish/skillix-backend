@@ -1,252 +1,169 @@
-# skillix-backend
+# Skillix Backend - Plataforma de Aprendizaje Personalizado
 
-Estructura del proyecto para FastAPI desplegado en Cloud Run.
+## Descripción
+Skillix es una plataforma de aprendizaje personalizado que utiliza IA para crear planes de estudio adaptados a las necesidades y preferencias de cada usuario. El sistema genera contenido dinámico y mantiene un seguimiento del progreso del usuario.
 
-## Características Principales
+## Variables de Entorno
 
-1. **Sistema de Identificación**:
-   - Uso de email como identificador principal de usuario
-   - Sanitización de emails para nombres de directorio (ejemplo: user@example.com → user_at_example_dot_com)
-   - Todos los endpoints utilizan email en lugar de uid
+El sistema requiere las siguientes variables de entorno:
 
-2. **Sistema de Detección de Cursos Similares**:
-   - Implementación basada en embeddings usando OpenAI text-embedding-3-small
-   - Detección de similitud considerando:
-     - Nombre del skill
-     - Nivel de experiencia
-     - Tiempo disponible (máximo 20 minutos por día)
-   - Optimización de llamadas a la API guardando embeddings calculados
+```bash
+# OpenAI API
+OPENAI_API_KEY=tu-api-key                # API Key de OpenAI
+OPENAI_MODEL=gpt-4o-mini                 # Modelo de OpenAI para generación de contenido
+OPENAI_EMBEDDING_MODEL=text-embedding-3-small  # Modelo para embeddings
 
-3. **Almacenamiento de Embeddings**:
-   - Estructura: `storage/embeddings/skills.json`
-   - Cada entrada contiene:
-     - Texto del skill con contexto
-     - Vector de embedding
-     - Hash ID
-     - Timestamp de creación
+# Almacenamiento
+STORAGE_PATH=storage                      # Ruta para almacenamiento local
+```
 
-4. **Sistema de Tiempo**:
-   - Opciones de tiempo diario: 5, 10, 15 o 20 minutos
-   - Contenido adaptado al tiempo disponible
-   - Escalado automático de contenido según tiempo
+Para configurar:
+1. Copia el archivo `.env.example` a `.env`
+2. Reemplaza los valores con tus propias credenciales
+3. Asegúrate de no compartir tu archivo `.env` (está incluido en .gitignore)
 
-## Estructura de carpetas
+## Arquitectura
 
-- `Dockerfile`: Imagen para despliegue
-- `cloudbuild.yaml`: Configuración de Cloud Build
-- `src/`: Código fuente principal
-  - `main.py`: Punto de entrada FastAPI
-  - `agents/`: Lógica de agentes
-    - `orchestrator.py`: Coordina la creación de cursos y generación de contenido
-    - `planner.py`: Genera planes de aprendizaje personalizados
-    - `content_generator.py`: Genera contenido diario adaptativo
-  - `tools/`: Herramientas auxiliares
-  - `schemas/`: Esquemas Pydantic
-  - `services/`: Servicios externos
-    - `storage_service.py`: Manejo de almacenamiento local de datos
-  - `utils/`: Utilidades y helpers
-  - `api/`: Endpoints de la API
-    - `plan.py`: Endpoint para crear planes de aprendizaje
-    - `day.py`: Endpoint para gestionar contenido diario
-- `tests/`: Pruebas unitarias e integración
-- `storage/`: Almacenamiento local de datos
-  - `users/`: Datos de usuarios
-    - `<email>/`
-      - `preferences.json`: Preferencias del usuario
-      - `roadmaps/`
-        - `<course_id>/`
-          - `roadmap.json`: Datos del plan de aprendizaje
-          - `days/`: Contenido diario
-  - `courses/`: Roadmaps compartidos
-    - `<roadmap_id>/`: ID generado a partir de preferencias clave
-      - `roadmap.json`: Plan de aprendizaje compartido
-      - `metadata.json`: Metadatos del roadmap
-  - `embeddings/`: Almacenamiento de embeddings
-    - `skills.json`: Vectores de embedding y metadata
+### Estructura de Almacenamiento
+```
+storage/
+├── users/
+│   └── email@ejemplo.com/
+│       ├── user.json         (datos básicos + auth)
+│       └── courses/
+│           └── nombre-curso/
+│               ├── preferences.json  (preferencias del curso)
+│               ├── roadmap.json     (plan completo)
+│               └── days/            (contenido diario)
+├── courses/                  (roadmaps compartidos)
+└── embeddings/              (vectores de similitud)
+```
 
-## Lógica de Creación y Almacenamiento de Cursos
+### Componentes Principales
 
-### Proceso de Creación de Cursos
+#### 1. Sistema de Autenticación
+- Utiliza email como identificador único
+- Almacenamiento seguro con hash de contraseñas (bcrypt)
+- Separación clara entre datos de usuario y datos de curso
 
-1. **Generación de Cursos Personalizados**:
-   - El sistema analiza las preferencias del usuario (nivel, tiempo disponible, objetivos)
-   - Utiliza un sistema de embeddings para detectar cursos similares existentes
-   - Genera un plan de aprendizaje adaptado a las necesidades específicas
+#### 2. Gestión de Cursos
+- Generación de ID único para cada curso
+- Sistema de embeddings para detectar cursos similares
+- Versionado de contenido por día
+- Estructura modular para contenido y preferencias
 
-2. **Estructura del Curso**:
-   - División en secciones temáticas
-   - Cada sección contiene múltiples días de contenido
-   - Contenido diario adaptado al tiempo disponible (5-20 minutos)
-   - Progresión gradual de dificultad
+#### 3. CLI Interactivo
+Comandos principales:
+- `signup`: Registro de nuevos usuarios
+- `login`: Inicio de sesión
+- `create-course`: Creación de curso personalizado
+- `status`: Verificación de estado de sesión
 
-3. **Sistema de Almacenamiento**:
-   - **Directorio Principal**: `storage/`
-     - `users/<email>/`: Datos específicos del usuario
-       - `preferences.json`: Preferencias y configuración
-       - `roadmaps/<course_id>/`: Cursos del usuario
-         - `roadmap.json`: Estructura completa del curso
-         - `days/`: Contenido diario generado
-     - `courses/`: Plantillas de cursos compartidos
-     - `embeddings/`: Vectores para búsqueda de similitud
+### Flujo de Creación de Curso
 
-4. **Formato de Datos**:
-   - **roadmap.json**:
-     ```json
-     {
-       "course_id": "unique_id",
-       "title": "Nombre del Curso",
-       "duration": "número_de_días",
-       "level": "nivel",
-       "sections": [
-         {
-           "title": "Nombre de la Sección",
-           "days": ["day_1", "day_2", ...]
-         }
-       ]
-     }
-     ```
-   - **day_X.json**:
-     ```json
-     {
-       "title": "Título del Día",
-       "duration": "minutos",
-       "content": [
-         {
-           "type": "lectura|ejercicio|quiz",
-           "content": "contenido específico"
-         }
-       ]
-     }
-     ```
+1. **Onboarding**
+   - Recolección de preferencias del usuario
+   - Validación de datos
+   - Generación de ID único del curso
 
-5. **Mecanismo de Reutilización**:
-   - Identificación de cursos similares mediante embeddings
-   - Adaptación de contenido existente a nuevas necesidades
-   - Sistema de versionado para mejoras continuas
+2. **Generación de Plan**
+   - Análisis de preferencias
+   - Creación de roadmap personalizado
+   - Estructuración en secciones y días
 
-## Funcionalidades Implementadas
+3. **Generación de Contenido**
+   - Creación dinámica de contenido diario
+   - Sistema de puntos y recompensas (XP)
+   - Seguimiento de progreso
 
-### Sistema de Almacenamiento
+### Modelos de Datos
 
-El sistema utiliza un almacenamiento local basado en archivos JSON con la siguiente estructura:
+#### UserPreferences
+```python
+{
+    "name": str,
+    "skill": str,
+    "experience": str,
+    "motivation": str,
+    "time": str,
+    "learning_style": str,
+    "goal": str
+}
+```
 
-- **Preferencias de Usuario** (`preferences.json`):
-  - Nombre, experiencia, motivación
-  - Tiempo disponible
-  - Estilo de aprendizaje
-  - Objetivos
+#### Enrollment
+```python
+{
+    "roadmap_json": dict,
+    "last_generated_day": int,
+    "streak": int,
+    "xp_total": int,
+    "days": Dict[int, EnrollmentDay]
+}
+```
 
-- **Plan de Aprendizaje** (`roadmap.json`):
-  - Plan de aprendizaje completo
-  - Progreso actual
-  - Estadísticas (streak, XP)
-  - Historial de días completados
+## Dependencias Principales
+- `passlib[bcrypt]`: Hash seguro de contraseñas
+- `click`: Interfaz de línea de comandos
+- `rich`: Formato mejorado de CLI
+- `requests`: Llamadas HTTP
+- `fastapi`: API REST
+- `pydantic`: Validación de datos
 
-- **Roadmaps Compartidos** (`courses/<roadmap_id>/`):
-  - Planes de aprendizaje reutilizables
-  - Metadatos de versión y uso
-  - Historial de usuarios
-  - Actualizaciones automáticas
+## Instalación
 
-- **Contenido Diario** (`days/<number>`):
-  - Título y tipo de día
-  - Bloques de contenido
-  - Estado de completitud
-  - Puntuación y feedback
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/tu-usuario/skillix-backend.git
+cd skillix-backend
+```
 
-### Sistema de Roadmaps Compartidos
+2. Instalar dependencias:
+```bash
+pip install -r requirements.txt
+```
 
-El sistema implementa un mecanismo inteligente para compartir y mejorar planes de aprendizaje:
-
-1. **Identificación Única**:
-   - Genera IDs basados en preferencias clave
-   - Permite encontrar planes similares
-   - Facilita la reutilización de contenido
-
-2. **Versionado y Mejora**:
-   - Mantiene registro de versiones
-   - Actualiza planes existentes
-   - Trackea uso por usuarios
-
-3. **Optimización de Recursos**:
-   - Reutiliza planes exitosos
-   - Mejora continua del contenido
-   - Aprovecha experiencias previas
-
-### API Endpoints
-
-#### POST /plan
-Crea un nuevo plan de aprendizaje personalizado:
-- Genera roadmap completo
-- Crea primer día de contenido
-- Guarda preferencias del usuario
-- Inicializa inscripción
-
-#### POST /day
-Gestiona el progreso diario:
-- Marca días como completados
-- Registra puntuación y feedback
-- Genera contenido del siguiente día
-- Adapta contenido según preferencias guardadas
-
-### Características del Sistema
-
-1. **Personalización**:
-   - Contenido adaptado al nivel del usuario
-   - Respeta preferencias de tiempo y estilo
-   - Ajusta dificultad según progreso
-
-2. **Almacenamiento Estructurado**:
-   - JSON indentado para mejor legibilidad
-   - Organización jerárquica de datos
-   - Separación clara de responsabilidades
-
-3. **Generación de Contenido**:
-   - Bloques de lectura interactivos
-   - Cuestionarios variados (MCQ, T/F, matching)
-   - Días de acción para práctica
-
-4. **Seguimiento de Progreso**:
-   - Registro de completitud
-   - Sistema de puntuación
-   - Feedback personalizado
+3. Configurar variables de entorno:
+```bash
+cp .env.example .env
+# Editar .env con tus configuraciones
+```
 
 ## Uso
 
-Para ejecutar el servidor:
-
+1. Iniciar el servidor:
 ```bash
 uvicorn src.main:app --reload
 ```
 
-Ejemplos de uso de la API:
-
-1. Crear nuevo plan de aprendizaje:
+2. Usar el CLI:
 ```bash
-curl -X POST http://localhost:8000/plan \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "name": "John Doe",
-    "skill": "Python Programming",
-    "experience": "Beginner",
-    "motivation": "Career growth",
-    "time": "20 minutes",
-    "learning_style": "Reading and practicing",
-    "goal": "Build web applications"
-  }'
+python src/cli.py --help
 ```
 
-2. Marcar día como completado y obtener siguiente:
-```bash
-curl -X POST http://localhost:8000/day \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "course_id": "python-programming",
-    "current_day": 1,
-    "completed": true,
-    "score": 0.95,
-    "feedback": "¡Excelente lección!"
-  }'
-``` 
+## Características Avanzadas
+
+### Sistema de Similitud de Cursos
+- Utiliza embeddings de OpenAI para detectar cursos similares
+- Permite reutilización eficiente de contenido
+- Umbral de similitud configurable
+
+### Versionado de Contenido
+- Cada día tiene un sistema de versiones
+- Permite actualizaciones sin perder historial
+- Mantiene consistencia entre usuarios
+
+### Sistema de Progreso
+- Seguimiento de streak diario
+- Sistema de XP por actividad
+- Retroalimentación personalizada
+
+## Contribución
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## Licencia
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para más detalles. 

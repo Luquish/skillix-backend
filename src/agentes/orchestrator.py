@@ -16,6 +16,10 @@ async def orchestrate_course_creation(user_data: dict, email: str) -> Optional[E
         logger.info(f"Iniciando creación de curso para usuario {email}")
         logger.info(f"Datos del usuario: {user_data}")
         
+        # Create course ID from skill name
+        course_id = user_data['skill'].lower().replace(' ', '-')
+        logger.info(f"ID del curso generado: {course_id}")
+        
         # Save user preferences
         preferences = UserPreferences(
             name=user_data['name'],
@@ -26,17 +30,13 @@ async def orchestrate_course_creation(user_data: dict, email: str) -> Optional[E
             learning_style=user_data['learning_style'],
             goal=user_data['goal']
         )
-        storage.save_user_preferences(email, preferences)
+        storage.save_user_preferences(email, preferences, course_id)
         logger.info("Preferencias del usuario guardadas exitosamente")
         
         # Generate the learning plan
         logger.info("Generando plan de aprendizaje...")
         learning_plan = await generate_learning_plan(user_data)
         logger.info("Plan de aprendizaje generado exitosamente")
-        
-        # Create course ID from skill name
-        course_id = user_data['skill'].lower().replace(' ', '-')
-        logger.info(f"ID del curso generado: {course_id}")
         
         # Create enrollment with roadmap
         logger.info("Creando inscripción...")
@@ -112,7 +112,7 @@ async def generate_next_day_content(email: str, course_id: str) -> bool:
             return False  # Previous day not completed
             
         # Get user preferences
-        preferences = storage.get_user_preferences(email)
+        preferences = storage.get_user_preferences(email, course_id)
         if not preferences:
             logger.error(f"No se encontraron preferencias para el usuario {email}")
             return False

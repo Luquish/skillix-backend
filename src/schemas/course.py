@@ -86,6 +86,7 @@ class CourseDoc(BaseModel):
     """Documento completo del curso."""
     # Campos de identificación
     courseId: str
+    userId: str  # Nuevo campo para el ID del usuario
     version: str = "v1"
     language: str = "es"
     
