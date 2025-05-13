@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 from src.agentes.orchestrator import orchestrate_course_creation
 from src.services.storage_service import Enrollment
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 class PlanRequest(BaseModel):
-    uid: str
+    email: EmailStr
     name: str
     skill: str
     experience: str
@@ -38,7 +38,7 @@ async def create_learning_plan(request: PlanRequest) -> PlanResponse:
             "goal": request.goal
         }
         
-        enrollment = await orchestrate_course_creation(user_data, request.uid)
+        enrollment = await orchestrate_course_creation(user_data, request.email)
         
         if not enrollment:
             raise HTTPException(status_code=500, detail="Failed to create learning plan")

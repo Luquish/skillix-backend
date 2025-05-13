@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 storage = StorageService(settings.STORAGE_PATH)
 
-async def orchestrate_course_creation(user_data: dict, uid: str) -> Optional[Enrollment]:
+async def orchestrate_course_creation(user_data: dict, email: str) -> Optional[Enrollment]:
     """Orchestrates the course creation process"""
     try:
-        logger.info(f"Iniciando creación de curso para usuario {uid}")
+        logger.info(f"Iniciando creación de curso para usuario {email}")
         logger.info(f"Datos del usuario: {user_data}")
         
         # Save user preferences
@@ -26,7 +26,7 @@ async def orchestrate_course_creation(user_data: dict, uid: str) -> Optional[Enr
             learning_style=user_data['learning_style'],
             goal=user_data['goal']
         )
-        storage.save_user_preferences(uid, preferences)
+        storage.save_user_preferences(email, preferences)
         logger.info("Preferencias del usuario guardadas exitosamente")
         
         # Generate the learning plan
@@ -41,7 +41,7 @@ async def orchestrate_course_creation(user_data: dict, uid: str) -> Optional[Enr
         # Create enrollment with roadmap
         logger.info("Creando inscripción...")
         enrollment = storage.create_enrollment(
-            uid=uid,
+            email=email,
             course_id=course_id,
             roadmap=learning_plan.model_dump()
         )
@@ -74,7 +74,7 @@ async def orchestrate_course_creation(user_data: dict, uid: str) -> Optional[Enr
         
         logger.info("Guardando contenido del día 1...")
         storage.save_day_content(
-            uid=uid,
+            email=email,
             course_id=course_id,
             day_number=first_day.day_number,
             content=enrollment_day
@@ -87,7 +87,7 @@ async def orchestrate_course_creation(user_data: dict, uid: str) -> Optional[Enr
         if not hasattr(enrollment, 'days'):
             enrollment.days = {}
         enrollment.days[1] = enrollment_day  # Add day content to enrollment object
-        storage.update_enrollment(uid, course_id, enrollment)
+        storage.update_enrollment(email, course_id, enrollment)
         logger.info("Inscripción actualizada exitosamente")
         
         return enrollment
@@ -96,25 +96,25 @@ async def orchestrate_course_creation(user_data: dict, uid: str) -> Optional[Enr
         logger.error(f"Error en la creación del curso: {str(e)}", exc_info=True)
         return None
 
-async def generate_next_day_content(uid: str, course_id: str) -> bool:
+async def generate_next_day_content(email: str, course_id: str) -> bool:
     """Generates content for the next day if previous day was completed"""
     try:
         # Get enrollment
-        enrollment = storage.get_enrollment(uid, course_id)
+        enrollment = storage.get_enrollment(email, course_id)
         if not enrollment:
             return False
             
         current_day = enrollment.last_generated_day
         
         # Get previous day content
-        previous_day = storage.get_day_content(uid, course_id, current_day)
+        previous_day = storage.get_day_content(email, course_id, current_day)
         if not previous_day or not previous_day.completed_at:
             return False  # Previous day not completed
             
         # Get user preferences
-        preferences = storage.get_user_preferences(uid)
+        preferences = storage.get_user_preferences(email)
         if not preferences:
-            logger.error(f"No se encontraron preferencias para el usuario {uid}")
+            logger.error(f"No se encontraron preferencias para el usuario {email}")
             return False
             
         # Find next day info from roadmap
@@ -154,7 +154,7 @@ async def generate_next_day_content(uid: str, course_id: str) -> bool:
         )
         
         storage.save_day_content(
-            uid=uid,
+            email=email,
             course_id=course_id,
             day_number=next_day['day_number'],
             content=enrollment_day
@@ -163,7 +163,7 @@ async def generate_next_day_content(uid: str, course_id: str) -> bool:
         # Update enrollment
         enrollment.last_generated_day = next_day['day_number']
         enrollment.updated_at = datetime.now(timezone.utc)
-        storage.update_enrollment(uid, course_id, enrollment)
+        storage.update_enrollment(email, course_id, enrollment)
         
         return True
         

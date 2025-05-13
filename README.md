@@ -2,6 +2,34 @@
 
 Estructura del proyecto para FastAPI desplegado en Cloud Run.
 
+## Características Principales
+
+1. **Sistema de Identificación**:
+   - Uso de email como identificador principal de usuario
+   - Sanitización de emails para nombres de directorio (ejemplo: user@example.com → user_at_example_dot_com)
+   - Todos los endpoints utilizan email en lugar de uid
+
+2. **Sistema de Detección de Cursos Similares**:
+   - Implementación basada en embeddings usando OpenAI text-embedding-3-small
+   - Detección de similitud considerando:
+     - Nombre del skill
+     - Nivel de experiencia
+     - Tiempo disponible (máximo 20 minutos por día)
+   - Optimización de llamadas a la API guardando embeddings calculados
+
+3. **Almacenamiento de Embeddings**:
+   - Estructura: `storage/embeddings/skills.json`
+   - Cada entrada contiene:
+     - Texto del skill con contexto
+     - Vector de embedding
+     - Hash ID
+     - Timestamp de creación
+
+4. **Sistema de Tiempo**:
+   - Opciones de tiempo diario: 5, 10, 15 o 20 minutos
+   - Contenido adaptado al tiempo disponible
+   - Escalado automático de contenido según tiempo
+
 ## Estructura de carpetas
 
 - `Dockerfile`: Imagen para despliegue
@@ -21,17 +49,20 @@ Estructura del proyecto para FastAPI desplegado en Cloud Run.
     - `plan.py`: Endpoint para crear planes de aprendizaje
     - `day.py`: Endpoint para gestionar contenido diario
 - `tests/`: Pruebas unitarias e integración
-- `storage/`: Almacenamiento local de datos (solo estructura en git)
+- `storage/`: Almacenamiento local de datos
   - `users/`: Datos de usuarios
-    - `<user_id>/`
+    - `<email>/`
       - `preferences.json`: Preferencias del usuario
-      - `enrollments/`
+      - `roadmaps/`
         - `<course_id>/`
-          - `enrollment.json`: Datos de inscripción
+          - `roadmap.json`: Datos del plan de aprendizaje
           - `days/`: Contenido diario
-  - `courses/`: Datos de cursos
-
-> **Nota sobre almacenamiento**: La carpeta `storage/` mantiene solo su estructura en el repositorio git mediante archivos `.gitkeep`. Los archivos de datos (*.json) son ignorados para mantener la privacidad y evitar conflictos. Al clonar el repositorio, la estructura se creará automáticamente pero los datos deberán generarse mediante el uso de la API.
+  - `courses/`: Roadmaps compartidos
+    - `<roadmap_id>/`: ID generado a partir de preferencias clave
+      - `roadmap.json`: Plan de aprendizaje compartido
+      - `metadata.json`: Metadatos del roadmap
+  - `embeddings/`: Almacenamiento de embeddings
+    - `skills.json`: Vectores de embedding y metadata
 
 ## Funcionalidades Implementadas
 
@@ -45,17 +76,42 @@ El sistema utiliza un almacenamiento local basado en archivos JSON con la siguie
   - Estilo de aprendizaje
   - Objetivos
 
-- **Inscripción a Curso** (`enrollment.json`):
+- **Plan de Aprendizaje** (`roadmap.json`):
   - Plan de aprendizaje completo
   - Progreso actual
   - Estadísticas (streak, XP)
   - Historial de días completados
+
+- **Roadmaps Compartidos** (`courses/<roadmap_id>/`):
+  - Planes de aprendizaje reutilizables
+  - Metadatos de versión y uso
+  - Historial de usuarios
+  - Actualizaciones automáticas
 
 - **Contenido Diario** (`days/<number>`):
   - Título y tipo de día
   - Bloques de contenido
   - Estado de completitud
   - Puntuación y feedback
+
+### Sistema de Roadmaps Compartidos
+
+El sistema implementa un mecanismo inteligente para compartir y mejorar planes de aprendizaje:
+
+1. **Identificación Única**:
+   - Genera IDs basados en preferencias clave
+   - Permite encontrar planes similares
+   - Facilita la reutilización de contenido
+
+2. **Versionado y Mejora**:
+   - Mantiene registro de versiones
+   - Actualiza planes existentes
+   - Trackea uso por usuarios
+
+3. **Optimización de Recursos**:
+   - Reutiliza planes exitosos
+   - Mejora continua del contenido
+   - Aprovecha experiencias previas
 
 ### API Endpoints
 
@@ -110,7 +166,7 @@ Ejemplos de uso de la API:
 curl -X POST http://localhost:8000/plan \
   -H "Content-Type: application/json" \
   -d '{
-    "uid": "user_001",
+    "email": "user@example.com",
     "name": "John Doe",
     "skill": "Python Programming",
     "experience": "Beginner",
@@ -126,7 +182,7 @@ curl -X POST http://localhost:8000/plan \
 curl -X POST http://localhost:8000/day \
   -H "Content-Type: application/json" \
   -d '{
-    "uid": "user_001",
+    "email": "user@example.com",
     "course_id": "python-programming",
     "current_day": 1,
     "completed": true,

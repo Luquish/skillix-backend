@@ -1,0 +1,63 @@
+{
+  "title": "1) What is Mate?",
+  "is_action_day": false,
+  "blocks": [
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "The Origins of Mate",
+      "body": "Mate, known as \"yerba mate,\" originates from the indigenous people of South America, especially in countries like Argentina, Uruguay, and Brazil. This unique herbal drink is made from the dried leaves of the Ilex paraguariensis plant, which contains caffeine and other stimulants, making it a beloved beverage for many cultures. It not only provides a boost of energy but also serves as a social drink shared among friends and family. Enjoying mate is often accompanied by traditions and rituals that bond people together.  \n**Fun Fact:** The word 'mate' comes from the Quechua word 'mati,' which means 'gourd' – the traditional vessel used to drink it!  \n  \n**XP:** 1"
+    },
+    {
+      "type": "read",
+      "xp": 5,
+      "title": "Cultural Significance",
+      "body": "In countries like Argentina, mate is not just a drink; it's a symbol of friendship and connection. Sharing a mate gourd and bombilla (straw) is a communal experience, often seen in gatherings and social settings. People take turns sipping and passing it around, fostering a sense of togetherness and conversation.  \n**Fun Fact:** There is actually a National Mate Day in Argentina celebrated on the first Sunday of October every year!  \n  \n**XP:** 1"
+    },
+    {
+      "type": "quiz_mcq",
+      "xp": 5,
+      "question": "What does the word 'mate' originally mean?",
+      "options": [
+        "A) Drink",
+        "B) Gourd",
+        "C) Leaf",
+        "D) Social Gathering"
+      ],
+      "answer": 1
+    },
+    {
+      "type": "quiz_tf",
+      "xp": 5,
+      "statement": "Mate is only consumed in Brazil.",
+      "answer": false
+    },
+    {
+      "type": "matching_pairs",
+      "xp": 5,
+      "left_items": [
+        "Yerba Mate",
+        "Bombilla",
+        "Gourd",
+        "National Mate Day"
+      ],
+      "right_items": [
+        "Straw for drinking",
+        "Dry leaves used to prepare the drink",
+        "Celebration in Argentina",
+        "Container for serving"
+      ],
+      "answer": [
+        1,
+        2,
+        3,
+        0
+      ]
+    }
+  ],
+  "action_task": null,
+  "score": null,
+  "feedback": null,
+  "completed_at": null,
+  "version": 1
+}

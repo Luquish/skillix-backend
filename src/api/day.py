@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from src.agentes.orchestrator import generate_next_day_content
 from src.services.storage_service import StorageService, EnrollmentDay
 from src.config import settings
@@ -10,7 +10,7 @@ router = APIRouter()
 storage = StorageService(settings.STORAGE_PATH)
 
 class DayRequest(BaseModel):
-    uid: str
+    email: EmailStr
     course_id: str
     current_day: int
     completed: bool
@@ -35,7 +35,7 @@ async def get_next_day(request: DayRequest) -> DayResponse:
             
         # Update current day completion status
         current_day = storage.get_day_content(
-            request.uid,
+            request.email,
             request.course_id,
             request.current_day
         )
@@ -46,14 +46,14 @@ async def get_next_day(request: DayRequest) -> DayResponse:
             current_day.completed_at = datetime.now(timezone.utc)
             
             storage.save_day_content(
-                request.uid,
+                request.email,
                 request.course_id,
                 request.current_day,
                 current_day
             )
         
         # Generate next day content
-        success = await generate_next_day_content(request.uid, request.course_id)
+        success = await generate_next_day_content(request.email, request.course_id)
         
         if not success:
             raise HTTPException(
@@ -62,7 +62,7 @@ async def get_next_day(request: DayRequest) -> DayResponse:
             )
             
         # Get enrollment to check if it's the last day
-        enrollment = storage.get_enrollment(request.uid, request.course_id)
+        enrollment = storage.get_enrollment(request.email, request.course_id)
         if not enrollment:
             raise HTTPException(
                 status_code=404,
@@ -71,7 +71,7 @@ async def get_next_day(request: DayRequest) -> DayResponse:
             
         next_day_number = request.current_day + 1
         next_day = storage.get_day_content(
-            request.uid,
+            request.email,
             request.course_id,
             next_day_number
         )
