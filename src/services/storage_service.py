@@ -66,7 +66,7 @@ class EnrollmentDay(BaseModel):
     score: Optional[float] = None
     feedback: Optional[str] = None
     completed_at: Optional[datetime] = None
-    version: Optional[int] = None  # Versión del día que completó el usuario
+    version: Optional[int] = None 
     
     model_config = ConfigDict(
         json_encoders={
@@ -148,8 +148,11 @@ class StorageService:
         self._ensure_dirs(course_dir)
         path = os.path.join(course_dir, "preferences.json")
         with open(path, 'w') as f:
-            json_data = preferences.model_dump_json(indent=2)
-            f.write(json_data)
+            # Usar model_dump para obtener un diccionario, luego convertirlo a JSON
+            # Esto garantiza que se guarde con la estructura correcta que espera el modelo UserPreferences
+            preferences_dict = preferences.model_dump()
+            json.dump(preferences_dict, f, indent=2, default=str)
+            logger.info(f"Preferencias del usuario guardadas en {path}")
 
     def get_user_preferences(self, email: str, course_id: str) -> Optional[UserPreferences]:
         """Obtiene las preferencias del usuario desde el directorio del curso"""
@@ -241,14 +244,19 @@ class StorageService:
             if os.path.exists(embeddings_file):
                 try:
                     with open(embeddings_file, 'r') as f:
-                        stored_data = json.load(f)
-                        if isinstance(stored_data, list):
-                            stored_embeddings = [SkillEmbedding.model_validate(e) for e in stored_data]
-                except json.JSONDecodeError as e:
+                        file_content = f.read().strip()
+                        if file_content:  # Verificar que el archivo no esté vacío
+                            stored_data = json.loads(file_content)
+                            if isinstance(stored_data, list):
+                                stored_embeddings = [SkillEmbedding.model_validate(e) for e in stored_data]
+                        else:
+                            logger.warning("El archivo skills.json está vacío, se creará uno nuevo")
+                except (json.JSONDecodeError, Exception) as e:
                     logger.error(f"Error decoding embeddings file: {str(e)}")
                     backup_file = embeddings_file + f".backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                    os.rename(embeddings_file, backup_file)
-                    logger.info(f"Corrupted embeddings file backed up to {backup_file}")
+                    if os.path.exists(embeddings_file):
+                        os.rename(embeddings_file, backup_file)
+                        logger.info(f"Corrupted embeddings file backed up to {backup_file}")
                 
                 # Calcular similitudes y encontrar la más alta
                 max_similarity = 0
@@ -268,6 +276,8 @@ class StorageService:
                     return most_similar_hash
                 else:
                     logger.info(f"No se encontró curso similar. Máxima similitud: {max_similarity:.2f}")
+            else:
+                logger.info(f"Archivo de embeddings no existe, se creará uno nuevo: {embeddings_file}")
             
             # Si no encontramos similar, guardar el nuevo embedding
             # Generar hash basado en las preferencias clave
@@ -288,6 +298,10 @@ class StorageService:
             # Actualizar archivo de embeddings usando el modelo Pydantic para serialización
             stored_embeddings.append(new_embedding_obj)
             embeddings_json = [e.model_dump(mode='json') for e in stored_embeddings]
+            
+            # Asegurar que el directorio existe
+            self._ensure_dirs(os.path.dirname(embeddings_file))
+            
             with open(embeddings_file, 'w') as f:
                 json.dump(embeddings_json, f, indent=2)
             
@@ -295,7 +309,7 @@ class StorageService:
             return new_hash
             
         except Exception as e:
-            logger.error(f"Error al buscar skills similares: {str(e)}")
+            logger.error(f"Error al buscar skills similares: {str(e)}", exc_info=True)
             return None
 
     def _generate_roadmap_id(self, preferences: UserPreferences) -> str:
@@ -379,6 +393,29 @@ class StorageService:
             days={}
         )
         
+        # Obtenemos las preferencias del usuario para generar el roadmap_id y guardar el roadmap compartido
+        preferences = self.get_user_preferences(email, course_id)
+        if preferences:
+            # Generar ID único para el roadmap
+            roadmap_id = self._generate_roadmap_id(preferences)
+            
+            # Guardar el roadmap como un curso compartido
+            metadata = RoadmapMetadata(
+                skill=preferences.skill,
+                experience=preferences.experience,
+                time=preferences.time,
+                learning_style=preferences.learning_style,
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc),
+                used_by_users=[email]
+            )
+            
+            # Guardar el roadmap compartido y sus metadatos
+            self._save_shared_roadmap(roadmap_id, roadmap, metadata)
+            logger.info(f"Roadmap compartido guardado con ID: {roadmap_id}")
+        else:
+            logger.warning(f"No se encontraron preferencias para {email}, no se creará roadmap compartido")
+        
         path = os.path.join(self.users_path, safe_email, "courses", course_id)
         self._ensure_dirs(path)
         self._save_enrollment(path, enrollment)
@@ -409,8 +446,11 @@ class StorageService:
     def _save_enrollment(self, path: str, enrollment: Enrollment):
         """Saves enrollment data"""
         with open(os.path.join(path, "roadmap.json"), 'w') as f:
-            json_data = enrollment.model_dump_json(indent=2)
-            f.write(json_data)
+            # Usar model_dump para obtener un diccionario, luego convertirlo a JSON
+            # Esto garantiza que se guarde con la estructura correcta que espera el modelo Enrollment
+            enrollment_dict = enrollment.model_dump()
+            json.dump(enrollment_dict, f, indent=2, default=str)
+            logger.info(f"Enrollment guardado con éxito en {path}")
 
     def get_enrollment(self, email: str, course_id: str) -> Optional[Enrollment]:
         """Gets enrollment data"""

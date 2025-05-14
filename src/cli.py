@@ -180,6 +180,7 @@ def create_course():
             f"{BASE_URL}/api/plan",
             json={
                 "email": current_user["email"],
+                "name": current_user["name"],
                 "skill": skill,
                 "experience": experience,
                 "motivation": motivation,

@@ -2,19 +2,22 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from src.agentes.orchestrator import orchestrate_course_creation
-from src.services.storage_service import Enrollment
+from src.services.storage_service import Enrollment, StorageService, UserPreferences
 from ..schemas.user import User
 import logging
 from pathlib import Path
 import json
-from datetime import datetime
+from datetime import datetime, timezone
+from src.config import settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+storage = StorageService(settings.STORAGE_PATH)
 
 class PlanRequest(BaseModel):
     email: EmailStr
+    name: str
     skill: str
     experience: str
     motivation: str
@@ -23,7 +26,6 @@ class PlanRequest(BaseModel):
     goal: str
 
 class PlanResponse(BaseModel):
-    course_id: str
     roadmap: dict
     first_day: dict
 
@@ -67,62 +69,45 @@ def save_course_data(email: str, course_id: str, preferences: dict, roadmap: dic
 
 @router.post("/plan", response_model=PlanResponse)
 async def create_learning_plan(request: PlanRequest) -> PlanResponse:
-    """Creates a new learning plan and generates first day content"""
+    """Creates a personalized learning plan based on user preferences"""
     try:
-        user = get_current_user(request.email)
+        # Crear preferencias del usuario usando el modelo
+        preferences = UserPreferences(
+            name=request.name,
+            skill=request.skill,
+            experience=request.experience,
+            motivation=request.motivation,
+            time=request.time,
+            learning_style=request.learning_style,
+            goal=request.goal,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
+        )
         
-        # Get course_id from skill name
-        course_id = request.skill.lower().replace(' ', '-')
-        
-        # Crear el plan de aprendizaje
-        plan_data = {
-            "name": user.name,
-            "skill": request.skill,
-            "experience": request.experience,
-            "motivation": request.motivation,
-            "time": request.time,
-            "learning_style": request.learning_style,
-            "goal": request.goal
-        }
-        
-        enrollment = await orchestrate_course_creation(plan_data, request.email)
+        # Crear el curso con todas las preferencias
+        user_data = preferences.model_dump()
+        enrollment = await orchestrate_course_creation(user_data, request.email)
         
         if not enrollment:
-            raise HTTPException(status_code=500, detail="Failed to create learning plan")
+            raise HTTPException(status_code=500, detail="Failed to create course")
             
         logger.info(f"Enrollment roadmap: {enrollment.roadmap_json}")
         
         # Get first day content
-        first_day = enrollment.days.get(1)
+        first_day = storage.get_day_content(
+            request.email,
+            request.skill.lower().replace(' ', '-'),
+            1
+        )
+        
         if not first_day:
-            raise HTTPException(status_code=500, detail="Failed to generate first day content")
+            raise HTTPException(status_code=404, detail="First day not found")
             
         logger.info(f"First day content: {first_day.model_dump()}")
-        
-        # Guardar datos del curso
-        preferences = {
-            "experience_level": request.experience,
-            "available_time": request.time,
-            "learning_style": request.learning_style,
-            "goals": [request.goal],
-            "completed_onboarding": True,
-            "updated_at": datetime.utcnow().isoformat()
-        }
-        
-        save_course_data(
-            email=request.email,
-            course_id=course_id,
-            preferences=preferences,
-            roadmap=enrollment.roadmap_json,
-            first_day=first_day.model_dump()
-        )
-        
-        return PlanResponse(
-            course_id=course_id,
-            roadmap=enrollment.roadmap_json,
-            first_day=first_day.model_dump()
-        )
             
+        return PlanResponse(
+            roadmap=enrollment.roadmap_json,
+            first_day=first_day.model_dump()
+        )
     except Exception as e:
-        logger.error(f"Error creating learning plan: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))

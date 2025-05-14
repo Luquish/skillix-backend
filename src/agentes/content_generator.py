@@ -3,8 +3,12 @@ import os
 from typing import List, Optional
 from pydantic import BaseModel
 from agents import Agent, Runner
+
 from src.schemas.course import Block
 from src.config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DayContent(BaseModel):
     """Contenido generado para un día específico"""

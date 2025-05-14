@@ -102,14 +102,22 @@ async def generate_next_day_content(email: str, course_id: str) -> bool:
         # Get enrollment
         enrollment = storage.get_enrollment(email, course_id)
         if not enrollment:
+            logger.error(f"No se encontró inscripción para el usuario {email} en el curso {course_id}")
             return False
             
         current_day = enrollment.last_generated_day
+        logger.info(f"Generando contenido para el día {current_day + 1}")
         
         # Get previous day content
         previous_day = storage.get_day_content(email, course_id, current_day)
-        if not previous_day or not previous_day.completed_at:
-            return False  # Previous day not completed
+        if not previous_day:
+            logger.error(f"No se encontró el contenido del día {current_day}")
+            return False
+        
+        if not previous_day.completed_at:
+            logger.warning(f"El día {current_day} no ha sido completado")
+            # Aunque no esté completado, continuamos para propósitos de prueba
+            # return False
             
         # Get user preferences
         preferences = storage.get_user_preferences(email, course_id)
@@ -128,44 +136,59 @@ async def generate_next_day_content(email: str, course_id: str) -> bool:
                 break
                 
         if not next_day:
+            logger.warning(f"No hay más días disponibles después del día {current_day}")
             return False  # No more days
             
+        logger.info(f"Generando contenido para el día {next_day['day_number']}: {next_day['title']}")
+        
         # Generate content for next day using saved preferences
-        day_content = await generate_day_content(
-            day_info=next_day,
-            user_data={
-                'name': preferences.name,
-                'skill': preferences.skill,
-                'experience': preferences.experience,
-                'motivation': preferences.motivation,
-                'time': preferences.time,
-                'learning_style': preferences.learning_style,
-                'goal': preferences.goal
-            },
-            previous_day_content=previous_day
-        )
-        
-        # Save new day content
-        enrollment_day = EnrollmentDay(
-            title=day_content.title,
-            is_action_day=day_content.is_action_day,
-            blocks=day_content.blocks,
-            action_task=day_content.action_task
-        )
-        
-        storage.save_day_content(
-            email=email,
-            course_id=course_id,
-            day_number=next_day['day_number'],
-            content=enrollment_day
-        )
-        
-        # Update enrollment
-        enrollment.last_generated_day = next_day['day_number']
-        enrollment.updated_at = datetime.now(timezone.utc)
-        storage.update_enrollment(email, course_id, enrollment)
-        
-        return True
+        try:
+            day_content = await generate_day_content(
+                day_info=next_day,
+                user_data={
+                    'name': preferences.name,
+                    'skill': preferences.skill,
+                    'experience': preferences.experience,
+                    'motivation': preferences.motivation,
+                    'time': preferences.time,
+                    'learning_style': preferences.learning_style,
+                    'goal': preferences.goal
+                },
+                previous_day_content=previous_day
+            )
+            
+            # Save new day content
+            enrollment_day = EnrollmentDay(
+                title=day_content.title,
+                is_action_day=day_content.is_action_day,
+                blocks=day_content.blocks,
+                action_task=day_content.action_task
+            )
+            
+            logger.info(f"Guardando contenido del día {next_day['day_number']}")
+            storage.save_day_content(
+                email=email,
+                course_id=course_id,
+                day_number=next_day['day_number'],
+                content=enrollment_day
+            )
+            
+            # Update enrollment
+            enrollment.last_generated_day = next_day['day_number']
+            enrollment.updated_at = datetime.now(timezone.utc)
+            
+            # Guardar el día también en el objeto enrollment
+            if not hasattr(enrollment, 'days') or enrollment.days is None:
+                enrollment.days = {}
+            enrollment.days[next_day['day_number']] = enrollment_day
+            
+            logger.info(f"Actualizando inscripción con el último día generado: {next_day['day_number']}")
+            storage.update_enrollment(email, course_id, enrollment)
+            
+            return True
+        except Exception as e:
+            logger.error(f"Error generando contenido para el día {next_day['day_number']}: {str(e)}", exc_info=True)
+            return False
         
     except Exception as e:
         logger.error(f"Error generating next day content: {str(e)}", exc_info=True)
