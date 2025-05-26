@@ -1,0 +1,54 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/skillix-agents:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/skillix-agents:latest'
+      - './agents'
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'gcr.io/$PROJECT_ID/skillix-agents'
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'skillix-agents'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/skillix-agents:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'ENVIRONMENT=production,DATACONNECT_BRIDGE_URL=${_DATACONNECT_BRIDGE_URL}'
+      - '--set-secrets'
+      - 'OPENAI_API_KEY=openai-api-key:latest,DATACONNECT_API_KEY=dataconnect-api-key:latest'
+      - '--service-account'
+      - 'skillix-agents@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--min-instances'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '300'
+
+substitutions:
+  _DATACONNECT_BRIDGE_URL: 'https://skillix-dataconnect-bridge-xxxxx-uc.a.run.app'
+
+options:
+  logging: CLOUD_LOGGING_ONLY 

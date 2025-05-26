@@ -1,190 +1,246 @@
-# Skillix Agents
+# Skillix Agents - Sistema Multi-Agente de Aprendizaje Personalizado
 
-Sistema de agentes de IA para la generación y adaptación de contenido educativo personalizado.
+Sistema de agentes inteligentes construido con Google ADK (Agent Development Kit) que crea experiencias de aprendizaje personalizadas usando múltiples modelos de IA.
 
-## Estructura
+## 🏗️ Arquitectura
+
+El sistema implementa un patrón de delegación multi-agente inspirado en las mejores prácticas de ADK:
 
 ```
-agents/
-├── api/                    # API REST con FastAPI
-│   ├── auth/              # Autenticación con Firebase
-│   │   ├── providers/     # Proveedores de autenticación
-│   │   │   ├── apple.py   # Sign in with Apple
-│   │   │   └── google.py  # Sign in with Google
-│   │   └── middleware.py  # Middleware de autenticación Firebase
-│   ├── routes/           # Endpoints de la API
-│   │   ├── auth.py      # Rutas de autenticación
-│   │   ├── onboarding.py # Rutas de onboarding
-│   │   └── content.py    # Rutas de contenido
-│   └── main.py          # Configuración principal de FastAPI
-└── skillix_agents/      # Lógica de negocio y agentes IA
-    ├── orchestrator.py  # Orquestador de agentes
-    ├── content/        # Generación de contenido
-    └── learning/       # Lógica de aprendizaje
+┌─────────────────────────────────────────────────────────────┐
+│                    Team Coordinator                           │
+│                  (Delegación Automática)                      │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+        ┌──────────────────┴──────────────────┐
+        │                                      │
+        ▼                                      ▼
+┌───────────────┐                     ┌───────────────┐
+│   Greeting    │                     │   Progress    │
+│    Agent      │                     │   Checker     │
+└───────────────┘                     └───────────────┘
+        │                                      │
+        └──────────────┬───────────────────────┘
+                       │
+                       ▼
+              ┌───────────────┐
+              │ Orchestrator  │
+              │    Agent      │
+              └───────┬───────┘
+                      │
+     ┌────────────────┼────────────────┐
+     │                │                │
+     ▼                ▼                ▼
+┌──────────┐   ┌──────────┐   ┌──────────┐
+│  Skill   │   │Pedagogical│  │ Learning │
+│ Analyzer │   │  Expert   │  │ Planner  │
+└──────────┘   └──────────┘   └──────────┘
+                                      │
+                                      ▼
+                              ┌──────────────┐
+                              │   Content    │
+                              │  Generator   │
+                              └──────────────┘
 ```
 
-## Instalación
+## 🤖 Agentes Especializados
 
-1. **Entorno Virtual**:
+### 1. **Team Coordinator** (`team_coordinator_agent`)
+- **Rol**: Punto de entrada principal que delega automáticamente a agentes especializados
+- **Capacidades**: 
+  - Interpreta solicitudes del usuario
+  - Delega tareas al agente apropiado
+  - Mantiene contexto de conversación
+
+### 2. **Skill Analyzer** (`skill_analyzer_agent`)
+- **Rol**: Analiza y descompone habilidades complejas
+- **Capacidades**:
+  - Identifica componentes de habilidades
+  - Determina prerequisitos
+  - Estima tiempos de aprendizaje
+  - Evalúa demanda del mercado
+
+### 3. **Pedagogical Expert** (`pedagogical_expert_agent`)
+- **Rol**: Valida y optimiza planes desde perspectiva educativa
+- **Capacidades**:
+  - Aplica taxonomía de Bloom
+  - Evalúa carga cognitiva
+  - Diseña estrategias de scaffolding
+  - Recomienda técnicas de engagement
+
+### 4. **Learning Planner** (`learning_planner_agent`)
+- **Rol**: Crea roadmaps de aprendizaje estructurados
+- **Capacidades**:
+  - Genera planes por secciones y días
+  - Adapta a nivel de experiencia
+  - Considera tiempo disponible
+  - Incluye días de acción práctica
+
+### 5. **Content Generator** (`content_generator_agent`)
+- **Rol**: Genera contenido educativo diario
+- **Capacidades**:
+  - Crea bloques de audio, lectura y quiz
+  - Adapta a estilo de aprendizaje
+  - Diseña tareas prácticas
+  - Mantiene coherencia narrativa
+
+### 6. **Orchestrator** (`orchestrator_agent`)
+- **Rol**: Coordina pipeline completo de creación de cursos
+- **Capacidades**:
+  - Ejecuta análisis → plan → validación → contenido
+  - Mantiene estado de sesión
+  - Implementa callbacks de seguridad
+  - Gestiona contenido adaptativo
+
+## 🔧 Características Clave
+
+### Session State Management
+- Persistencia de contexto entre interacciones
+- Memoria de preferencias del usuario
+- Tracking de progreso y estado
+
+### Safety Callbacks
+- `before_model_callback`: Filtra contenido inapropiado
+- `before_tool_callback`: Valida argumentos de herramientas
+- Bloqueo de habilidades no permitidas
+
+### Multi-Model Support
+- GPT-4 como modelo principal (configurable)
+- Soporte para Gemini, Claude y otros vía LiteLLM
+- Fácil cambio entre modelos
+
+### Data Connect Integration
+- Modelos mapeados al esquema de Firebase
+- Cliente preparado para persistencia
+- Soporte para enrollments y progreso
+
+## 📦 Instalación
+
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# o
-.\venv\Scripts\activate  # Windows
+# Clonar repositorio
+git clone <repo-url>
+cd skillix-backend/agents
+
+# Instalar dependencias
+pip install -e .
 ```
 
-2. **Dependencias**:
-```bash
-pip install -r requirements.txt
-```
+## 🚀 Uso Básico
 
-## Variables de Entorno
-
-Crear archivo `.env` en la raíz de `agents/`:
-
-```bash
-# Firebase
-FIREBASE_PROJECT_ID=tu-proyecto
-FIREBASE_PRIVATE_KEY=tu-clave
-FIREBASE_CLIENT_EMAIL=tu-email
-
-# OpenAI
-OPENAI_API_KEY=tu-api-key
-OPENAI_MODEL=gpt-4
-
-# Auth Providers
-GOOGLE_CLIENT_ID=tu-client-id
-APPLE_TEAM_ID=tu-team-id
-APPLE_KEY_ID=tu-key-id
-APPLE_PRIVATE_KEY=tu-private-key
-
-# FastAPI
-PORT=8000
-HOST=0.0.0.0
-```
-
-## Desarrollo
-
-1. **Iniciar servidor**:
-```bash
-uvicorn api.main:app --reload --port $PORT --host $HOST
-```
-
-2. **Tests**:
-```bash
-pytest
-```
-
-## API REST
-
-### Autenticación
+### Ejemplo 1: Usar el Team Coordinator
 
 ```python
-# Obtener nonce para Apple Sign In
-GET /api/auth/apple/nonce
-- Genera nonce seguro
-- Retorna nonce y hash
+from skillix_agents import SkillixTeamRunner, session_service
+import asyncio
 
-# Autenticación con Google
-POST /api/auth/google
-{
-  "id_token": string,
-  "access_token": string,
-  "platform": "IOS" | "ANDROID"
-}
+async def main():
+    # Crear runner del equipo
+    runner = SkillixTeamRunner(session_service)
+    
+    # Procesar solicitud del usuario
+    result = await runner.process_user_request(
+        user_message="Quiero aprender Python desde cero",
+        firebase_uid="user123",
+        context={
+            "user_data": {
+                "name": "Juan",
+                "experience": "beginner",
+                "time": "30 minutos diarios",
+                "learning_style": "visual"
+            }
+        }
+    )
+    
+    print(result["response"])
+    print(f"Delegado a: {result['delegated_to']}")
 
-# Autenticación con Apple
-POST /api/auth/apple
-{
-  "identity_token": string,
-  "nonce": string,
-  "user_identifier": string,
-  "platform": "IOS" | "ANDROID",
-  "name": string | null
-}
+asyncio.run(main())
 ```
 
-### Onboarding
+### Ejemplo 2: Crear Curso Completo
 
 ```python
-# Completar onboarding
-POST /api/onboarding/complete
-- Recibe preferencias
-- Genera plan inicial
-- Retorna primer día
+from skillix_agents import SkillixOrchestrator
+import asyncio
+
+async def create_course():
+    orchestrator = SkillixOrchestrator()
+    
+    user_data = {
+        "name": "María",
+        "skill": "Machine Learning",
+        "experience": "intermediate",
+        "motivation": "Cambiar de carrera a Data Science",
+        "time": "45 minutos",
+        "learning_style": "hands-on",
+        "goal": "Conseguir trabajo como ML Engineer"
+    }
+    
+    result = await orchestrator.analyze_and_plan_course(
+        user_data=user_data,
+        firebase_uid="user456"
+    )
+    
+    if result["success"]:
+        print(f"Plan creado: {result['learning_plan']['overview']}")
+        print(f"Análisis pedagógico: {result['pedagogical_validation']}")
+        print(f"Primer día: {result['first_day_content']['title']}")
+
+asyncio.run(create_course())
 ```
 
-### Contenido
-
-```python
-# Siguiente día
-POST /api/content/next-day
-- Genera siguiente día
-- Adapta dificultad
-- Actualiza progreso
-
-# Progreso
-GET /api/progress/{userId}
-- Estadísticas
-- Estado actual
-- Recomendaciones
-```
-
-## Agentes Disponibles
-
-### 1. Onboarding Agent
-- Analiza preferencias del usuario
-- Genera plan de aprendizaje personalizado
-- Adapta contenido según nivel
-
-### 2. Content Agent
-- Genera contenido diario
-- Adapta dificultad según progreso
-- Incorpora feedback del usuario
-
-### 3. Learning Agent
-- Monitorea progreso
-- Ajusta plan según rendimiento
-- Genera recomendaciones
-
-## Middleware de Autenticación
-
-El middleware de Firebase verifica los tokens y proporciona:
-- Validación de tokens JWT
-- Datos del usuario autenticado
-- Manejo de errores de autenticación
-
-```python
-# Ejemplo de uso en rutas
-from api.auth.middleware import get_current_user
-
-@router.get("/protected")
-async def protected_route(user = Depends(get_current_user)):
-    return {"message": f"Hello {user['email']}"}
-```
-
-## Integración con Data Connect
-
-Los agentes consumen y actualizan datos a través de Data Connect:
-
-1. **Lectura**:
-- Preferencias de usuario
-- Progreso actual
-- Historial de aprendizaje
-
-2. **Escritura**:
-- Planes generados
-- Contenido diario
-- Métricas de progreso
-
-## Docker
+## 🔐 Variables de Entorno
 
 ```bash
-# Build
-docker build -t skillix-agents .
+# Requerido
+OPENAI_API_KEY=your-openai-api-key
 
-# Run
-docker run -p 8000:8000 \
-  --env-file .env \
-  skillix-agents
-``` 
+# Opcional (para multi-modelo)
+GOOGLE_API_KEY=your-google-api-key
+ANTHROPIC_API_KEY=your-anthropic-api-key
+
+# Firebase (cuando esté configurado)
+FIREBASE_PROJECT_ID=your-project-id
+```
+
+## 📊 Esquema de Datos
+
+El sistema está diseñado para integrarse con Firebase Data Connect con las siguientes entidades principales:
+
+- **User**: Información del usuario y preferencias
+- **LearningPlan**: Roadmap completo del curso
+- **PlanSection**: Secciones/capítulos del plan
+- **DayContent**: Contenido diario generado
+- **Enrollment**: Inscripciones activas
+- **UserProgress**: Progreso y métricas
+
+## 🧪 Testing
+
+```bash
+# Ejecutar tests
+pytest tests/
+
+# Con coverage
+pytest --cov=skillix_agents tests/
+```
+
+## 🛣️ Roadmap
+
+- [ ] Integración completa con Firebase Data Connect
+- [ ] Soporte para más tipos de contenido (video, ejercicios interactivos)
+- [ ] Sistema de recomendaciones basado en progreso
+- [ ] Análisis de sentimiento para feedback
+- [ ] Generación de certificados
+- [ ] API REST para integración con frontend
+
+## 🤝 Contribuir
+
+1. Fork el repositorio
+2. Crea tu feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push al branch (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📝 Licencia
+
+Este proyecto está bajo licencia MIT. Ver `LICENSE` para más detalles. 

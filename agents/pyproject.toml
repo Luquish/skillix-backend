@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "skillix-backend"
 version = "0.1.0"
 authors = [
-    { name = "Your Name", email = "your.email@example.com" }
+    { name = "Luca Mazzarello and Federico Berman", email = "lucamazza02@gmail.com" }
 ]
 description = "A personalized learning journey creator"
 requires-python = ">=3.9"
@@ -16,8 +16,16 @@ dependencies = [
     "pydantic",
     "httpx",
     "python-dotenv",
-    "openai"
+    "openai",
+    "firebase-admin",
+    "google-adk",
+    "google-cloud-storage",
+    "google-cloud-firestore",
+    "google-auth",
+    "sqlalchemy",
+    "PyYAML"
 ]
 
 [tool.setuptools]
-packages = ["src"] 
+package-dir = {"" = "src"}
+packages = ["api", "skillix_agents"] 

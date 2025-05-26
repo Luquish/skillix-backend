@@ -1,0 +1,28 @@
+# Configuración para desplegar en Cloud Run
+steps:
+  # Construir la imagen Docker
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/skillix-agents', '.']
+
+  # Enviar la imagen al Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/skillix-agents']
+
+  # Desplegar en Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'skillix-agents'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/skillix-agents'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+
+# Imágenes que se subirán al Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/skillix-agents' 

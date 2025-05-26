@@ -22,18 +22,46 @@ enum LearningStyle {
   VISUAL
   AUDITORY
   KINESTHETIC
+  MIXED
 }
 
-# Enums para estado y progreso
-enum EnrollmentStatus {
-  ACTIVE
-  COMPLETED
-  PAUSED
-}
-
+# Enums para tipos de contenido
 enum ContentBlockType {
   AUDIO
   READ
   QUIZ_MCQ
   ACTION_TASK
+  VIDEO
+  EXERCISE
+}
+
+# Enums para estado y progreso
+enum CompletionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+# Enums para categorías de habilidades
+enum SkillCategory {
+  TECHNICAL
+  CREATIVE
+  BUSINESS
+  PERSONAL_DEVELOPMENT
+  LANGUAGE
+  OTHER
+}
+
+# Enums para demanda de mercado
+enum MarketDemand {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+# Enums para riesgo de abandono
+enum ChurnRisk {
+  LOW
+  MEDIUM
+  HIGH
 } 

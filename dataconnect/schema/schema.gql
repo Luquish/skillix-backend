@@ -1,4 +1,4 @@
-# Enums para proveedores de autenticación
+# ==================== ENUMS ====================
 enum AuthProvider {
   EMAIL
   GOOGLE
@@ -11,151 +11,524 @@ enum Platform {
   WEB
 }
 
-# Tipos base para usuarios
+enum UserExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+  MIXED
+}
+
+enum ContentBlockType {
+  AUDIO
+  READ
+  QUIZ_MCQ
+  ACTION_TASK
+  VIDEO
+  EXERCISE
+}
+
+enum CompletionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum SkillCategory {
+  TECHNICAL
+  CREATIVE
+  BUSINESS
+  PERSONAL_DEVELOPMENT
+  LANGUAGE
+  OTHER
+}
+
+enum MarketDemand {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ChurnRisk {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+# ==================== USER TABLES ====================
 type User @table {
-  id: UUID! @col(name: "user_id") @default(expr: "uuidV4()")
-  email: String! @col(name: "email") @unique
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  email: String! @unique
   name: String!
-  # Removemos hashedPassword ya que usaremos OAuth
-  isActive: Boolean! @col(name: "is_active") @default(value: true)
-  authProvider: AuthProvider! @col(name: "auth_provider")
-  platform: Platform @col(name: "platform")
-  firebaseUid: String @col(name: "firebase_uid") @unique
+  isActive: Boolean! @default(value: true)
+  authProvider: AuthProvider!
+  platform: Platform
+  firebaseUid: String @unique
   
-  # Campos específicos para OAuth
-  photoUrl: String @col(name: "photo_url")
-  emailVerified: Boolean! @col(name: "email_verified") @default(value: false)
+  # OAuth fields
+  photoUrl: String
+  emailVerified: Boolean! @default(value: false)
   
-  # Campos específicos de Apple Sign In
-  appleUserIdentifier: String @col(name: "apple_user_identifier") @unique
-  appleIdentityToken: String @col(name: "apple_identity_token")
+  # Auth provider specific
+  appleUserIdentifier: String @unique
+  appleIdentityToken: String
+  googleIdToken: String
+  googleAccessToken: String
   
-  # Campos específicos de Google Sign In
-  googleIdToken: String @col(name: "google_id_token")
-  googleAccessToken: String @col(name: "google_access_token")
-  
-  # Metadatos de autenticación
-  lastSignInAt: DateTime @col(name: "last_sign_in_at")
-  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
-  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
-  
-  # Relaciones
-  preferences: [UserPreference!]! @hasMany(references: "userId")
-  enrollments: [Enrollment!]! @hasMany(references: "userId")
+  # Metadata
+  lastSignInAt: Timestamp
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  preferences: UserPreference @hasOne
+  learningPlan: LearningPlan @hasOne
+  enrollments: [Enrollment!]! @hasMany
+  progress: [ContentProgress!]! @hasMany
+  analytics: [UserAnalytics!]! @hasMany
+  adkSessions: [AdkSession!]! @hasMany
 }
 
 type UserPreference @table {
-  id: UUID! @col(name: "preference_id") @default(expr: "uuidV4()")
-  userId: UUID! @col(name: "user_id")
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  userId: ID! @foreignKey(references: "User.id") @unique
   skill: String!
-  experience: String!
+  experienceLevel: UserExperienceLevel!
   motivation: String!
-  time: String!
-  learningStyle: String! @col(name: "learning_style")
+  availableTimeMinutes: Int!
+  learningStyle: LearningStyle!
   goal: String!
-  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
-  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
-  
-  # Relación con usuario
-  user: User! @belongsTo(references: "userId")
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  user: User! @belongsTo
 }
 
-# Tipos para cursos
-type Course @table {
-  id: UUID! @col(name: "course_id") @default(expr: "uuidV4()")
+# ==================== LEARNING PLAN TABLES ====================
+type LearningPlan @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  userId: ID! @foreignKey(references: "User.id") @unique
+  generatedBy: String!
+  generatedAt: Timestamp!
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  user: User! @belongsTo
+  sections: [PlanSection!]! @hasMany
+  skillAnalysis: SkillAnalysis @hasOne
+  pedagogicalAnalysis: PedagogicalAnalysis @hasOne
+}
+
+type SkillAnalysis @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  learningPlanId: ID! @foreignKey(references: "LearningPlan.id") @unique
+  skill: String!
+  skillCategory: SkillCategory!
+  marketDemand: MarketDemand!
+  generatedBy: String!
+  createdAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  learningPlan: LearningPlan! @belongsTo
+  components: [SkillComponent!]! @hasMany
+  prerequisites: [SkillPrerequisite!]! @hasMany
+  careerPaths: [CareerPath!]! @hasMany
+}
+
+type SkillComponent @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  skillAnalysisId: ID! @foreignKey(references: "SkillAnalysis.id")
+  name: String!
+  description: String!
+  importance: Int! # 1-5
+  order: Int!
+
+  # Relations
+  skillAnalysis: SkillAnalysis! @belongsTo
+}
+
+type SkillPrerequisite @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  skillAnalysisId: ID! @foreignKey(references: "SkillAnalysis.id")
+  name: String!
+  description: String!
+  isRequired: Boolean!
+  order: Int!
+
+  # Relations
+  skillAnalysis: SkillAnalysis! @belongsTo
+}
+
+type CareerPath @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  skillAnalysisId: ID! @foreignKey(references: "SkillAnalysis.id")
+  title: String!
+  description: String!
+  averageSalary: String
+  demandLevel: MarketDemand!
+  order: Int!
+
+  # Relations
+  skillAnalysis: SkillAnalysis! @belongsTo
+}
+
+type PedagogicalAnalysis @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  learningPlanId: ID! @foreignKey(references: "LearningPlan.id") @unique
+  cognitivLoadAssessment: String!
+  createdAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  learningPlan: LearningPlan! @belongsTo
+  objectives: [LearningObjective!]! @hasMany
+  bloomsLevels: [BloomsTaxonomy!]! @hasMany
+  engagementTechniques: [EngagementTechnique!]! @hasMany
+  assessmentMethods: [AssessmentMethod!]! @hasMany
+}
+
+type LearningObjective @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  pedagogicalAnalysisId: ID! @foreignKey(references: "PedagogicalAnalysis.id")
+  objective: String!
+  measurable: Boolean!
+  timeframe: String!
+  order: Int!
+
+  # Relations
+  pedagogicalAnalysis: PedagogicalAnalysis! @belongsTo
+}
+
+type BloomsTaxonomy @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  pedagogicalAnalysisId: ID! @foreignKey(references: "PedagogicalAnalysis.id")
+  level: String! # Remember, Understand, Apply, Analyze, Evaluate, Create
+  percentage: Int!
+
+  # Relations
+  pedagogicalAnalysis: PedagogicalAnalysis! @belongsTo
+
+  @@unique([pedagogicalAnalysisId, level])
+}
+
+type EngagementTechnique @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  pedagogicalAnalysisId: ID! @foreignKey(references: "PedagogicalAnalysis.id")
+  name: String!
+  description: String!
+  frequency: String! # Daily, Weekly, Per Section
+
+  # Relations
+  pedagogicalAnalysis: PedagogicalAnalysis! @belongsTo
+}
+
+type AssessmentMethod @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  pedagogicalAnalysisId: ID! @foreignKey(references: "PedagogicalAnalysis.id")
+  type: String!
+  description: String!
+  frequency: String!
+
+  # Relations
+  pedagogicalAnalysis: PedagogicalAnalysis! @belongsTo
+}
+
+type PlanSection @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  planId: ID! @foreignKey(references: "LearningPlan.id")
   title: String!
   description: String
-  level: String! # 'beginner', 'intermediate', 'advanced'
-  version: String! @default(value: "v1")
-  language: String! @default(value: "es")
-  canonical: Boolean! @default(value: false)
-  tags: [String!]
-  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
-  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
-  
-  # Relaciones
-  blocks: [Block!]! @hasMany(references: "courseId")
-  enrollments: [Enrollment!]! @hasMany(references: "courseId")
-}
-
-type Block @table {
-  id: UUID! @col(name: "block_id") @default(expr: "uuidV4()")
-  courseId: UUID! @col(name: "course_id")
-  type: String! # 'audio', 'read', 'quiz_mcq', etc.
-  xp: Int! @default(value: 0)
-  content: Any! # JSON field para contenido dinámico
   order: Int!
-  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
-  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
-  
-  # Relación con curso
-  course: Course! @belongsTo(references: "courseId")
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  plan: LearningPlan! @belongsTo
+  days: [DayContent!]! @hasMany
 }
 
-# Tipos para contenido generado por IA
-type LearningPlan @table {
-  id: UUID! @col(name: "plan_id") @default(expr: "uuidV4()")
-  userId: UUID! @col(name: "user_id") @unique
-  planData: Any! @col(name: "plan_data") # JSON con el plan completo
-  generatedBy: String! @col(name: "generated_by") # 'openai-gpt4', etc.
-  generatedAt: DateTime! @col(name: "generated_at")
-  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
-  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
-  
-  # Relación con usuario
-  user: User! @belongsTo(references: "userId")
-}
-
+# ==================== CONTENT TABLES ====================
 type DayContent @table {
-  id: UUID! @col(name: "content_id") @default(expr: "uuidV4()")
-  enrollmentId: UUID! @col(name: "enrollment_id")
-  dayNumber: Int! @col(name: "day_number")
-  content: Any! @col(name: "content") # JSON con bloques, tareas, etc.
-  generatedBy: String! @col(name: "generated_by")
-  generatedAt: DateTime! @col(name: "generated_at")
-  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
-  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
-  
-  # Relación con enrollment
-  enrollment: Enrollment! @belongsTo(references: "enrollmentId")
-  
-  # Índice único para enrollment + día
-  @@unique([enrollmentId, dayNumber])
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  sectionId: ID! @foreignKey(references: "PlanSection.id")
+  dayNumber: Int!
+  title: String!
+  focusArea: String!
+  isActionDay: Boolean!
+  generatedBy: String!
+  generatedAt: Timestamp!
+  completionStatus: CompletionStatus! @default(value: "PENDING")
+  completedAt: Timestamp
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  section: PlanSection! @belongsTo
+  blocks: [ContentBlock!]! @hasMany
+  objectives: [DayObjective!]! @hasMany
+  progress: [ContentProgress!]! @hasMany
+
+  @@unique([sectionId, dayNumber])
 }
 
-# Tipos para inscripciones
+type DayObjective @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  dayContentId: ID! @foreignKey(references: "DayContent.id")
+  objective: String!
+  order: Int!
+
+  # Relations
+  dayContent: DayContent! @belongsTo
+}
+
+type ContentBlock @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  dayContentId: ID! @foreignKey(references: "DayContent.id")
+  blockType: ContentBlockType!
+  title: String!
+  xp: Int! @default(value: 0)
+  order: Int!
+  estimatedMinutes: Int
+  createdAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  dayContent: DayContent! @belongsTo
+  audioContent: AudioContent @hasOne
+  readContent: ReadContent @hasOne
+  quizContent: QuizContent @hasOne
+  actionTask: ActionTask @hasOne
+  progress: [ContentProgress!]! @hasMany
+}
+
+type AudioContent @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
+  audioUrl: String!
+  transcript: String!
+  duration: Int! # seconds
+  voiceType: String!
+
+  # Relations
+  contentBlock: ContentBlock! @belongsTo
+}
+
+type ReadContent @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
+  content: String!
+  estimatedReadTime: Int! # minutes
+  
+  # Relations
+  contentBlock: ContentBlock! @belongsTo
+  keyConcepts: [KeyConcept!]! @hasMany
+}
+
+type KeyConcept @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  readContentId: ID! @foreignKey(references: "ReadContent.id")
+  concept: String!
+  definition: String!
+  order: Int!
+
+  # Relations
+  readContent: ReadContent! @belongsTo
+}
+
+type QuizContent @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
+  
+  # Relations
+  contentBlock: ContentBlock! @belongsTo
+  questions: [QuizQuestion!]! @hasMany
+}
+
+type QuizQuestion @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  quizContentId: ID! @foreignKey(references: "QuizContent.id")
+  question: String!
+  correctAnswer: String!
+  explanation: String!
+  order: Int!
+
+  # Relations
+  quizContent: QuizContent! @belongsTo
+  options: [QuizOption!]! @hasMany
+}
+
+type QuizOption @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  questionId: ID! @foreignKey(references: "QuizQuestion.id")
+  optionText: String!
+  isCorrect: Boolean!
+  order: Int!
+
+  # Relations
+  question: QuizQuestion! @belongsTo
+}
+
+type ActionTask @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
+  taskType: String! # practice, project, reflection
+  description: String!
+  instructions: String!
+  estimatedTime: Int! # minutes
+  
+  # Relations
+  contentBlock: ContentBlock! @belongsTo
+  steps: [ActionStep!]! @hasMany
+  deliverables: [ActionDeliverable!]! @hasMany
+}
+
+type ActionStep @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  actionTaskId: ID! @foreignKey(references: "ActionTask.id")
+  instruction: String!
+  order: Int!
+
+  # Relations
+  actionTask: ActionTask! @belongsTo
+}
+
+type ActionDeliverable @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  actionTaskId: ID! @foreignKey(references: "ActionTask.id")
+  description: String!
+  type: String! # document, code, presentation, etc
+  order: Int!
+
+  # Relations
+  actionTask: ActionTask! @belongsTo
+}
+
+# ==================== ENROLLMENT & PROGRESS TABLES ====================
 type Enrollment @table {
-  id: UUID! @col(name: "enrollment_id") @default(expr: "uuidV4()")
-  userId: UUID! @col(name: "user_id")
-  courseId: UUID! @col(name: "course_id")
-  status: String! @default(value: "active") # 'active', 'completed', 'paused'
-  progressPercentage: Int! @col(name: "progress_percentage") @default(value: 0)
-  xpEarned: Int! @col(name: "xp_earned") @default(value: 0)
-  completedAt: DateTime @col(name: "completed_at")
-  lastActivityAt: DateTime @col(name: "last_activity_at")
-  lastGeneratedDay: Int @col(name: "last_generated_day") @default(value: 0)
-  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
-  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
-  
-  # Relaciones
-  user: User! @belongsTo(references: "userId")
-  course: Course! @belongsTo(references: "courseId")
-  progress: [BlockProgress!]! @hasMany(references: "enrollmentId")
-  dayContents: [DayContent!]! @hasMany(references: "enrollmentId")
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  userId: ID! @foreignKey(references: "User.id")
+  learningPlanId: ID! @foreignKey(references: "LearningPlan.id")
+  status: CompletionStatus! @default(value: "PENDING")
+  startedAt: Timestamp
+  completedAt: Timestamp
+  lastActivityAt: Timestamp
+  currentDayNumber: Int! @default(value: 0)
+  totalXpEarned: Int! @default(value: 0)
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  user: User! @belongsTo
+  learningPlan: LearningPlan! @belongsTo
+
+  @@unique([userId, learningPlanId])
 }
 
-type BlockProgress @table {
-  id: UUID! @col(name: "progress_id") @default(expr: "uuidV4()")
-  enrollmentId: UUID! @col(name: "enrollment_id")
-  blockId: UUID! @col(name: "block_id")
+type ContentProgress @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  userId: ID! @foreignKey(references: "User.id")
+  contentBlockId: ID! @foreignKey(references: "ContentBlock.id")
   completed: Boolean! @default(value: false)
-  xpEarned: Int! @col(name: "xp_earned") @default(value: 0)
+  xpEarned: Int! @default(value: 0)
   attempts: Int! @default(value: 0)
-  completedAt: DateTime @col(name: "completed_at")
-  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
-  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
-  
-  # Relaciones
-  enrollment: Enrollment! @belongsTo(references: "enrollmentId")
-  block: Block! @belongsTo(references: "blockId")
+  timeSpent: Int! @default(value: 0) # seconds
+  score: Float # For quizzes
+  completedAt: Timestamp
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  user: User! @belongsTo
+  contentBlock: ContentBlock! @belongsTo
+  responses: [QuizResponse!]! @hasMany
+
+  @@unique([userId, contentBlockId])
+}
+
+type QuizResponse @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  progressId: ID! @foreignKey(references: "ContentProgress.id")
+  questionId: ID! @foreignKey(references: "QuizQuestion.id")
+  selectedOptionId: ID! @foreignKey(references: "QuizOption.id")
+  isCorrect: Boolean!
+  answeredAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  progress: ContentProgress! @belongsTo
+  question: QuizQuestion! @belongsTo
+  selectedOption: QuizOption! @belongsTo
+}
+
+# ==================== ANALYTICS TABLES ====================
+type UserAnalytics @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  userId: ID! @foreignKey(references: "User.id")
+  date: Date!
+  totalXp: Int! @default(value: 0)
+  sessionsCount: Int! @default(value: 0)
+  averageSessionTime: Int! # minutes
+  blocksCompleted: Int! @default(value: 0)
+  quizAvgScore: Float
+  currentStreak: Int! @default(value: 0)
+  longestStreak: Int! @default(value: 0)
+  preferredLearningTime: String # morning, afternoon, evening
+  engagementScore: Float
+  churnRisk: ChurnRisk
+  lastActiveAt: Timestamp! @default(expr: "now()")
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  user: User! @belongsTo
+
+  @@unique([userId, date])
+}
+
+# ==================== ADK SESSION TABLES ====================
+type AdkSession @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  userId: ID! @foreignKey(references: "User.id")
+  sessionId: String! @unique
+  appName: String!
+  lastUpdateTime: Timestamp! @default(expr: "now()")
+  createdAt: Timestamp! @default(expr: "now()")
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  user: User! @belongsTo
+  messages: [AdkMessage!]! @hasMany
+  state: AdkSessionState @hasOne
+
+  @@unique([userId, appName])
+}
+
+type AdkSessionState @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  sessionId: ID! @foreignKey(references: "AdkSession.id") @unique
+  currentContext: String
+  userLevel: String
+  lastTopics: String
+  preferences: String
+  updatedAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  session: AdkSession! @belongsTo
+}
+
+type AdkMessage @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  sessionId: ID! @foreignKey(references: "AdkSession.id")
+  role: String! # user, assistant
+  content: String!
+  createdAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  session: AdkSession! @belongsTo
+
+  @@index([sessionId, createdAt])
 } 

@@ -270,3 +270,159 @@ function ProfileScreen() {
 - ✅ Soporte offline
 - ✅ Hot reload de esquemas
 - ✅ Emulador local para desarrollo 
+
+# Firebase Data Connect - Estructura Relacional
+
+## Descripción General
+
+Este directorio contiene la configuración completa de Firebase Data Connect con una estructura completamente relacional (sin campos JSON).
+
+## Estructura de la Base de Datos
+
+### Tablas Principales
+
+#### 1. **User** - Información del usuario
+- Datos básicos: email, nombre, Firebase UID
+- Información de autenticación OAuth (Google, Apple)
+- Relaciones: preferences, learningPlan, enrollments, progress, analytics
+
+#### 2. **LearningPlan** - Plan de aprendizaje del usuario
+- Plan generado por IA para cada usuario
+- Relaciones: skillAnalysis, pedagogicalAnalysis, sections
+
+#### 3. **SkillAnalysis** - Análisis de la habilidad
+- Información sobre la habilidad que el usuario quiere aprender
+- Categoría, demanda del mercado
+- Relaciones: components, prerequisites, careerPaths
+
+#### 4. **PedagogicalAnalysis** - Análisis pedagógico
+- Estrategias de enseñanza personalizadas
+- Evaluación de carga cognitiva
+- Relaciones: objectives, bloomsLevels, engagementTechniques, assessmentMethods
+
+#### 5. **PlanSection** - Secciones del plan
+- División del plan en secciones temáticas
+- Relaciones: days
+
+#### 6. **DayContent** - Contenido diario
+- Contenido específico para cada día de aprendizaje
+- Relaciones: blocks, objectives, progress
+
+#### 7. **ContentBlock** - Bloques de contenido
+- Unidades atómicas de contenido (audio, lectura, quiz, tareas)
+- Relaciones: audioContent, readContent, quizContent, actionTask
+
+### Tipos de Bloques de Contenido
+
+#### **AudioContent**
+- URL del audio, transcripción, duración
+- Tipo de voz para TTS
+
+#### **ReadContent**
+- Contenido de texto para leer
+- Conceptos clave con definiciones
+
+#### **QuizContent**
+- Preguntas de opción múltiple
+- Respuestas correctas y explicaciones
+
+#### **ActionTask**
+- Tareas prácticas para aplicar lo aprendido
+- Pasos a seguir y entregables esperados
+
+### Tablas de Progreso
+
+#### **Enrollment**
+- Inscripción del usuario en un plan de aprendizaje
+- Estado, progreso actual, XP total
+
+#### **ContentProgress**
+- Progreso detallado por bloque de contenido
+- Tiempo invertido, intentos, puntuación
+
+#### **QuizResponse**
+- Respuestas específicas a preguntas de quiz
+- Tracking de respuestas correctas/incorrectas
+
+### Tablas de Analytics
+
+#### **UserAnalytics**
+- Métricas diarias del usuario
+- Racha de días, tiempo promedio de sesión
+- Puntuación de engagement, riesgo de abandono
+
+### Tablas ADK (Assistant Development Kit)
+
+#### **AdkSession**
+- Sesiones de conversación con asistentes IA
+- Estado de la conversación
+
+#### **AdkMessage**
+- Mensajes individuales en las conversaciones
+
+## Flujo de Datos
+
+1. **Creación de Usuario**
+   - Se crea el usuario con autenticación OAuth
+   - Se guardan las preferencias de aprendizaje
+
+2. **Generación del Plan**
+   - Los agentes de IA analizan las preferencias
+   - Se crea LearningPlan con SkillAnalysis y PedagogicalAnalysis
+   - Se generan las secciones y días del plan
+
+3. **Generación de Contenido Diario**
+   - Para cada día se generan bloques de contenido
+   - Audio, lectura, quizzes y tareas prácticas
+
+4. **Tracking de Progreso**
+   - Se registra el progreso en cada bloque
+   - Se actualizan las analytics diarias
+
+## Enums Utilizados
+
+- **AuthProvider**: EMAIL, GOOGLE, APPLE
+- **Platform**: IOS, ANDROID, WEB
+- **UserExperienceLevel**: BEGINNER, INTERMEDIATE, ADVANCED
+- **LearningStyle**: VISUAL, AUDITORY, KINESTHETIC, MIXED
+- **ContentBlockType**: AUDIO, READ, QUIZ_MCQ, ACTION_TASK, VIDEO, EXERCISE
+- **CompletionStatus**: PENDING, IN_PROGRESS, COMPLETED
+- **SkillCategory**: TECHNICAL, CREATIVE, BUSINESS, PERSONAL_DEVELOPMENT, LANGUAGE, OTHER
+- **MarketDemand**: HIGH, MEDIUM, LOW
+- **ChurnRisk**: LOW, MEDIUM, HIGH
+
+## Archivos de Configuración
+
+- `dataconnect.yaml`: Configuración principal del servicio
+- `schema/schema.gql`: Definición completa del esquema
+- `schema/enums.gql`: Definición de todos los enums
+- `connector/queries.gql`: Todas las queries disponibles
+- `connector/mutations.gql`: Todas las mutations disponibles
+
+## Integración con Python
+
+Los agentes de Python se comunican con Data Connect a través del bridge Node.js:
+
+```python
+from skillix_agents import get_dataconnect_bridge
+
+bridge = get_dataconnect_bridge()
+
+# Crear un plan de aprendizaje
+result = bridge.create_learning_plan(user_id, {
+    'skill_analysis': {...},
+    'learning_plan': {...},
+    'pedagogical_analysis': {...}
+})
+
+# Obtener contenido del día
+content = bridge.get_day_content(day_content_id)
+```
+
+## Ventajas de la Estructura Relacional
+
+1. **Queries más eficientes**: No necesitas parsear JSON
+2. **Integridad referencial**: Las relaciones están garantizadas
+3. **Mejor análisis**: Puedes hacer queries complejas fácilmente
+4. **Type safety**: Cada campo tiene un tipo definido
+5. **Escalabilidad**: Mejor performance con grandes volúmenes de datos 

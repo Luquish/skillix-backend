@@ -1,6 +1,6 @@
-# Queries de usuario
+# ==================== USER QUERIES ====================
 query GetUserByFirebaseUid($firebaseUid: String!) @auth(level: USER) {
-  users(where: { firebaseUid: { eq: $firebaseUid } }) {
+  user(where: { firebaseUid: { eq: $firebaseUid } }) {
     id
     email
     name
@@ -13,31 +13,22 @@ query GetUserByFirebaseUid($firebaseUid: String!) @auth(level: USER) {
     preferences {
       id
       skill
-      experience
+      experienceLevel
       motivation
-      time
+      availableTimeMinutes
       learningStyle
       goal
     }
-    enrollments {
+    learningPlan {
       id
-      courseId
-      status
-      progressPercentage
-      xpEarned
-      lastActivityAt
-      course {
-        id
-        title
-        description
-        level
-      }
+      generatedBy
+      generatedAt
     }
   }
 }
 
-query GetUserById($userId: UUID!) @auth(level: USER) {
-  user(id: $userId) @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+query GetUserById($userId: ID!) @auth(level: USER) {
+  user(where: { id: { eq: $userId } }) {
     id
     email
     name
@@ -49,189 +40,72 @@ query GetUserById($userId: UUID!) @auth(level: USER) {
     preferences {
       id
       skill
-      experience
+      experienceLevel
       motivation
-      time
+      availableTimeMinutes
       learningStyle
       goal
     }
   }
 }
 
-# Queries de cursos
-query ListCourses($level: String, $language: String) @auth(level: PUBLIC) {
-  courses(
-    where: {
-      _and: [
-        { level: { eq: $level } }
-        { language: { eq: $language } }
-      ]
-    }
-  ) {
+# ==================== LEARNING PLAN QUERIES ====================
+query GetUserLearningPlan($userId: ID!) @auth(level: USER) {
+  learningPlan(where: { userId: { eq: $userId } }) {
     id
-    title
-    description
-    level
-    version
-    language
-    canonical
-    tags
-    blocks {
+    generatedBy
+    generatedAt
+    skillAnalysis {
       id
-      type
-      xp
-      order
-    }
-  }
-}
-
-query GetCourseById($courseId: UUID!) @auth(level: PUBLIC) {
-  course(id: $courseId) {
-    id
-    title
-    description
-    level
-    version
-    language
-    canonical
-    tags
-    createdAt
-    updatedAt
-    blocks(orderBy: { order: ASC }) {
-      id
-      type
-      xp
-      content
-      order
-    }
-  }
-}
-
-# Queries de progreso y enrollment
-query GetUserEnrollments($userId: UUID!) @auth(level: USER) {
-  enrollments(where: { userId: { eq: $userId } }) 
-  @check(expr: "auth.uid == request.auth.uid", message: "Unauthorized") {
-    id
-    courseId
-    status
-    progressPercentage
-    xpEarned
-    completedAt
-    lastActivityAt
-    createdAt
-    course {
-      id
-      title
-      description
-      level
-      tags
-    }
-    progress {
-      id
-      blockId
-      completed
-      xpEarned
-      attempts
-      completedAt
-    }
-  }
-}
-
-query GetEnrollmentProgress($enrollmentId: UUID!) @auth(level: USER) {
-  enrollment(id: $enrollmentId) {
-    id
-    userId
-    courseId
-    status
-    progressPercentage
-    xpEarned
-    lastActivityAt
-    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-      id
-      firebaseUid
-    }
-    progress {
-      id
-      blockId
-      completed
-      xpEarned
-      attempts
-      completedAt
-      block {
+      skill
+      skillCategory
+      marketDemand
+      components {
         id
-        type
-        content
-        order
+        name
+        description
+        importance
       }
-    }
-  }
-}
-
-# Query para plan de aprendizaje (learning plan)
-query GetUserLearningPlan($userId: UUID!) @auth(level: USER) {
-  user(id: $userId) @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-    id
-    name
-    enrollments(where: { status: { eq: "active" } }) {
-      id
-      courseId
-      progressPercentage
-      lastActivityAt
-      course {
+      prerequisites {
+        id
+        name
+        description
+        isRequired
+      }
+      careerPaths {
         id
         title
         description
-        level
-        blocks {
-          id
-          type
-          xp
-          order
-        }
-      }
-      progress {
-        blockId
-        completed
-        xpEarned
+        averageSalary
+        demandLevel
       }
     }
-  }
-}
-
-query GetUserByFirebaseId($firebaseUid: String!) {
-  user(where: { firebaseUid: { eq: $firebaseUid } }) {
-    id
-    email
-    name
-    isActive
-    authProvider
-    platform
-    photoUrl
-    emailVerified
-    lastSignInAt
-    createdAt
-  }
-}
-
-query GetUserPreferences($userId: ID!) {
-  userPreferences(where: { userId: { eq: $userId } }) {
-    id
-    skill
-    experienceLevel
-    motivation
-    availableTimeMinutes
-    learningStyle
-    goal
-    createdAt
-  }
-}
-
-query GetUserLearningPlan($userId: ID!) {
-  learningPlan(where: { userId: { eq: $userId } }) {
-    id
-    planData
-    generatedBy
-    generatedAt
+    pedagogicalAnalysis {
+      id
+      cognitivLoadAssessment
+      objectives {
+        id
+        objective
+        measurable
+        timeframe
+      }
+      bloomsLevels {
+        level
+        percentage
+      }
+      engagementTechniques {
+        id
+        name
+        description
+        frequency
+      }
+      assessmentMethods {
+        id
+        type
+        description
+        frequency
+      }
+    }
     sections {
       id
       title
@@ -241,8 +115,8 @@ query GetUserLearningPlan($userId: ID!) {
         id
         dayNumber
         title
+        focusArea
         isActionDay
-        content
         completionStatus
         completedAt
       }
@@ -250,50 +124,338 @@ query GetUserLearningPlan($userId: ID!) {
   }
 }
 
-query GetDayContent($sectionId: ID!, $dayNumber: Int!) {
-  dayContent(where: { 
-    AND: [
-      { sectionId: { eq: $sectionId } },
-      { dayNumber: { eq: $dayNumber } }
-    ]
-  }) {
+query GetPlanSectionWithDays($sectionId: ID!) @auth(level: USER) {
+  planSection(where: { id: { eq: $sectionId } }) {
     id
     title
-    isActionDay
-    content
-    generatedBy
-    completionStatus
-    progress {
-      blockType
-      blockId
-      completed
-      xpEarned
-      attempts
-      completedAt
+    description
+    order
+    days {
+      id
+      dayNumber
+      title
+      focusArea
+      isActionDay
+      completionStatus
+      objectives {
+        id
+        objective
+        order
+      }
+      blocks {
+        id
+        blockType
+        title
+        xp
+        order
+        estimatedMinutes
+      }
     }
   }
 }
 
-query GetUserProgress($userId: ID!) {
+# ==================== CONTENT QUERIES ====================
+query GetDayContent($dayContentId: ID!) @auth(level: USER) {
+  dayContent(where: { id: { eq: $dayContentId } }) {
+    id
+    dayNumber
+    title
+    focusArea
+    isActionDay
+    completionStatus
+    generatedBy
+    generatedAt
+    objectives {
+      id
+      objective
+      order
+    }
+    blocks {
+      id
+      blockType
+      title
+      xp
+      order
+      estimatedMinutes
+      audioContent {
+        id
+        audioUrl
+        transcript
+        duration
+        voiceType
+      }
+      readContent {
+        id
+        content
+        estimatedReadTime
+        keyConcepts {
+          id
+          concept
+          definition
+          order
+        }
+      }
+      quizContent {
+        id
+        questions {
+          id
+          question
+          correctAnswer
+          explanation
+          order
+          options {
+            id
+            optionText
+            isCorrect
+            order
+          }
+        }
+      }
+      actionTask {
+        id
+        taskType
+        description
+        instructions
+        estimatedTime
+        steps {
+          id
+          instruction
+          order
+        }
+        deliverables {
+          id
+          description
+          type
+          order
+        }
+      }
+    }
+  }
+}
+
+query GetContentBlock($blockId: ID!) @auth(level: USER) {
+  contentBlock(where: { id: { eq: $blockId } }) {
+    id
+    blockType
+    title
+    xp
+    order
+    estimatedMinutes
+    dayContent {
+      id
+      dayNumber
+      title
+    }
+    audioContent {
+      id
+      audioUrl
+      transcript
+      duration
+      voiceType
+    }
+    readContent {
+      id
+      content
+      estimatedReadTime
+      keyConcepts {
+        concept
+        definition
+      }
+    }
+    quizContent {
+      id
+      questions {
+        id
+        question
+        correctAnswer
+        explanation
+        options {
+          id
+          optionText
+          isCorrect
+        }
+      }
+    }
+    actionTask {
+      id
+      taskType
+      description
+      instructions
+      estimatedTime
+      steps {
+        instruction
+      }
+      deliverables {
+        description
+        type
+      }
+    }
+  }
+}
+
+# ==================== ENROLLMENT & PROGRESS QUERIES ====================
+query GetUserEnrollment($userId: ID!) @auth(level: USER) {
+  enrollment(where: { userId: { eq: $userId } }) {
+    id
+    status
+    startedAt
+    completedAt
+    lastActivityAt
+    currentDayNumber
+    totalXpEarned
+    learningPlan {
+      id
+      sections {
+        id
+        title
+        order
+        days {
+          id
+          dayNumber
+          title
+          completionStatus
+        }
+      }
+    }
+  }
+}
+
+query GetUserProgress($userId: ID!) @auth(level: USER) {
   contentProgress(
     where: { userId: { eq: $userId } }
     orderBy: { createdAt: DESC }
   ) {
     id
-    blockType
-    blockId
     completed
     xpEarned
     attempts
+    timeSpent
+    score
     completedAt
-    dayContent {
+    contentBlock {
       id
-      dayNumber
+      blockType
       title
-      section {
+      dayContent {
         id
+        dayNumber
         title
+        section {
+          id
+          title
+        }
       }
     }
+    responses {
+      id
+      isCorrect
+      question {
+        id
+        question
+      }
+      selectedOption {
+        id
+        optionText
+      }
+    }
+  }
+}
+
+query GetDayProgress($userId: ID!, $dayContentId: ID!) @auth(level: USER) {
+  contentProgress(
+    where: {
+      AND: [
+        { userId: { eq: $userId } }
+        { contentBlock: { dayContentId: { eq: $dayContentId } } }
+      ]
+    }
+  ) {
+    id
+    completed
+    xpEarned
+    timeSpent
+    contentBlock {
+      id
+      blockType
+      title
+      order
+    }
+  }
+}
+
+# ==================== ANALYTICS QUERIES ====================
+query GetUserAnalytics($userId: ID!, $startDate: Date!, $endDate: Date!) @auth(level: USER) {
+  userAnalytics(
+    where: {
+      AND: [
+        { userId: { eq: $userId } }
+        { date: { gte: $startDate } }
+        { date: { lte: $endDate } }
+      ]
+    }
+    orderBy: { date: ASC }
+  ) {
+    id
+    date
+    totalXp
+    sessionsCount
+    averageSessionTime
+    blocksCompleted
+    quizAvgScore
+    currentStreak
+    longestStreak
+    preferredLearningTime
+    engagementScore
+    churnRisk
+  }
+}
+
+query GetLatestUserAnalytics($userId: ID!) @auth(level: USER) {
+  userAnalytics(
+    where: { userId: { eq: $userId } }
+    orderBy: { date: DESC }
+    limit: 1
+  ) {
+    id
+    date
+    totalXp
+    currentStreak
+    engagementScore
+    churnRisk
+    preferredLearningTime
+  }
+}
+
+# ==================== ADK SESSION QUERIES ====================
+query GetAdkSession($sessionId: String!) @auth(level: USER) {
+  adkSession(where: { sessionId: { eq: $sessionId } }) {
+    id
+    appName
+    lastUpdateTime
+    state {
+      id
+      currentContext
+      userLevel
+      lastTopics
+      preferences
+    }
+    messages(orderBy: { createdAt: ASC }) {
+      id
+      role
+      content
+      createdAt
+    }
+  }
+}
+
+query GetUserAdkSessions($userId: ID!) @auth(level: USER) {
+  adkSessions(
+    where: { userId: { eq: $userId } }
+    orderBy: { lastUpdateTime: DESC }
+  ) {
+    id
+    appName
+    sessionId
+    lastUpdateTime
   }
 } 

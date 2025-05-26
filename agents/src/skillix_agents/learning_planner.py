@@ -3,8 +3,9 @@
 import os
 from typing import List, Optional
 from pydantic import BaseModel
-from google.adk.agents import Agent
-from .config import openai_model
+from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
+from config import settings
 
 class LearningDay(BaseModel):
     """Representa un día en el plan de aprendizaje"""
@@ -24,9 +25,9 @@ class LearningPlan(BaseModel):
     overview: str
 
 # Actualizar el agente planificador para usar GPT-4
-learning_planner_agent = Agent(
+learning_planner_agent = LlmAgent(
     name="learning_journey_planner",
-    model=openai_model,  # Usar GPT-4 via LiteLLM
+    model=LiteLlm(model=settings.openai_model),  # Usar GPT-4 via LiteLLM
     description="AI learning coach que crea journeys de habilidades personalizados",
     instruction="""You are an AI learning coach creating personalized skill journeys.
 

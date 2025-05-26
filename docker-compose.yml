@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Servicio de Python (Agentes)
+  agents:
+    build:
+      context: ./agents
+      dockerfile: Dockerfile
+    container_name: skillix-agents
+    environment:
+      - ENVIRONMENT=development
+      - DATACONNECT_BRIDGE_URL=http://dataconnect-bridge:3001
+      - DATACONNECT_API_KEY=${DATACONNECT_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - dataconnect-bridge
+    networks:
+      - skillix-network
+    volumes:
+      - ./agents:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Servicio de Node.js (Data Connect Bridge)
+  dataconnect-bridge:
+    build:
+      context: ./dataconnect-bridge
+      dockerfile: Dockerfile
+    container_name: skillix-dataconnect-bridge
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/app/service-account.json
+      - API_KEY=${DATACONNECT_API_KEY}
+    ports:
+      - "3001:3001"
+    networks:
+      - skillix-network
+    volumes:
+      - ./dataconnect-bridge:/app
+      - ./service-account.json:/app/service-account.json:ro
+    command: npm run dev
+
+networks:
+  skillix-network:
+    driver: bridge 

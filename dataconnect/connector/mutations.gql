@@ -1,4 +1,4 @@
-# Mutations de autenticación y usuario
+# ==================== USER MUTATIONS ====================
 mutation CreateUser(
   $email: String!
   $name: String!
@@ -7,7 +7,7 @@ mutation CreateUser(
   $firebaseUid: String!
   $photoUrl: String
   $emailVerified: Boolean
-) {
+) @auth(level: PUBLIC) {
   createUser(data: {
     email: $email
     name: $name
@@ -20,10 +20,7 @@ mutation CreateUser(
     id
     email
     name
-    authProvider
-    platform
     firebaseUid
-    createdAt
   }
 }
 
@@ -33,7 +30,7 @@ mutation UpdateUserAuth(
   $appleIdentityToken: String
   $googleIdToken: String
   $googleAccessToken: String
-) {
+) @auth(level: USER) {
   updateUser(
     where: { id: { eq: $userId } }
     data: {
@@ -57,7 +54,7 @@ mutation CreateUserPreference(
   $availableTimeMinutes: Int!
   $learningStyle: LearningStyle!
   $goal: String!
-) {
+) @auth(level: USER) {
   createUserPreference(data: {
     userId: $userId
     skill: $skill
@@ -70,23 +67,97 @@ mutation CreateUserPreference(
     id
     skill
     experienceLevel
-    createdAt
   }
 }
 
-mutation CreateLearningPlan(
+# ==================== LEARNING PLAN MUTATIONS ====================
+mutation CreateLearningPlanWithAnalysis(
   $userId: ID!
-  $planData: JSON!
   $generatedBy: String!
-) {
-  createLearningPlan(data: {
+  # Skill Analysis
+  $skill: String!
+  $skillCategory: SkillCategory!
+  $marketDemand: MarketDemand!
+  # Pedagogical Analysis
+  $cognitivLoadAssessment: String!
+) @auth(level: SERVICE) @transaction {
+  # 1. Create learning plan
+  learningPlan: createLearningPlan(data: {
     userId: $userId
-    planData: $planData
     generatedBy: $generatedBy
     generatedAt: "now()"
   }) {
     id
-    generatedAt
+  }
+  
+  # 2. Create skill analysis
+  skillAnalysis: createSkillAnalysis(data: {
+    learningPlanId: $learningPlan.id
+    skill: $skill
+    skillCategory: $skillCategory
+    marketDemand: $marketDemand
+    generatedBy: $generatedBy
+  }) {
+    id
+  }
+  
+  # 3. Create pedagogical analysis
+  pedagogicalAnalysis: createPedagogicalAnalysis(data: {
+    learningPlanId: $learningPlan.id
+    cognitivLoadAssessment: $cognitivLoadAssessment
+  }) {
+    id
+  }
+}
+
+mutation CreateSkillComponents(
+  $skillAnalysisId: ID!
+  $components: [SkillComponentInput!]!
+) @auth(level: SERVICE) {
+  createManySkillComponents(data: $components) {
+    id
+    name
+  }
+}
+
+mutation CreateSkillPrerequisites(
+  $skillAnalysisId: ID!
+  $prerequisites: [SkillPrerequisiteInput!]!
+) @auth(level: SERVICE) {
+  createManySkillPrerequisites(data: $prerequisites) {
+    id
+    name
+  }
+}
+
+mutation CreateCareerPaths(
+  $skillAnalysisId: ID!
+  $careerPaths: [CareerPathInput!]!
+) @auth(level: SERVICE) {
+  createManyCareerPaths(data: $careerPaths) {
+    id
+    title
+  }
+}
+
+mutation CreateLearningObjectives(
+  $pedagogicalAnalysisId: ID!
+  $objectives: [LearningObjectiveInput!]!
+) @auth(level: SERVICE) {
+  createManyLearningObjectives(data: $objectives) {
+    id
+    objective
+  }
+}
+
+mutation CreateBloomsTaxonomyLevels(
+  $pedagogicalAnalysisId: ID!
+  $levels: [BloomsTaxonomyInput!]!
+) @auth(level: SERVICE) {
+  createManyBloomsTaxonomy(data: $levels) {
+    id
+    level
+    percentage
   }
 }
 
@@ -95,7 +166,7 @@ mutation CreatePlanSection(
   $title: String!
   $description: String
   $order: Int!
-) {
+) @auth(level: SERVICE) {
   createPlanSection(data: {
     planId: $planId
     title: $title
@@ -103,339 +174,462 @@ mutation CreatePlanSection(
     order: $order
   }) {
     id
-    title
-    order
   }
 }
 
+# ==================== CONTENT MUTATIONS ====================
 mutation CreateDayContent(
   $sectionId: ID!
   $dayNumber: Int!
   $title: String!
+  $focusArea: String!
   $isActionDay: Boolean!
-  $content: JSON!
   $generatedBy: String!
-) {
+) @auth(level: SERVICE) {
   createDayContent(data: {
     sectionId: $sectionId
     dayNumber: $dayNumber
     title: $title
+    focusArea: $focusArea
     isActionDay: $isActionDay
-    content: $content
     generatedBy: $generatedBy
     generatedAt: "now()"
   }) {
     id
-    dayNumber
-    title
+  }
+}
+
+mutation CreateDayObjectives(
+  $dayContentId: ID!
+  $objectives: [DayObjectiveInput!]!
+) @auth(level: SERVICE) {
+  createManyDayObjectives(data: $objectives) {
+    id
+    objective
+  }
+}
+
+mutation CreateContentBlock(
+  $dayContentId: ID!
+  $blockType: ContentBlockType!
+  $title: String!
+  $xp: Int!
+  $order: Int!
+  $estimatedMinutes: Int
+) @auth(level: SERVICE) {
+  createContentBlock(data: {
+    dayContentId: $dayContentId
+    blockType: $blockType
+    title: $title
+    xp: $xp
+    order: $order
+    estimatedMinutes: $estimatedMinutes
+  }) {
+    id
+  }
+}
+
+mutation CreateAudioContent(
+  $contentBlockId: ID!
+  $audioUrl: String!
+  $transcript: String!
+  $duration: Int!
+  $voiceType: String!
+) @auth(level: SERVICE) {
+  createAudioContent(data: {
+    contentBlockId: $contentBlockId
+    audioUrl: $audioUrl
+    transcript: $transcript
+    duration: $duration
+    voiceType: $voiceType
+  }) {
+    id
+  }
+}
+
+mutation CreateReadContent(
+  $contentBlockId: ID!
+  $content: String!
+  $estimatedReadTime: Int!
+) @auth(level: SERVICE) {
+  createReadContent(data: {
+    contentBlockId: $contentBlockId
+    content: $content
+    estimatedReadTime: $estimatedReadTime
+  }) {
+    id
+  }
+}
+
+mutation CreateKeyConcepts(
+  $readContentId: ID!
+  $concepts: [KeyConceptInput!]!
+) @auth(level: SERVICE) {
+  createManyKeyConcepts(data: $concepts) {
+    id
+    concept
+  }
+}
+
+mutation CreateQuizContent(
+  $contentBlockId: ID!
+) @auth(level: SERVICE) {
+  createQuizContent(data: {
+    contentBlockId: $contentBlockId
+  }) {
+    id
+  }
+}
+
+mutation CreateQuizQuestion(
+  $quizContentId: ID!
+  $question: String!
+  $correctAnswer: String!
+  $explanation: String!
+  $order: Int!
+) @auth(level: SERVICE) {
+  createQuizQuestion(data: {
+    quizContentId: $quizContentId
+    question: $question
+    correctAnswer: $correctAnswer
+    explanation: $explanation
+    order: $order
+  }) {
+    id
+  }
+}
+
+mutation CreateQuizOptions(
+  $questionId: ID!
+  $options: [QuizOptionInput!]!
+) @auth(level: SERVICE) {
+  createManyQuizOptions(data: $options) {
+    id
+    optionText
+    isCorrect
+  }
+}
+
+mutation CreateActionTask(
+  $contentBlockId: ID!
+  $taskType: String!
+  $description: String!
+  $instructions: String!
+  $estimatedTime: Int!
+) @auth(level: SERVICE) {
+  createActionTask(data: {
+    contentBlockId: $contentBlockId
+    taskType: $taskType
+    description: $description
+    instructions: $instructions
+    estimatedTime: $estimatedTime
+  }) {
+    id
+  }
+}
+
+mutation CreateActionSteps(
+  $actionTaskId: ID!
+  $steps: [ActionStepInput!]!
+) @auth(level: SERVICE) {
+  createManyActionSteps(data: $steps) {
+    id
+    instruction
+  }
+}
+
+mutation CreateActionDeliverables(
+  $actionTaskId: ID!
+  $deliverables: [ActionDeliverableInput!]!
+) @auth(level: SERVICE) {
+  createManyActionDeliverables(data: $deliverables) {
+    id
+    description
+  }
+}
+
+# ==================== ENROLLMENT & PROGRESS MUTATIONS ====================
+mutation CreateEnrollment(
+  $userId: ID!
+  $learningPlanId: ID!
+) @auth(level: USER) {
+  createEnrollment(data: {
+    userId: $userId
+    learningPlanId: $learningPlanId
+    startedAt: "now()"
+    lastActivityAt: "now()"
+  }) {
+    id
+  }
+}
+
+mutation UpdateEnrollmentProgress(
+  $enrollmentId: ID!
+  $currentDayNumber: Int!
+  $totalXpEarned: Int!
+) @auth(level: USER) {
+  updateEnrollment(
+    where: { id: { eq: $enrollmentId } }
+    data: {
+      currentDayNumber: $currentDayNumber
+      totalXpEarned: $totalXpEarned
+      lastActivityAt: "now()"
+    }
+  ) {
+    id
+    currentDayNumber
+    totalXpEarned
   }
 }
 
 mutation UpdateContentProgress(
-  $dayContentId: ID!
   $userId: ID!
-  $blockId: String!
-  $blockType: ContentBlockType!
+  $contentBlockId: ID!
   $completed: Boolean!
   $xpEarned: Int!
-) {
+  $timeSpent: Int!
+  $score: Float
+) @auth(level: USER) {
   upsertContentProgress(
     where: {
-      dayContentId: { eq: $dayContentId }
       userId: { eq: $userId }
-      blockId: { eq: $blockId }
+      contentBlockId: { eq: $contentBlockId }
     }
     create: {
-      dayContentId: $dayContentId
       userId: $userId
-      blockId: $blockId
-      blockType: $blockType
+      contentBlockId: $contentBlockId
       completed: $completed
       xpEarned: $xpEarned
+      timeSpent: $timeSpent
+      score: $score
       attempts: 1
       completedAt: $completed ? "now()" : null
     }
     update: {
       completed: $completed
-      xpEarned: { increment: $xpEarned }
+      xpEarned: $xpEarned
+      timeSpent: { increment: $timeSpent }
+      score: $score
       attempts: { increment: 1 }
       completedAt: $completed ? "now()" : null
+      updatedAt: "now()"
     }
   ) {
     id
     completed
     xpEarned
-    attempts
-    completedAt
   }
 }
 
-mutation CreateUserWithFirebase(
-  $firebaseUid: String!
-  $email: String!
-  $name: String!
-  $authProvider: String!
-  $platform: String
-) @auth(level: USER) @transaction {
-  user_insert(data: {
-    firebaseUid: $firebaseUid
-    email: $email
-    name: $name
-    hashedPassword: "firebase_auth" # No se usa con Firebase Auth
-    authProvider: $authProvider
-    platform: $platform
-    isActive: true
-  })
-}
-
-mutation CreateUserWithPreferences(
-  $firebaseUid: String!
-  $email: String!
-  $name: String!
-  $authProvider: String!
-  $platform: String
-  $skill: String!
-  $experience: String!
-  $motivation: String!
-  $time: String!
-  $learningStyle: String!
-  $goal: String!
-) @auth(level: USER) @transaction {
-  # Paso 1: Crear usuario
-  user_insert(data: {
-    firebaseUid: $firebaseUid
-    email: $email
-    name: $name
-    hashedPassword: "firebase_auth"
-    authProvider: $authProvider
-    platform: $platform
-    isActive: true
-  })
-  
-  # Paso 2: Crear preferencias usando el ID del usuario recién creado
-  userPreference_insert(data: {
-    userId_expr: "response.user_insert.id"
-    skill: $skill
-    experience: $experience
-    motivation: $motivation
-    time: $time
-    learningStyle: $learningStyle
-    goal: $goal
-  })
-}
-
-mutation UpdateUserPreferences(
-  $userId: UUID!
-  $skill: String!
-  $experience: String!
-  $motivation: String!
-  $time: String!
-  $learningStyle: String!
-  $goal: String!
-) @auth(level: USER) @transaction {
-  # Verificar que el usuario actual es el dueño
-  user(id: $userId) 
-  @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-    id
-    firebaseUid
-  }
-  
-  # Actualizar o crear preferencias
-  userPreference_upsert(
-    where: { userId: { eq: $userId } }
-    data: {
-      userId: $userId
-      skill: $skill
-      experience: $experience
-      motivation: $motivation
-      time: $time
-      learningStyle: $learningStyle
-      goal: $goal
-    }
-  )
-}
-
-# Mutations de enrollment
-mutation EnrollUserInCourse(
-  $userId: UUID!
-  $courseId: UUID!
-) @auth(level: USER) @transaction {
-  # Verificar que el usuario actual es el que se está inscribiendo
-  user(id: $userId) 
-  @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-    id
-    firebaseUid
-  }
-  
-  # Verificar que el curso existe
-  course(id: $courseId) 
-  @check(expr: "this != null", message: "Course not found") {
-    id
-  }
-  
-  # Crear enrollment
-  enrollment_insert(data: {
-    userId: $userId
-    courseId: $courseId
-    status: "active"
-    progressPercentage: 0
-    xpEarned: 0
-    lastActivityAt_expr: "request.time"
-  })
-}
-
-mutation UpdateBlockProgress(
-  $enrollmentId: UUID!
-  $blockId: UUID!
-  $completed: Boolean!
-  $xpEarned: Int!
-) @auth(level: USER) @transaction {
-  # Verificar que el enrollment pertenece al usuario actual
-  enrollment(id: $enrollmentId) {
-    id
-    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-      firebaseUid
-    }
-  }
-  
-  # Actualizar o crear progreso del bloque
-  blockProgress_upsert(
-    where: { 
-      _and: [
-        { enrollmentId: { eq: $enrollmentId } }
-        { blockId: { eq: $blockId } }
-      ]
-    }
-    data: {
-      enrollmentId: $enrollmentId
-      blockId: $blockId
-      completed: $completed
-      xpEarned: $xpEarned
-      attempts_expr: "this.attempts + 1"
-      completedAt_expr: "($completed ? request.time : null)"
-    }
-  )
-  
-  # Actualizar el enrollment con el nuevo progreso
-  enrollment_update(
-    id: $enrollmentId
-    data: {
-      lastActivityAt_expr: "request.time"
-      xpEarned_expr: "this.xpEarned + $xpEarned"
-    }
-  )
-}
-
-mutation CompleteEnrollment(
-  $enrollmentId: UUID!
-) @auth(level: USER) @transaction {
-  # Verificar que el enrollment pertenece al usuario actual
-  enrollment(id: $enrollmentId) {
-    id
-    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-      firebaseUid
-    }
-  }
-  
-  # Marcar como completado
-  enrollment_update(
-    id: $enrollmentId
-    data: {
-      status: "completed"
-      progressPercentage: 100
-      completedAt_expr: "request.time"
-      lastActivityAt_expr: "request.time"
-    }
-  )
-}
-
-# Mutation para actualizar progreso general
-mutation UpdateEnrollmentProgress(
-  $enrollmentId: UUID!
-  $progressPercentage: Int!
+mutation SaveQuizResponse(
+  $progressId: ID!
+  $questionId: ID!
+  $selectedOptionId: ID!
+  $isCorrect: Boolean!
 ) @auth(level: USER) {
-  # Verificar autorización
-  enrollment(id: $enrollmentId) {
+  createQuizResponse(data: {
+    progressId: $progressId
+    questionId: $questionId
+    selectedOptionId: $selectedOptionId
+    isCorrect: $isCorrect
+  }) {
     id
-    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-      firebaseUid
-    }
+    isCorrect
   }
-  
-  # Actualizar progreso
-  enrollment_update(
-    id: $enrollmentId
-    data: {
-      progressPercentage: $progressPercentage
-      lastActivityAt_expr: "request.time"
-      status_expr: "($progressPercentage >= 100 ? 'completed' : this.status)"
-      completedAt_expr: "($progressPercentage >= 100 ? request.time : this.completedAt)"
-    }
-  )
 }
 
-# Mutations para contenido generado por IA
-mutation SaveLearningPlan(
-  $userId: UUID!
-  $planData: Any!
-  $generatedBy: String!
-) @auth(level: USER) @transaction {
-  # Verificar que el usuario actual es el dueño
-  user(id: $userId) 
-  @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-    id
-    firebaseUid
-  }
-  
-  # Guardar o actualizar el plan de aprendizaje
-  learningPlan_upsert(
-    where: { userId: { eq: $userId } }
-    data: {
+# ==================== ANALYTICS MUTATIONS ====================
+mutation UpdateUserAnalytics(
+  $userId: ID!
+  $date: Date!
+  $totalXp: Int!
+  $sessionsCount: Int!
+  $averageSessionTime: Int!
+  $blocksCompleted: Int!
+  $quizAvgScore: Float
+  $currentStreak: Int!
+  $longestStreak: Int!
+  $preferredLearningTime: String
+  $engagementScore: Float
+  $churnRisk: ChurnRisk
+) @auth(level: SERVICE) {
+  upsertUserAnalytics(
+    where: {
+      userId: { eq: $userId }
+      date: { eq: $date }
+    }
+    create: {
       userId: $userId
-      planData: $planData
-      generatedBy: $generatedBy
-      generatedAt_expr: "request.time"
+      date: $date
+      totalXp: $totalXp
+      sessionsCount: $sessionsCount
+      averageSessionTime: $averageSessionTime
+      blocksCompleted: $blocksCompleted
+      quizAvgScore: $quizAvgScore
+      currentStreak: $currentStreak
+      longestStreak: $longestStreak
+      preferredLearningTime: $preferredLearningTime
+      engagementScore: $engagementScore
+      churnRisk: $churnRisk
+      lastActiveAt: "now()"
     }
-  )
+    update: {
+      totalXp: { increment: $totalXp }
+      sessionsCount: { increment: $sessionsCount }
+      averageSessionTime: $averageSessionTime
+      blocksCompleted: { increment: $blocksCompleted }
+      quizAvgScore: $quizAvgScore
+      currentStreak: $currentStreak
+      longestStreak: $longestStreak
+      preferredLearningTime: $preferredLearningTime
+      engagementScore: $engagementScore
+      churnRisk: $churnRisk
+      lastActiveAt: "now()"
+      updatedAt: "now()"
+    }
+  ) {
+    id
+  }
 }
 
-mutation SaveDayContent(
-  $enrollmentId: UUID!
-  $dayNumber: Int!
-  $content: Any!
-  $generatedBy: String!
-) @auth(level: USER) @transaction {
-  # Verificar que el enrollment pertenece al usuario actual
-  enrollment(id: $enrollmentId) {
+# ==================== ADK SESSION MUTATIONS ====================
+mutation CreateOrGetAdkSession(
+  $userId: ID!
+  $appName: String!
+  $sessionId: String!
+) @auth(level: USER) {
+  upsertAdkSession(
+    where: {
+      userId: { eq: $userId }
+      appName: { eq: $appName }
+    }
+    create: {
+      userId: $userId
+      appName: $appName
+      sessionId: $sessionId
+    }
+    update: {
+      sessionId: $sessionId
+      lastUpdateTime: "now()"
+    }
+  ) {
     id
-    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
-      firebaseUid
-    }
+    sessionId
   }
-  
-  # Guardar contenido del día
-  dayContent_upsert(
-    where: { 
-      _and: [
-        { enrollmentId: { eq: $enrollmentId } }
-        { dayNumber: { eq: $dayNumber } }
-      ]
+}
+
+mutation UpdateAdkSessionState(
+  $sessionId: ID!
+  $currentContext: String
+  $userLevel: String
+  $lastTopics: String
+  $preferences: String
+) @auth(level: USER) {
+  upsertAdkSessionState(
+    where: { sessionId: { eq: $sessionId } }
+    create: {
+      sessionId: $sessionId
+      currentContext: $currentContext
+      userLevel: $userLevel
+      lastTopics: $lastTopics
+      preferences: $preferences
     }
-    data: {
-      enrollmentId: $enrollmentId
-      dayNumber: $dayNumber
-      content: $content
-      generatedBy: $generatedBy
-      generatedAt_expr: "request.time"
+    update: {
+      currentContext: $currentContext
+      userLevel: $userLevel
+      lastTopics: $lastTopics
+      preferences: $preferences
+      updatedAt: "now()"
     }
-  )
-  
-  # Actualizar el último día generado en enrollment
-  enrollment_update(
-    id: $enrollmentId
-    data: {
-      lastGeneratedDay: $dayNumber
-      lastActivityAt_expr: "request.time"
-    }
-  )
+  ) {
+    id
+  }
+}
+
+mutation CreateAdkMessage(
+  $sessionId: ID!
+  $role: String!
+  $content: String!
+) @auth(level: USER) {
+  createAdkMessage(data: {
+    sessionId: $sessionId
+    role: $role
+    content: $content
+  }) {
+    id
+    createdAt
+  }
+}
+
+# ==================== INPUT TYPES ====================
+input SkillComponentInput {
+  skillAnalysisId: ID!
+  name: String!
+  description: String!
+  importance: Int!
+  order: Int!
+}
+
+input SkillPrerequisiteInput {
+  skillAnalysisId: ID!
+  name: String!
+  description: String!
+  isRequired: Boolean!
+  order: Int!
+}
+
+input CareerPathInput {
+  skillAnalysisId: ID!
+  title: String!
+  description: String!
+  averageSalary: String
+  demandLevel: MarketDemand!
+  order: Int!
+}
+
+input LearningObjectiveInput {
+  pedagogicalAnalysisId: ID!
+  objective: String!
+  measurable: Boolean!
+  timeframe: String!
+  order: Int!
+}
+
+input BloomsTaxonomyInput {
+  pedagogicalAnalysisId: ID!
+  level: String!
+  percentage: Int!
+}
+
+input DayObjectiveInput {
+  dayContentId: ID!
+  objective: String!
+  order: Int!
+}
+
+input KeyConceptInput {
+  readContentId: ID!
+  concept: String!
+  definition: String!
+  order: Int!
+}
+
+input QuizOptionInput {
+  questionId: ID!
+  optionText: String!
+  isCorrect: Boolean!
+  order: Int!
+}
+
+input ActionStepInput {
+  actionTaskId: ID!
+  instruction: String!
+  order: Int!
+}
+
+input ActionDeliverableInput {
+  actionTaskId: ID!
+  description: String!
+  type: String!
+  order: Int!
 } 

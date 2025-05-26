@@ -14,8 +14,7 @@ database:
 schema:
   files:
     - schema/enums.gql
-    - schema/user.gql
-    - schema/learning.gql
+    - schema/schema.gql
 
 connectors:
   - name: skillix-api
@@ -26,21 +25,53 @@ connectors:
     auth:
       type: firebase
       rules:
+        # User tables
         - match: User
           read: true
           write: "auth.uid == resource.data.firebaseUid"
         - match: UserPreference
           read: "auth.uid == parent.User.firebaseUid"
           write: "auth.uid == parent.User.firebaseUid"
+        
+        # Learning plan tables
         - match: LearningPlan
           read: "auth.uid == parent.User.firebaseUid"
           write: "auth.uid == parent.User.firebaseUid"
+        - match: SkillAnalysis
+          read: "auth.uid == parent.LearningPlan.User.firebaseUid"
+          write: false # Solo el sistema puede escribir
+        - match: PedagogicalAnalysis
+          read: "auth.uid == parent.LearningPlan.User.firebaseUid"
+          write: false # Solo el sistema puede escribir
         - match: PlanSection
           read: "auth.uid == parent.LearningPlan.User.firebaseUid"
-          write: "auth.uid == parent.LearningPlan.User.firebaseUid"
+          write: false # Solo el sistema puede escribir
+        
+        # Content tables
         - match: DayContent
           read: "auth.uid == parent.PlanSection.LearningPlan.User.firebaseUid"
-          write: "auth.uid == parent.PlanSection.LearningPlan.User.firebaseUid"
+          write: false # Solo el sistema puede escribir
+        - match: ContentBlock
+          read: "auth.uid == parent.DayContent.PlanSection.LearningPlan.User.firebaseUid"
+          write: false
+        
+        # Progress tables
         - match: ContentProgress
           read: "auth.uid == resource.data.userId"
-          write: "auth.uid == resource.data.userId" 
+          write: "auth.uid == resource.data.userId"
+        - match: Enrollment
+          read: "auth.uid == parent.User.firebaseUid"
+          write: "auth.uid == parent.User.firebaseUid"
+        
+        # Analytics tables
+        - match: UserAnalytics
+          read: "auth.uid == parent.User.firebaseUid"
+          write: false # Solo el sistema puede escribir
+        
+        # ADK tables
+        - match: AdkSession
+          read: "auth.uid == parent.User.firebaseUid"
+          write: "auth.uid == parent.User.firebaseUid"
+        - match: AdkMessage
+          read: "auth.uid == parent.AdkSession.User.firebaseUid"
+          write: "auth.uid == parent.AdkSession.User.firebaseUid" 
