@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Any, Optional
 import logging
 
-from .routes import onboarding, content, auth, adk_routes
+from api.routes import onboarding, content, auth, adk_routes
 from skillix_agents import (
     SkillixTeamRunner,
     session_service,

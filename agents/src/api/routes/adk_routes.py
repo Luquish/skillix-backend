@@ -7,7 +7,7 @@ from datetime import datetime
 
 from ...skillix_agents.orchestrator import orchestrator_agent
 from google.adk.agents import Runner
-from ..auth.middleware import get_current_user
+from api.middleware import get_current_user
 from ..db import dataconnect
 
 router = APIRouter(prefix="/adk", tags=["adk"])

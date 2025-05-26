@@ -122,142 +122,140 @@ async function createCompleteLearningPlan(userId, planData) {
   }
 }
 
-// Función para crear contenido del día
+/**
+ * Crea contenido del día con bloques
+ */
 async function createDayContentWithBlocks(dayContentId, contentData) {
   try {
-    const dc = getDataConnect();
-    const transformed = await adapter.transformDayContent(contentData);
+    logger.info(`Creating day content for ID: ${dayContentId}`);
+    
+    // Transformar los datos del agente Python
+    const transformedData = await adapter.transformDayContent(contentData);
     
     // 1. Crear objetivos del día
-    if (transformed.objectives.length > 0) {
-      const { createDayObjectives } = require('../../dataconnect/generated/js/default-connector');
-      await createDayObjectives(dc, {
+    if (transformedData.objectives && transformedData.objectives.length > 0) {
+      const objectivesData = transformedData.objectives.map((obj, idx) => ({
         dayContentId,
-        objectives: transformed.objectives.map((obj, idx) => ({
-          dayContentId,
-          objective: obj,
-          order: idx
-        }))
+        objective: obj,
+        order: idx
+      }));
+      
+      await this.executeMutation('CreateDayObjectives', {
+        dayContentId,
+        objectives: objectivesData
       });
     }
     
-    // 2. Crear bloques de contenido
-    for (const block of transformed.blocks) {
-      const { createContentBlock } = require('../../dataconnect/generated/js/default-connector');
-      const blockResult = await createContentBlock(dc, {
+    // 2. Crear contenido principal (audio o lectura con fun fact)
+    if (transformedData.mainContent) {
+      const mainContentResult = await this.executeMutation('CreateMainContent', {
         dayContentId,
-        blockType: block.blockType,
-        title: block.title,
-        xp: block.xp,
-        order: block.order,
-        estimatedMinutes: block.estimatedMinutes
+        contentType: transformedData.mainContent.contentType,
+        title: transformedData.mainContent.title,
+        funFact: transformedData.mainContent.funFact,
+        xp: transformedData.mainContent.xp
       });
       
-      const contentBlockId = blockResult.id;
+      const mainContentId = mainContentResult.createMainContent.id;
       
-      // Crear contenido específico según el tipo
-      switch (block.blockType) {
-        case 'AUDIO':
-          if (block.audioContent) {
-            const { createAudioContent } = require('../../dataconnect/generated/js/default-connector');
-            await createAudioContent(dc, {
-              contentBlockId,
-              ...block.audioContent
-            });
-          }
-          break;
-          
-        case 'READ':
-          if (block.readContent) {
-            const { createReadContent } = require('../../dataconnect/generated/js/default-connector');
-            const readResult = await createReadContent(dc, {
-              contentBlockId,
-              content: block.readContent.content,
-              estimatedReadTime: block.readContent.estimatedReadTime
-            });
-            
-            // Crear conceptos clave
-            if (block.readContent.keyConcepts.length > 0) {
-              const { createKeyConcepts } = require('../../dataconnect/generated/js/default-connector');
-              await createKeyConcepts(dc, {
-                readContentId: readResult.id,
-                concepts: block.readContent.keyConcepts.map(kc => ({
-                  readContentId: readResult.id,
-                  ...kc
-                }))
-              });
-            }
-          }
-          break;
-          
-        case 'QUIZ_MCQ':
-          if (block.quizContent) {
-            const { createQuizContent } = require('../../dataconnect/generated/js/default-connector');
-            const quizResult = await createQuizContent(dc, { contentBlockId });
-            
-            // Crear preguntas
-            for (const question of block.quizContent.questions) {
-              const { createQuizQuestion } = require('../../dataconnect/generated/js/default-connector');
-              const questionResult = await createQuizQuestion(dc, {
-                quizContentId: quizResult.id,
-                question: question.question,
-                correctAnswer: question.correctAnswer,
-                explanation: question.explanation,
-                order: question.order
-              });
-              
-              // Crear opciones
-              if (question.options.length > 0) {
-                const { createQuizOptions } = require('../../dataconnect/generated/js/default-connector');
-                await createQuizOptions(dc, {
-                  questionId: questionResult.id,
-                  options: question.options.map(opt => ({
-                    questionId: questionResult.id,
-                    ...opt
-                  }))
-                });
-              }
-            }
-          }
-          break;
-          
-        case 'ACTION_TASK':
-          if (block.actionTask) {
-            const { createActionTask } = require('../../dataconnect/generated/js/default-connector');
-            const taskResult = await createActionTask(dc, {
-              contentBlockId,
-              ...block.actionTask
-            });
-            
-            // Crear pasos
-            if (block.actionTask.steps.length > 0) {
-              const { createActionSteps } = require('../../dataconnect/generated/js/default-connector');
-              await createActionSteps(dc, {
-                actionTaskId: taskResult.id,
-                steps: block.actionTask.steps.map(step => ({
-                  actionTaskId: taskResult.id,
-                  ...step
-                }))
-              });
-            }
-            
-            // Crear entregables
-            if (block.actionTask.deliverables.length > 0) {
-              const { createActionDeliverables } = require('../../dataconnect/generated/js/default-connector');
-              await createActionDeliverables(dc, {
-                actionTaskId: taskResult.id,
-                deliverables: block.actionTask.deliverables.map(del => ({
-                  actionTaskId: taskResult.id,
-                  ...del
-                }))
-              });
-            }
-          }
-          break;
+      // Crear el contenido específico (audio o lectura)
+      if (transformedData.mainContent.contentType === 'AUDIO' && transformedData.mainContent.audioContent) {
+        await this.executeMutation('CreateAudioContent', {
+          mainContentId,
+          ...transformedData.mainContent.audioContent
+        });
+      } else if (transformedData.mainContent.contentType === 'READ' && transformedData.mainContent.readContent) {
+        const readResult = await this.executeMutation('CreateReadContent', {
+          mainContentId,
+          content: transformedData.mainContent.readContent.content,
+          estimatedReadTime: transformedData.mainContent.readContent.estimatedReadTime
+        });
+        
+        // Crear conceptos clave si existen
+        if (transformedData.mainContent.readContent.keyConcepts?.length > 0) {
+          const readContentId = readResult.createReadContent.id;
+          await this.executeMutation('CreateKeyConcepts', {
+            readContentId,
+            concepts: transformedData.mainContent.readContent.keyConcepts
+          });
+        }
       }
     }
     
-    logger.info(`Day content created successfully for day ${dayContentId}`);
+    // 3. Crear ejercicios basados en el contenido
+    for (const exercise of transformedData.exercises) {
+      // Crear el bloque de contenido
+      const blockResult = await this.executeMutation('CreateContentBlock', {
+        dayContentId,
+        blockType: exercise.blockType,
+        title: exercise.title,
+        xp: exercise.xp,
+        order: exercise.order,
+        estimatedMinutes: exercise.estimatedMinutes
+      });
+      
+      const contentBlockId = blockResult.createContentBlock.id;
+      
+      // Crear el contenido específico según el tipo
+      if (exercise.blockType === 'QUIZ_MCQ' && exercise.quizContent) {
+        const quizResult = await this.executeMutation('CreateQuizContent', {
+          contentBlockId
+        });
+        
+        const quizContentId = quizResult.createQuizContent.id;
+        
+        // Crear preguntas
+        for (const question of exercise.quizContent.questions) {
+          const questionResult = await this.executeMutation('CreateQuizQuestion', {
+            quizContentId,
+            question: question.question,
+            correctAnswer: question.correctAnswer,
+            explanation: question.explanation,
+            order: question.order
+          });
+          
+          const questionId = questionResult.createQuizQuestion.id;
+          
+          // Crear opciones
+          if (question.options?.length > 0) {
+            await this.executeMutation('CreateQuizOptions', {
+              questionId,
+              options: question.options
+            });
+          }
+        }
+      } else if (exercise.blockType === 'ACTION_TASK' && exercise.actionTask) {
+        const actionResult = await this.executeMutation('CreateActionTask', {
+          contentBlockId,
+          ...exercise.actionTask
+        });
+        
+        const actionTaskId = actionResult.createActionTask.id;
+        
+        // Crear pasos
+        if (exercise.actionTask.steps?.length > 0) {
+          await this.executeMutation('CreateActionSteps', {
+            actionTaskId,
+            steps: exercise.actionTask.steps
+          });
+        }
+        
+        // Crear entregables
+        if (exercise.actionTask.deliverables?.length > 0) {
+          await this.executeMutation('CreateActionDeliverables', {
+            actionTaskId,
+            deliverables: exercise.actionTask.deliverables
+          });
+        }
+      } else if (exercise.blockType === 'EXERCISE' && exercise.exerciseContent) {
+        await this.executeMutation('CreateExerciseContent', {
+          contentBlockId,
+          ...exercise.exerciseContent
+        });
+      }
+    }
+    
+    logger.info(`Day content created successfully for day: ${dayContentId}`);
     return { success: true };
     
   } catch (error) {

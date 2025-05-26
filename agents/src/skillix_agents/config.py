@@ -45,11 +45,11 @@ class Settings(BaseSettings):
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     debug_mode: bool = os.getenv("DEBUG_MODE", "false").lower() == "true"
     
-    class Config:
-        """Configuración de Pydantic"""
-        env_file = ".env"
-        case_sensitive = False
-        extra = "allow"
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": False,
+        "extra": "allow"
+    }
 
 # Instancia global de configuración
 settings = Settings()

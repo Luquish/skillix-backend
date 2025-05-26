@@ -8,8 +8,8 @@ El sistema implementa un patrón de delegación multi-agente inspirado en las me
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Team Coordinator                           │
-│                  (Delegación Automática)                      │
+│                    Team Coordinator                         │
+│                  (Delegación Automática)                    │
 └──────────────────────────┬──────────────────────────────────┘
                            │
         ┌──────────────────┴──────────────────┐

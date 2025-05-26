@@ -270,8 +270,9 @@ type DayContent @table {
 
   # Relations
   section: PlanSection! @belongsTo
-  blocks: [ContentBlock!]! @hasMany
   objectives: [DayObjective!]! @hasMany
+  mainContent: MainContent @hasOne  # Contenido principal (audio o lectura)
+  exercises: [ContentBlock!]! @hasMany  # Ejercicios basados en el contenido
   progress: [ContentProgress!]! @hasMany
 
   @@unique([sectionId, dayNumber])
@@ -287,6 +288,23 @@ type DayObjective @table {
   dayContent: DayContent! @belongsTo
 }
 
+# Contenido principal del día (audio o lectura)
+type MainContent @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  dayContentId: ID! @foreignKey(references: "DayContent.id") @unique
+  contentType: MainContentType! # AUDIO o READ
+  title: String!
+  funFact: String!  # Fun fact al final del contenido
+  xp: Int! @default(value: 20)
+  createdAt: Timestamp! @default(expr: "now()")
+
+  # Relations
+  dayContent: DayContent! @belongsTo
+  audioContent: AudioContent @hasOne
+  readContent: ReadContent @hasOne
+}
+
+# Bloques de ejercicios (basados en el contenido principal)
 type ContentBlock @table {
   id: ID! @id @default(expr: "uuid_generate_v4()")
   dayContentId: ID! @foreignKey(references: "DayContent.id")
@@ -299,33 +317,32 @@ type ContentBlock @table {
 
   # Relations
   dayContent: DayContent! @belongsTo
-  audioContent: AudioContent @hasOne
-  readContent: ReadContent @hasOne
   quizContent: QuizContent @hasOne
   actionTask: ActionTask @hasOne
+  exerciseContent: ExerciseContent @hasOne
   progress: [ContentProgress!]! @hasMany
 }
 
 type AudioContent @table {
   id: ID! @id @default(expr: "uuid_generate_v4()")
-  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
+  mainContentId: ID! @foreignKey(references: "MainContent.id") @unique
   audioUrl: String!
   transcript: String!
   duration: Int! # seconds
   voiceType: String!
 
   # Relations
-  contentBlock: ContentBlock! @belongsTo
+  mainContent: MainContent! @belongsTo
 }
 
 type ReadContent @table {
   id: ID! @id @default(expr: "uuid_generate_v4()")
-  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
+  mainContentId: ID! @foreignKey(references: "MainContent.id") @unique
   content: String!
   estimatedReadTime: Int! # minutes
   
   # Relations
-  contentBlock: ContentBlock! @belongsTo
+  mainContent: MainContent! @belongsTo
   keyConcepts: [KeyConcept!]! @hasMany
 }
 
@@ -406,6 +423,18 @@ type ActionDeliverable @table {
 
   # Relations
   actionTask: ActionTask! @belongsTo
+}
+
+# Nuevo tipo para ejercicios genéricos
+type ExerciseContent @table {
+  id: ID! @id @default(expr: "uuid_generate_v4()")
+  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
+  exerciseType: String! # fill-in-blanks, matching, ordering, etc
+  instructions: String!
+  exerciseData: String! # JSON string con la estructura específica del ejercicio
+  
+  # Relations
+  contentBlock: ContentBlock! @belongsTo
 }
 
 # ==================== ENROLLMENT & PROGRESS TABLES ====================

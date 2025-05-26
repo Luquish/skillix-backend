@@ -3,9 +3,9 @@
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from pydantic import BaseModel
-from typing import List, Dict, Optional, Tuple
-from datetime import datetime, time
-from config import settings
+from typing import List, Dict, Tuple
+from datetime import time
+from .config import settings
 
 class LearningPattern(BaseModel):
     """Patrón de aprendizaje identificado"""
@@ -14,6 +14,17 @@ class LearningPattern(BaseModel):
     confidence: float  # 0-1
     recommendations: List[str]
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "pattern_type": "time_based",
+                "description": "Usuario aprende mejor por la mañana",
+                "confidence": 0.85,
+                "recommendations": ["Programar sesiones matutinas"]
+            }]
+        }
+    }
+
 class OptimalLearningTime(BaseModel):
     """Tiempo óptimo para aprender"""
     best_time_window: Tuple[time, time]  # (start, end)
@@ -21,12 +32,34 @@ class OptimalLearningTime(BaseModel):
     notification_time: time
     engagement_prediction: float  # 0-1
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "best_time_window": (time(9, 0), time(10, 0)),
+                "reason": "Mayor concentración en la mañana",
+                "notification_time": time(8, 45),
+                "engagement_prediction": 0.9
+            }]
+        }
+    }
+
 class ContentOptimization(BaseModel):
     """Recomendaciones para optimizar contenido"""
     difficulty_adjustment: str  # "increase", "maintain", "decrease"
     content_type_preferences: List[str]  # ["quiz_mcq", "read", "audio", etc.]
     ideal_session_length: int  # minutos
     pacing_recommendation: str
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "difficulty_adjustment": "increase",
+                "content_type_preferences": ["quiz_mcq", "audio"],
+                "ideal_session_length": 20,
+                "pacing_recommendation": "Aumentar gradualmente"
+            }]
+        }
+    }
     
 class StreakMaintenance(BaseModel):
     """Estrategias para mantener la racha"""
@@ -34,6 +67,17 @@ class StreakMaintenance(BaseModel):
     risk_factors: List[str]
     intervention_strategies: List[str]
     motivational_approach: str
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "risk_level": "low",
+                "risk_factors": ["Fin de semana próximo"],
+                "intervention_strategies": ["Recordatorio amigable"],
+                "motivational_approach": "Celebratorio"
+            }]
+        }
+    }
 
 class UserAnalytics(BaseModel):
     """Análisis completo del usuario"""
@@ -43,6 +87,34 @@ class UserAnalytics(BaseModel):
     streak_maintenance: StreakMaintenance
     overall_engagement_score: float  # 0-1
     key_insights: List[str]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "learning_patterns": [],
+                "optimal_time": {
+                    "best_time_window": (time(9, 0), time(10, 0)),
+                    "reason": "Mayor concentración",
+                    "notification_time": time(8, 45),
+                    "engagement_prediction": 0.9
+                },
+                "content_optimization": {
+                    "difficulty_adjustment": "maintain",
+                    "content_type_preferences": ["quiz_mcq"],
+                    "ideal_session_length": 20,
+                    "pacing_recommendation": "Mantener ritmo"
+                },
+                "streak_maintenance": {
+                    "risk_level": "low",
+                    "risk_factors": [],
+                    "intervention_strategies": [],
+                    "motivational_approach": "celebratory"
+                },
+                "overall_engagement_score": 0.85,
+                "key_insights": ["Alta participación", "Preferencia por sesiones matutinas"]
+            }]
+        }
+    }
 
 # Agente principal de analytics
 analytics_agent = LlmAgent(
@@ -73,7 +145,7 @@ Key metrics to consider:
 
 Provide actionable insights that can be implemented immediately.
 Focus on maintaining engagement while ensuring learning effectiveness.""",
-    output_type=UserAnalytics
+    output_schema=UserAnalytics
 )
 
 # Agente para predicción de abandono
@@ -98,7 +170,7 @@ Intervention strategies:
 - Re-engagement campaigns
 
 Be proactive but not pushy. Focus on re-igniting curiosity.""",
-    output_type=StreakMaintenance
+    output_schema=StreakMaintenance
 )
 
 def analyze_user_data(user_id: str, user_history: Dict) -> str:

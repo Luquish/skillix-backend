@@ -3,7 +3,6 @@
 from typing import Optional, Dict, Any, AsyncGenerator
 from google.adk.agents import LlmAgent
 from google.adk.runners import Runner
-from google.adk.tools import FunctionTool
 from google.adk.sessions import InMemorySessionService, Session
 from google.adk.agents.invocation_context import InvocationContext
 from google.adk.agents.callback_context import CallbackContext
@@ -18,7 +17,7 @@ from .learning_planner import learning_planner_agent, create_learning_plan_promp
 from .content_generator import content_generator_agent, create_content_prompt, DayContent
 from .pedagogical_expert import pedagogical_expert_agent, analyze_learning_structure, PedagogicalAnalysis
 from .skill_analyzer import skill_analyzer_agent, analyze_skill, SkillAnalysis
-from config import settings
+from .config import settings
 from google.adk.models.lite_llm import LiteLlm
 
 # Importar integración con Data Connect a través del bridge Node.js
@@ -192,8 +191,8 @@ class SkillixOrchestrator:
                 if user_data_db:
                     user_id = user_data_db["id"]
                     
-                    # Guardar el plan de aprendizaje
-                    await self.db_client.create_learning_plan(
+                    # Guardar el plan de aprendizaje con estructura completa
+                    learning_plan_result = await self.db_client.create_learning_plan(
                         user_id=user_id,
                         plan_data={
                             "skill_analysis": skill_analysis.model_dump(),
@@ -202,14 +201,34 @@ class SkillixOrchestrator:
                         }
                     )
                     
-                    # Si el usuario tiene un enrollment activo, guardar el contenido del día 1
-                    if user_data_db.get("enrollments"):
-                        enrollment = user_data_db["enrollments"][0]  # Tomar el primer enrollment activo
-                        await self.db_client.create_day_content(
-                            enrollment_id=enrollment["id"],
-                            day_number=1,
-                            content=first_day_content.model_dump()
+                    # Si se creó el plan exitosamente y el usuario quiere empezar ahora
+                    if learning_plan_result and learning_plan_result.get("learningPlanId"):
+                        # Crear enrollment automáticamente
+                        enrollment_result = await self.db_client.create_enrollment(
+                            user_id=user_id,
+                            learning_plan_id=learning_plan_result["learningPlanId"]
                         )
+                        
+                        # Si hay enrollment, obtener el ID del primer día
+                        if enrollment_result and enrollment_result.get("id"):
+                            # Necesitamos obtener el plan completo para encontrar el dayContentId
+                            plan_data = await self.db_client.get_user_learning_plan(user_id)
+                            if plan_data and plan_data.get("sections"):
+                                first_section = plan_data["sections"][0]
+                                if first_section.get("days"):
+                                    first_day = first_section["days"][0]
+                                    if first_day.get("id"):
+                                        # Ahora sí crear el contenido del día
+                                        await self.db_client.create_day_content(
+                                            day_content_id=first_day["id"],
+                                            content_data={
+                                                "objectives": first_day_content.model_dump().get("objectives", []),
+                                                "audio_blocks": first_day_content.model_dump().get("audio_blocks", []),
+                                                "read_blocks": first_day_content.model_dump().get("read_blocks", []),
+                                                "quiz_blocks": first_day_content.model_dump().get("quiz_blocks", []),
+                                                "action_tasks": first_day_content.model_dump().get("action_tasks", [])
+                                            }
+                                        )
                     
                     yield Event(
                         author="orchestrator",
@@ -673,35 +692,26 @@ orchestrator_agent = LlmAgent(
     learning planner, and content generator based on the task.""",
     instruction="""You are the main orchestrator for Skillix learning platform.
 
-Your role is to:
-1. COORDINATE between specialized agents for course creation
-2. ENSURE pedagogical quality and user engagement
-3. MAINTAIN context and state across interactions
-4. ADAPT content based on user progress
+    Your role is to:
+    1. COORDINATE between specialized agents for course creation
+    2. ENSURE pedagogical quality and user engagement
+    3. MAINTAIN context and state across interactions
+    4. ADAPT content based on user progress
 
-Delegation Strategy:
-- For skill analysis → delegate to skill_analyzer
-- For pedagogical validation → delegate to pedagogical_expert  
-- For learning plan creation → delegate to learning_planner
-- For content generation → delegate to content_generator
+    Delegation Strategy:
+    - For skill analysis → delegate to skill_analyzer
+    - For pedagogical validation → delegate to pedagogical_expert  
+    - For learning plan creation → delegate to learning_planner
+    - For content generation → delegate to content_generator
 
-Always prioritize:
-- User engagement and motivation
-- Pedagogical best practices
-- Personalization based on user profile
-- Safety and appropriate content
+    Always prioritize:
+    - User engagement and motivation
+    - Pedagogical best practices
+    - Personalization based on user profile
+    - Safety and appropriate content
 
-When responding, be encouraging and supportive of the user's learning journey.""",
-    tools=[
-        FunctionTool(
-            analyze_and_plan_course_tool,
-            description="Complete pipeline to analyze skill and create personalized course"
-        ),
-        FunctionTool(
-            generate_adaptive_content_tool,
-            description="Generate adaptive content based on user progress"
-        )
-    ],
+    When responding, be encouraging and supportive of the user's learning journey.""",
+    tools=[analyze_and_plan_course_tool, generate_adaptive_content_tool],
     before_model_callback=before_model_callback,
     before_tool_callback=before_tool_callback
 ) 

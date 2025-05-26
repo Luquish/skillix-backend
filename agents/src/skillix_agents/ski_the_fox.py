@@ -4,7 +4,7 @@ from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from pydantic import BaseModel
 from typing import List, Optional
-from config import settings
+from .config import settings
 import random
 
 class SkiMessage(BaseModel):
@@ -12,6 +12,16 @@ class SkiMessage(BaseModel):
     message: str
     emoji_style: str  # "playful", "celebratory", "encouraging"
     animation_suggestion: str  # "jumping", "waving", "dancing", etc.
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "message": "¡Excelente trabajo!",
+                "emoji_style": "celebratory",
+                "animation_suggestion": "jumping"
+            }]
+        }
+    }
     
 class StreakCelebration(BaseModel):
     """Celebración especial por racha"""
@@ -20,12 +30,34 @@ class StreakCelebration(BaseModel):
     special_animation: str
     reward_suggestion: Optional[str] = None
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "streak_count": 7,
+                "celebration_message": "¡Una semana completa!",
+                "special_animation": "dancing",
+                "reward_suggestion": "Desbloquear nuevo tema"
+            }]
+        }
+    }
+
 class DailyMotivation(BaseModel):
     """Motivación diaria personalizada"""
     greeting: str
     motivation: str
     reminder: str
     signoff: str
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "greeting": "¡Buenos días!",
+                "motivation": "Hoy es un gran día para aprender",
+                "reminder": "No olvides tu meta diaria",
+                "signoff": "¡Nos vemos pronto! 🦊"
+            }]
+        }
+    }
 
 # Frases motivacionales de Ski
 SKI_PHRASES = {
@@ -49,7 +81,7 @@ SKI_PHRASES = {
     ]
 }
 
-ski_personality_agent = LlmAgent(
+ski_the_fox = LlmAgent(
     name="ski_the_fox",
     model=LiteLlm(model=settings.openai_model),
     description="Ski the Fox - The playful, encouraging 3D mascot of Skillix",
@@ -78,7 +110,7 @@ Special behaviors:
 
 Remember: You're their learning companion, not their teacher. 
 Make them smile, keep them going, celebrate their journey! 🦊✨""",
-    output_type=SkiMessage
+    output_schema=SkiMessage
 )
 
 def get_ski_greeting(time_of_day: str, user_name: Optional[str] = None) -> str:
@@ -136,7 +168,7 @@ Provide insights on:
 - Optimal reminder times
 - Celebration intensity
 - Support strategies""",
-    output_type=DailyMotivation
+    output_schema=DailyMotivation
 )
 
 # Funciones helper para integración

@@ -1,7 +1,6 @@
-"""Sistema multi-agente para aprendizaje personalizado"""
+"""Skillix Agents - Sistema multi-agente para aprendizaje personalizado"""
 
-# Importar configuración
-from config import settings
+from .config import settings
 
 # Importar agentes especializados
 from .skill_analyzer import (
@@ -27,8 +26,8 @@ from .content_generator import (
     DayContent,
     ActionTask
 )
-from .ski_personality import (
-    ski_personality_agent,
+from .ski_the_fox import (
+    ski_the_fox,
     motivational_analysis_agent,
     get_ski_greeting,
     create_streak_celebration_prompt,
@@ -91,7 +90,7 @@ __all__ = [
     "action_day_specialist",
     "greeting_agent",
     "progress_checker_agent",
-    "ski_personality_agent",
+    "ski_the_fox",
     "motivational_analysis_agent",
     "analytics_agent",
     "churn_prediction_agent",
@@ -133,4 +132,4 @@ __all__ = [
 ]
 
 # Versión del paquete
-__version__ = "0.5.0" 
+__version__ = "1.0.0" 

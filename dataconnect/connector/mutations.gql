@@ -209,6 +209,66 @@ mutation CreateDayObjectives(
   }
 }
 
+mutation CreateMainContent(
+  $dayContentId: ID!
+  $contentType: MainContentType!
+  $title: String!
+  $funFact: String!
+  $xp: Int
+) @auth(level: SERVICE) {
+  createMainContent(data: {
+    dayContentId: $dayContentId
+    contentType: $contentType
+    title: $title
+    funFact: $funFact
+    xp: $xp
+  }) {
+    id
+  }
+}
+
+mutation CreateAudioContent(
+  $mainContentId: ID!
+  $audioUrl: String!
+  $transcript: String!
+  $duration: Int!
+  $voiceType: String!
+) @auth(level: SERVICE) {
+  createAudioContent(data: {
+    mainContentId: $mainContentId
+    audioUrl: $audioUrl
+    transcript: $transcript
+    duration: $duration
+    voiceType: $voiceType
+  }) {
+    id
+  }
+}
+
+mutation CreateReadContent(
+  $mainContentId: ID!
+  $content: String!
+  $estimatedReadTime: Int!
+) @auth(level: SERVICE) {
+  createReadContent(data: {
+    mainContentId: $mainContentId
+    content: $content
+    estimatedReadTime: $estimatedReadTime
+  }) {
+    id
+  }
+}
+
+mutation CreateKeyConcepts(
+  $readContentId: ID!
+  $concepts: [KeyConceptInput!]!
+) @auth(level: SERVICE) {
+  createManyKeyConcepts(data: $concepts) {
+    id
+    concept
+  }
+}
+
 mutation CreateContentBlock(
   $dayContentId: ID!
   $blockType: ContentBlockType!
@@ -226,48 +286,6 @@ mutation CreateContentBlock(
     estimatedMinutes: $estimatedMinutes
   }) {
     id
-  }
-}
-
-mutation CreateAudioContent(
-  $contentBlockId: ID!
-  $audioUrl: String!
-  $transcript: String!
-  $duration: Int!
-  $voiceType: String!
-) @auth(level: SERVICE) {
-  createAudioContent(data: {
-    contentBlockId: $contentBlockId
-    audioUrl: $audioUrl
-    transcript: $transcript
-    duration: $duration
-    voiceType: $voiceType
-  }) {
-    id
-  }
-}
-
-mutation CreateReadContent(
-  $contentBlockId: ID!
-  $content: String!
-  $estimatedReadTime: Int!
-) @auth(level: SERVICE) {
-  createReadContent(data: {
-    contentBlockId: $contentBlockId
-    content: $content
-    estimatedReadTime: $estimatedReadTime
-  }) {
-    id
-  }
-}
-
-mutation CreateKeyConcepts(
-  $readContentId: ID!
-  $concepts: [KeyConceptInput!]!
-) @auth(level: SERVICE) {
-  createManyKeyConcepts(data: $concepts) {
-    id
-    concept
   }
 }
 
@@ -345,6 +363,22 @@ mutation CreateActionDeliverables(
   createManyActionDeliverables(data: $deliverables) {
     id
     description
+  }
+}
+
+mutation CreateExerciseContent(
+  $contentBlockId: ID!
+  $exerciseType: String!
+  $instructions: String!
+  $exerciseData: String!
+) @auth(level: SERVICE) {
+  createExerciseContent(data: {
+    contentBlockId: $contentBlockId
+    exerciseType: $exerciseType
+    instructions: $instructions
+    exerciseData: $exerciseData
+  }) {
+    id
   }
 }
 

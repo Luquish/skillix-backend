@@ -9,7 +9,7 @@ const dataConnectRouter = require('./routes/dataconnect');
 const logger = require('./utils/logger');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
@@ -31,7 +31,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/dataconnect', dataConnectRouter);
+app.use('/', dataConnectRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

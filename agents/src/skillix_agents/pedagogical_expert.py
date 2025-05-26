@@ -1,20 +1,48 @@
-"""Pedagogical Expert Agent - Especialista en principios pedagógicos y andragógicos"""
+"""Pedagogical Expert Agent - Analiza y valida planes de aprendizaje"""
 
 from google.adk.agents import LlmAgent
+from google.adk.models.lite_llm import LiteLlm
 from pydantic import BaseModel
 from typing import List, Dict, Any
-from config import settings
-from google.adk.agents import LlmAgent
-from google.adk.models.lite_llm import LiteLlm
+from .config import settings
 
 class PedagogicalAnalysis(BaseModel):
     """Análisis pedagógico de un plan de aprendizaje"""
+    effectiveness_score: float  # 0-1
+    cognitive_load_assessment: str  # "low", "medium", "high"
+    scaffolding_quality: str  # "poor", "adequate", "excellent"
+    engagement_potential: float  # 0-1
+    recommendations: List[str]
     learning_objectives: List[str]
-    bloom_taxonomy_levels: Dict[str, List[str]]  # nivel: objetivos
-    cognitive_load_assessment: str
-    scaffolding_strategy: str
-    assessment_recommendations: List[str]
-    engagement_techniques: List[str]
+    assessment_strategies: List[str]
+    improvement_areas: List[str]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "effectiveness_score": 0.85,
+                "cognitive_load_assessment": "medium",
+                "scaffolding_quality": "excellent",
+                "engagement_potential": 0.9,
+                "recommendations": [
+                    "Add more hands-on exercises",
+                    "Include peer learning activities"
+                ],
+                "learning_objectives": [
+                    "Understand basic concepts",
+                    "Apply knowledge in projects"
+                ],
+                "assessment_strategies": [
+                    "Project-based evaluation",
+                    "Regular quizzes"
+                ],
+                "improvement_areas": [
+                    "More real-world examples",
+                    "Additional practice exercises"
+                ]
+            }]
+        }
+    }
 
 class AdaptiveLearningRecommendation(BaseModel):
     """Recomendaciones para adaptar el contenido"""
@@ -22,6 +50,17 @@ class AdaptiveLearningRecommendation(BaseModel):
     pacing_recommendation: str
     content_modifications: List[str]
     motivational_elements: List[str]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "difficulty_adjustment": "increase",
+                "pacing_recommendation": "Maintain current pace",
+                "content_modifications": ["Add more examples"],
+                "motivational_elements": ["Progress tracking"]
+            }]
+        }
+    }
 
 pedagogical_expert_agent = LlmAgent(
     name="pedagogical_expert",
@@ -52,8 +91,20 @@ Always consider the user's:
 - Prior knowledge level
 - Available time
 - Learning goals
-- Preferred learning style""",
-    output_type=PedagogicalAnalysis
+- Preferred learning style
+
+IMPORTANT: You MUST ALWAYS respond with a valid JSON object that matches this exact structure:
+{
+    "effectiveness_score": number,  # 0-1
+    "cognitive_load_assessment": "string",  # "low", "medium", "high"
+    "scaffolding_quality": "string",  # "poor", "adequate", "excellent"
+    "engagement_potential": number,  # 0-1
+    "recommendations": ["string"],
+    "learning_objectives": ["string"],
+    "assessment_strategies": ["string"],
+    "improvement_areas": ["string"]
+}""",
+    output_schema=PedagogicalAnalysis
 )
 
 def analyze_learning_structure(plan: dict, user_data: dict) -> str:
@@ -63,12 +114,12 @@ def analyze_learning_structure(plan: dict, user_data: dict) -> str:
 Learning Plan: {plan}
 
 User Context:
-- Experience Level: {user_data['experience']}
-- Daily Time: {user_data['time']}
-- Learning Style: {user_data['learning_style']}
-- Goal: {user_data['goal']}
+- Experience Level: {user_data.get('experience', 'beginner')}
+- Daily Time: {user_data.get('time', '30 minutes')}
+- Learning Style: {user_data.get('learning_style', 'visual')}
+- Goal: {user_data.get('goal', 'general proficiency')}
 
-Provide detailed pedagogical analysis and recommendations."""
+Provide detailed pedagogical analysis and recommendations in the exact JSON format specified in the instructions."""
 
 adaptive_learning_agent = LlmAgent(
     name="adaptive_learning_specialist",
@@ -87,5 +138,5 @@ Recommend adjustments for:
 - Pacing
 - Additional support materials
 - Motivational elements""",
-    output_type=AdaptiveLearningRecommendation
+    output_schema=AdaptiveLearningRecommendation
 ) 

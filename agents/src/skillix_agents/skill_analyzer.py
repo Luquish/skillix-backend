@@ -3,7 +3,7 @@
 from google.adk.agents import Agent
 from pydantic import BaseModel
 from typing import List, Dict, Optional
-from config import settings
+from .config import settings
 from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 
@@ -25,6 +25,29 @@ class SkillAnalysis(BaseModel):
     learning_path_recommendation: str
     real_world_applications: List[str]
     complementary_skills: List[str]
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [{
+                "skill_name": "Python Programming",
+                "skill_category": "technical",
+                "market_demand": "high",
+                "components": [
+                    {
+                        "name": "Basic Syntax",
+                        "description": "Learn Python's basic syntax and data types",
+                        "difficulty_level": "beginner",
+                        "prerequisites": [],
+                        "estimated_learning_hours": 10,
+                        "practical_applications": ["Simple scripts", "Basic calculations"]
+                    }
+                ],
+                "learning_path_recommendation": "Start with basics",
+                "real_world_applications": ["Web Development"],
+                "complementary_skills": ["Git"]
+            }]
+        }
+    }
 
 skill_analyzer_agent = LlmAgent(
     name="skill_analyzer",
@@ -56,8 +79,28 @@ Remember to consider:
 - Industry standards and best practices
 - Common learning pitfalls
 - Transferable skills across domains
-- Current market trends and demands""",
-    output_type=SkillAnalysis
+- Current market trends and demands
+
+IMPORTANT: You MUST ALWAYS respond with a valid JSON object that matches this exact structure:
+{
+    "skill_name": "string",
+    "skill_category": "string",
+    "market_demand": "string",
+    "components": [
+        {
+            "name": "string",
+            "description": "string",
+            "difficulty_level": "string",
+            "prerequisites": ["string"],
+            "estimated_learning_hours": number,
+            "practical_applications": ["string"]
+        }
+    ],
+    "learning_path_recommendation": "string",
+    "real_world_applications": ["string"],
+    "complementary_skills": ["string"]
+}""",
+    output_schema=SkillAnalysis
 )
 
 def analyze_skill(skill: str, user_context: dict) -> str:
@@ -69,4 +112,4 @@ User Experience: {user_context.get('experience', 'beginner')}
 Learning Goal: {user_context.get('goal', 'general proficiency')}
 Available Time: {user_context.get('time', '30 minutes daily')}
 
-Provide a comprehensive skill breakdown with learning components.""" 
+Provide a comprehensive skill breakdown with learning components in the exact JSON format specified in the instructions.""" 

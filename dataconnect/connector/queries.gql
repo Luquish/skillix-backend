@@ -170,13 +170,12 @@ query GetDayContent($dayContentId: ID!) @auth(level: USER) {
       objective
       order
     }
-    blocks {
+    mainContent {
       id
-      blockType
+      contentType
       title
+      funFact
       xp
-      order
-      estimatedMinutes
       audioContent {
         id
         audioUrl
@@ -195,6 +194,14 @@ query GetDayContent($dayContentId: ID!) @auth(level: USER) {
           order
         }
       }
+    }
+    exercises {
+      id
+      blockType
+      title
+      xp
+      order
+      estimatedMinutes
       quizContent {
         id
         questions {
@@ -229,6 +236,12 @@ query GetDayContent($dayContentId: ID!) @auth(level: USER) {
           order
         }
       }
+      exerciseContent {
+        id
+        exerciseType
+        instructions
+        exerciseData
+      }
     }
   }
 }
@@ -245,22 +258,6 @@ query GetContentBlock($blockId: ID!) @auth(level: USER) {
       id
       dayNumber
       title
-    }
-    audioContent {
-      id
-      audioUrl
-      transcript
-      duration
-      voiceType
-    }
-    readContent {
-      id
-      content
-      estimatedReadTime
-      keyConcepts {
-        concept
-        definition
-      }
     }
     quizContent {
       id
@@ -289,6 +286,12 @@ query GetContentBlock($blockId: ID!) @auth(level: USER) {
         description
         type
       }
+    }
+    exerciseContent {
+      id
+      exerciseType
+      instructions
+      exerciseData
     }
   }
 }

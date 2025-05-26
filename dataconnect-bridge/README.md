@@ -1,6 +1,110 @@
-# Firebase Data Connect Bridge para Python ADK
+# DataConnect Bridge Service
 
-Este servicio Node.js actúa como puente entre los agentes Python (que usan Google ADK) y Firebase Data Connect, ya que Data Connect solo tiene soporte oficial para Node.js.
+## Descripción
+
+Servicio Node.js que actúa como puente entre los agentes Python y Firebase Data Connect. Necesario porque Data Connect solo tiene SDK para Node.js.
+
+## Estructura de Contenido
+
+### Diseño del Contenido del Día
+
+Cada día de aprendizaje sigue esta estructura:
+
+1. **Contenido Principal** (obligatorio)
+   - Puede ser Audio o Lectura (según preferencia del usuario)
+   - Incluye un **Fun Fact** al final
+   - Vale 20 XP base
+
+2. **Ejercicios** (múltiples, basados en el contenido)
+   - Quiz de opción múltiple
+   - Tareas de acción
+   - Ejercicios interactivos (fill-in-blanks, matching, etc.)
+   - Cada uno con su propio valor de XP
+
+### Estructura de Datos
+
+```javascript
+// Estructura que recibe del agente Python
+{
+  objectives: ["objetivo1", "objetivo2"],
+  fun_fact: "¡Dato curioso sobre el tema!",
+  audio_blocks: [{
+    title: "Introducción al tema",
+    transcript: "...",
+    audio_url: "...",
+    duration: 180,
+    fun_fact: "¡Sabías que...!"  // Fun fact específico del audio
+  }],
+  read_blocks: [{
+    title: "Lectura principal",
+    content: "...",
+    estimated_time: 5,
+    fun_fact: "¡Dato interesante!",  // Fun fact específico de la lectura
+    key_concepts: [
+      { term: "concepto", definition: "definición" }
+    ]
+  }],
+  quiz_blocks: [
+    // Ejercicios basados en el contenido principal
+  ],
+  action_tasks: [
+    // Tareas prácticas relacionadas
+  ],
+  exercise_blocks: [
+    // Otros ejercicios interactivos
+  ]
+}
+```
+
+### Transformación a Estructura Relacional
+
+El bridge transforma esta estructura JSON a múltiples tablas relacionadas:
+
+1. **MainContent**: Contenido principal del día
+   - contentType: AUDIO o READ
+   - title: Título del contenido
+   - funFact: Dato curioso al final
+   - xp: Puntos de experiencia
+
+2. **AudioContent/ReadContent**: Detalles específicos del contenido
+
+3. **ContentBlock**: Cada ejercicio basado en el contenido
+   - blockType: QUIZ_MCQ, ACTION_TASK, EXERCISE
+   - Relacionados con el contenido del día
+
+## Endpoints Principales
+
+### POST /create-learning-plan
+Crea un plan de aprendizaje completo con análisis.
+
+### POST /create-day-content
+Crea el contenido de un día específico con:
+- Contenido principal (audio o lectura con fun fact)
+- Ejercicios basados en ese contenido
+
+## Configuración
+
+```bash
+# .env
+PORT=3001
+NODE_ENV=development
+FIREBASE_API_KEY=...
+```
+
+## Instalación y Uso
+
+```bash
+npm install
+npm run dev  # Desarrollo
+npm start    # Producción
+```
+
+## Notas Importantes
+
+- El primer bloque de audio o lectura se considera el contenido principal
+- El fun fact puede venir a nivel del día o de cada bloque
+- Los ejercicios siempre hacen referencia al contenido principal
+- Todos los datos se guardan en tablas relacionales, no JSON
 
 ## Arquitectura
 
@@ -10,62 +114,6 @@ Python Agents (ADK)
 Node.js Bridge Service
     ↓ Firebase SDK
 Firebase Data Connect
-```
-
-## Instalación
-
-1. **Instalar dependencias**:
-   ```bash
-   cd dataconnect-bridge
-   npm install
-   ```
-
-2. **Configurar variables de entorno**:
-   ```bash
-   cp .env.example .env
-   # Editar .env con tu configuración
-   ```
-
-3. **Generar SDK de Data Connect**:
-   ```bash
-   # Desde la raíz del proyecto
-   firebase dataconnect:sdk:generate --watch
-   ```
-
-## Uso
-
-### Iniciar el servicio
-
-```bash
-# Modo desarrollo
-npm run dev
-
-# Modo producción
-npm start
-```
-
-### Endpoints disponibles
-
-- `GET /health` - Health check
-- `POST /api/dataconnect/query` - Ejecutar queries
-- `POST /api/dataconnect/mutation` - Ejecutar mutations
-
-### Ejemplo de uso desde Python
-
-```python
-from skillix_agents import get_dataconnect_bridge
-
-async def example():
-    bridge = get_dataconnect_bridge()
-    
-    # Ejecutar una query
-    user = await bridge.get_user_by_firebase_uid("uid123")
-    
-    # Ejecutar una mutation
-    result = await bridge.create_learning_plan(
-        user_id="user123",
-        plan_data={"title": "Mi plan"}
-    )
 ```
 
 ## Seguridad

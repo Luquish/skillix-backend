@@ -26,12 +26,14 @@ enum LearningStyle {
 }
 
 # Enums para tipos de contenido
-enum ContentBlockType {
+enum MainContentType {
   AUDIO
   READ
+}
+
+enum ContentBlockType {
   QUIZ_MCQ
   ACTION_TASK
-  VIDEO
   EXERCISE
 }
 

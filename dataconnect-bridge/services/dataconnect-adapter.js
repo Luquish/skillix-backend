@@ -111,57 +111,57 @@ class DataConnectAdapter {
    */
   async transformDayContent(dayData) {
     try {
-      const blocks = [];
+      const result = {
+        objectives: dayData.objectives || [],
+        mainContent: null,
+        exercises: []
+      };
       
-      // Transformar bloques de audio
-      if (dayData.audio_blocks) {
-        dayData.audio_blocks.forEach((audio, idx) => {
-          blocks.push({
-            blockType: 'AUDIO',
-            title: audio.title,
-            xp: audio.xp || 10,
-            order: idx,
-            estimatedMinutes: Math.ceil((audio.duration || 180) / 60),
-            audioContent: {
-              audioUrl: audio.audio_url || '',
-              transcript: audio.transcript || '',
-              duration: audio.duration || 180,
-              voiceType: audio.voice || 'es-ES-Standard-A'
-            }
-          });
-        });
+      // Transformar contenido principal (audio o lectura)
+      if (dayData.audio_blocks && dayData.audio_blocks.length > 0) {
+        const audio = dayData.audio_blocks[0]; // Tomar el primer bloque de audio como principal
+        result.mainContent = {
+          contentType: 'AUDIO',
+          title: audio.title,
+          funFact: audio.fun_fact || dayData.fun_fact || "¡Sabías que el aprendizaje activo mejora la retención hasta en un 90%!",
+          xp: audio.xp || 20,
+          audioContent: {
+            audioUrl: audio.audio_url || '',
+            transcript: audio.transcript || '',
+            duration: audio.duration || 180,
+            voiceType: audio.voice || 'es-ES-Standard-A'
+          }
+        };
+      } else if (dayData.read_blocks && dayData.read_blocks.length > 0) {
+        const read = dayData.read_blocks[0]; // Tomar el primer bloque de lectura como principal
+        result.mainContent = {
+          contentType: 'READ',
+          title: read.title,
+          funFact: read.fun_fact || dayData.fun_fact || "¡Sabías que leer activamente mejora la comprensión hasta en un 50%!",
+          xp: read.xp || 20,
+          readContent: {
+            content: read.content,
+            estimatedReadTime: read.estimated_time || 5,
+            keyConcepts: (read.key_concepts || []).map((concept, cidx) => ({
+              concept: concept.term || concept,
+              definition: concept.definition || '',
+              order: cidx
+            }))
+          }
+        };
       }
       
-      // Transformar bloques de lectura
-      if (dayData.read_blocks) {
-        dayData.read_blocks.forEach((read, idx) => {
-          blocks.push({
-            blockType: 'READ',
-            title: read.title,
-            xp: read.xp || 15,
-            order: blocks.length,
-            estimatedMinutes: read.estimated_time || 5,
-            readContent: {
-              content: read.content,
-              estimatedReadTime: read.estimated_time || 5,
-              keyConcepts: (read.key_concepts || []).map((concept, cidx) => ({
-                concept: concept.term || concept,
-                definition: concept.definition || '',
-                order: cidx
-              }))
-            }
-          });
-        });
-      }
+      // Transformar ejercicios (todos los demás bloques)
+      let exerciseOrder = 0;
       
-      // Transformar quizzes
+      // Quizzes
       if (dayData.quiz_blocks) {
-        dayData.quiz_blocks.forEach((quiz, idx) => {
-          blocks.push({
+        dayData.quiz_blocks.forEach((quiz) => {
+          result.exercises.push({
             blockType: 'QUIZ_MCQ',
             title: quiz.title || 'Quiz de comprensión',
             xp: quiz.xp || 20,
-            order: blocks.length,
+            order: exerciseOrder++,
             estimatedMinutes: quiz.estimated_time || 3,
             quizContent: {
               questions: quiz.questions.map((q, qidx) => ({
@@ -180,14 +180,14 @@ class DataConnectAdapter {
         });
       }
       
-      // Transformar tareas de acción
+      // Tareas de acción
       if (dayData.action_tasks) {
-        dayData.action_tasks.forEach((task, idx) => {
-          blocks.push({
+        dayData.action_tasks.forEach((task) => {
+          result.exercises.push({
             blockType: 'ACTION_TASK',
             title: task.title,
             xp: task.xp || 50,
-            order: blocks.length,
+            order: exerciseOrder++,
             estimatedMinutes: task.estimated_time || 30,
             actionTask: {
               taskType: task.type || 'practice',
@@ -208,10 +208,25 @@ class DataConnectAdapter {
         });
       }
       
-      return {
-        objectives: dayData.objectives || [],
-        blocks
-      };
+      // Otros ejercicios (fill-in-blanks, matching, etc.)
+      if (dayData.exercise_blocks) {
+        dayData.exercise_blocks.forEach((exercise) => {
+          result.exercises.push({
+            blockType: 'EXERCISE',
+            title: exercise.title,
+            xp: exercise.xp || 15,
+            order: exerciseOrder++,
+            estimatedMinutes: exercise.estimated_time || 5,
+            exerciseContent: {
+              exerciseType: exercise.type || 'fill-in-blanks',
+              instructions: exercise.instructions || '',
+              exerciseData: JSON.stringify(exercise.data || {})
+            }
+          });
+        });
+      }
+      
+      return result;
       
     } catch (error) {
       logger.error('Error transforming day content:', error);

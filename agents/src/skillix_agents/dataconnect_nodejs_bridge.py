@@ -57,7 +57,15 @@ class DataConnectNodeBridge:
         })
         
     def get_day_content(self, day_content_id: str) -> Optional[Dict[str, Any]]:
-        """Obtiene el contenido completo de un día específico"""
+        """
+        Obtiene el contenido completo de un día específico
+        
+        Returns:
+            Dict con:
+            - objectives: Lista de objetivos del día
+            - mainContent: Contenido principal (audio o lectura) con fun fact
+            - exercises: Lista de ejercicios basados en el contenido
+        """
         return self._make_request('POST', '/query', {
             'queryName': 'GetDayContent',
             'variables': {'dayContentId': day_content_id}
@@ -115,14 +123,26 @@ class DataConnectNodeBridge:
         
     def create_day_content(self, day_content_id: str, content_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Crea el contenido completo de un día con todos sus bloques
+        Crea el contenido completo de un día con su estructura relacional
         
         Args:
             day_content_id: ID del día
-            content_data: Diccionario con objectives, audio_blocks, read_blocks, quiz_blocks, action_tasks
+            content_data: Diccionario con:
+                - objectives: Lista de objetivos
+                - fun_fact: Dato curioso general (opcional)
+                - audio_blocks: Lista de bloques de audio (el primero será el contenido principal)
+                - read_blocks: Lista de bloques de lectura (el primero será el contenido principal)
+                - quiz_blocks: Lista de quizzes basados en el contenido
+                - action_tasks: Lista de tareas prácticas
+                - exercise_blocks: Lista de ejercicios interactivos
             
         Returns:
             Dict con success: true si se creó correctamente
+            
+        Nota:
+            El primer bloque de audio o lectura se considera el contenido principal
+            y su fun_fact (o el general) se guarda en la tabla MainContent.
+            Los demás bloques se convierten en ejercicios relacionados.
         """
         return self._make_request('POST', '/create-day-content', {
             'dayContentId': day_content_id,

@@ -16,9 +16,9 @@ from .pedagogical_expert import pedagogical_expert_agent
 from .learning_planner import learning_planner_agent
 from .content_generator import content_generator_agent, action_day_specialist
 from .orchestrator import orchestrator_agent
-from .ski_personality import ski_personality_agent, motivational_analysis_agent
+from .ski_the_fox import ski_the_fox, motivational_analysis_agent
 from .analytics_agent import analytics_agent, churn_prediction_agent
-from config import settings
+from .config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,6 @@ Your primary role is to understand the user's request and delegate to the approp
 6. For complex multi-step course creation → orchestrator
 7. For motivation and celebrations → ski_the_fox
 8. For learning pattern analysis → learning_analytics
-9. For churn risk assessment → churn_predictor
 
 Key behaviors:
 - Be welcoming and encouraging
@@ -49,19 +48,17 @@ Key behaviors:
 - Use Ski for motivational moments
 
 Never try to handle specialized tasks yourself - always delegate to the experts.""",
-    agents=[
+    sub_agents=[
         skill_analyzer_agent,
         pedagogical_expert_agent,
         learning_planner_agent,
         content_generator_agent,
         action_day_specialist,
         orchestrator_agent,
-        greeting_agent,
-        progress_checker_agent,
-        ski_personality_agent,
+        ski_the_fox,
         motivational_analysis_agent,
         analytics_agent,
-        churn_prediction_agent
+        churn_prediction_agent,
     ]
 )
 
@@ -220,4 +217,4 @@ Be positive, specific with praise, and constructive with feedback."""
 )
 
 # Agregar agentes especializados al coordinador principal
-team_coordinator_agent.agents.extend([greeting_agent, progress_checker_agent]) 
+team_coordinator_agent.sub_agents.extend([greeting_agent, progress_checker_agent]) 
