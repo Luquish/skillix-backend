@@ -1,0 +1,161 @@
+# Enums para proveedores de autenticación
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  APPLE
+}
+
+enum Platform {
+  IOS
+  ANDROID
+  WEB
+}
+
+# Tipos base para usuarios
+type User @table {
+  id: UUID! @col(name: "user_id") @default(expr: "uuidV4()")
+  email: String! @col(name: "email") @unique
+  name: String!
+  # Removemos hashedPassword ya que usaremos OAuth
+  isActive: Boolean! @col(name: "is_active") @default(value: true)
+  authProvider: AuthProvider! @col(name: "auth_provider")
+  platform: Platform @col(name: "platform")
+  firebaseUid: String @col(name: "firebase_uid") @unique
+  
+  # Campos específicos para OAuth
+  photoUrl: String @col(name: "photo_url")
+  emailVerified: Boolean! @col(name: "email_verified") @default(value: false)
+  
+  # Campos específicos de Apple Sign In
+  appleUserIdentifier: String @col(name: "apple_user_identifier") @unique
+  appleIdentityToken: String @col(name: "apple_identity_token")
+  
+  # Campos específicos de Google Sign In
+  googleIdToken: String @col(name: "google_id_token")
+  googleAccessToken: String @col(name: "google_access_token")
+  
+  # Metadatos de autenticación
+  lastSignInAt: DateTime @col(name: "last_sign_in_at")
+  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
+  
+  # Relaciones
+  preferences: [UserPreference!]! @hasMany(references: "userId")
+  enrollments: [Enrollment!]! @hasMany(references: "userId")
+}
+
+type UserPreference @table {
+  id: UUID! @col(name: "preference_id") @default(expr: "uuidV4()")
+  userId: UUID! @col(name: "user_id")
+  skill: String!
+  experience: String!
+  motivation: String!
+  time: String!
+  learningStyle: String! @col(name: "learning_style")
+  goal: String!
+  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
+  
+  # Relación con usuario
+  user: User! @belongsTo(references: "userId")
+}
+
+# Tipos para cursos
+type Course @table {
+  id: UUID! @col(name: "course_id") @default(expr: "uuidV4()")
+  title: String!
+  description: String
+  level: String! # 'beginner', 'intermediate', 'advanced'
+  version: String! @default(value: "v1")
+  language: String! @default(value: "es")
+  canonical: Boolean! @default(value: false)
+  tags: [String!]
+  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
+  
+  # Relaciones
+  blocks: [Block!]! @hasMany(references: "courseId")
+  enrollments: [Enrollment!]! @hasMany(references: "courseId")
+}
+
+type Block @table {
+  id: UUID! @col(name: "block_id") @default(expr: "uuidV4()")
+  courseId: UUID! @col(name: "course_id")
+  type: String! # 'audio', 'read', 'quiz_mcq', etc.
+  xp: Int! @default(value: 0)
+  content: Any! # JSON field para contenido dinámico
+  order: Int!
+  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
+  
+  # Relación con curso
+  course: Course! @belongsTo(references: "courseId")
+}
+
+# Tipos para contenido generado por IA
+type LearningPlan @table {
+  id: UUID! @col(name: "plan_id") @default(expr: "uuidV4()")
+  userId: UUID! @col(name: "user_id") @unique
+  planData: Any! @col(name: "plan_data") # JSON con el plan completo
+  generatedBy: String! @col(name: "generated_by") # 'openai-gpt4', etc.
+  generatedAt: DateTime! @col(name: "generated_at")
+  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
+  
+  # Relación con usuario
+  user: User! @belongsTo(references: "userId")
+}
+
+type DayContent @table {
+  id: UUID! @col(name: "content_id") @default(expr: "uuidV4()")
+  enrollmentId: UUID! @col(name: "enrollment_id")
+  dayNumber: Int! @col(name: "day_number")
+  content: Any! @col(name: "content") # JSON con bloques, tareas, etc.
+  generatedBy: String! @col(name: "generated_by")
+  generatedAt: DateTime! @col(name: "generated_at")
+  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
+  
+  # Relación con enrollment
+  enrollment: Enrollment! @belongsTo(references: "enrollmentId")
+  
+  # Índice único para enrollment + día
+  @@unique([enrollmentId, dayNumber])
+}
+
+# Tipos para inscripciones
+type Enrollment @table {
+  id: UUID! @col(name: "enrollment_id") @default(expr: "uuidV4()")
+  userId: UUID! @col(name: "user_id")
+  courseId: UUID! @col(name: "course_id")
+  status: String! @default(value: "active") # 'active', 'completed', 'paused'
+  progressPercentage: Int! @col(name: "progress_percentage") @default(value: 0)
+  xpEarned: Int! @col(name: "xp_earned") @default(value: 0)
+  completedAt: DateTime @col(name: "completed_at")
+  lastActivityAt: DateTime @col(name: "last_activity_at")
+  lastGeneratedDay: Int @col(name: "last_generated_day") @default(value: 0)
+  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
+  
+  # Relaciones
+  user: User! @belongsTo(references: "userId")
+  course: Course! @belongsTo(references: "courseId")
+  progress: [BlockProgress!]! @hasMany(references: "enrollmentId")
+  dayContents: [DayContent!]! @hasMany(references: "enrollmentId")
+}
+
+type BlockProgress @table {
+  id: UUID! @col(name: "progress_id") @default(expr: "uuidV4()")
+  enrollmentId: UUID! @col(name: "enrollment_id")
+  blockId: UUID! @col(name: "block_id")
+  completed: Boolean! @default(value: false)
+  xpEarned: Int! @col(name: "xp_earned") @default(value: 0)
+  attempts: Int! @default(value: 0)
+  completedAt: DateTime @col(name: "completed_at")
+  createdAt: DateTime! @col(name: "created_at") @default(expr: "request.time")
+  updatedAt: DateTime! @col(name: "updated_at") @default(expr: "request.time")
+  
+  # Relaciones
+  enrollment: Enrollment! @belongsTo(references: "enrollmentId")
+  block: Block! @belongsTo(references: "blockId")
+} 

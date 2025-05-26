@@ -1,0 +1,31 @@
+connectorId: "skillix-connector"
+authMode: "FIREBASE_AUTH"
+
+# Configuración de generación de SDK
+generate:
+  # SDK para React Native
+  javascriptSdk:
+    outputDir: "/Users/lucamazzarello_/Desktop/Repositories/skillix/src/services/dataconnect"
+    package: "@skillix/dataconnect"
+    framework: "react-native"
+    options:
+      tanstack: true
+      typescript: true
+      reactNative: true
+      emulator:
+        host: "localhost"
+        port: 9399
+
+# Configuración de desarrollo
+development:
+  watch: true  # Auto-regenerar SDK cuando cambien los archivos .gql
+  emulator:
+    enabled: true
+    port: 9399
+    host: "localhost"
+
+# Configuración de tipos personalizados
+typeMapping:
+  Timestamp: "string"
+  UUID: "string"
+  JSON: "any" 

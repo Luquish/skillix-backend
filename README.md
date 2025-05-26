@@ -1,326 +1,223 @@
-# Skillix Backend - Plataforma de Aprendizaje Personalizado
+# Skillix Backend
 
-## Descripción
-Skillix es una plataforma de aprendizaje personalizado que utiliza IA para crear planes de estudio adaptados a las necesidades y preferencias de cada usuario. El sistema genera contenido dinámico y mantiene un seguimiento del progreso del usuario.
-
-## Variables de Entorno
-
-El sistema requiere las siguientes variables de entorno:
-
-```bash
-# OpenAI API
-OPENAI_API_KEY=tu-api-key                # API Key de OpenAI
-OPENAI_MODEL=gpt-4o-mini                 # Modelo de OpenAI para generación de contenido
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small  # Modelo para embeddings
-
-# Almacenamiento
-STORAGE_PATH=storage                      # Ruta para almacenamiento local
-```
-
-Para configurar:
-1. Copia el archivo `.env.example` a `.env`
-2. Reemplaza los valores con tus propias credenciales
-3. Asegúrate de no compartir tu archivo `.env` (está incluido en .gitignore)
+Backend para la plataforma de aprendizaje personalizado Skillix, que combina FastAPI, Firebase Data Connect y agentes de IA para crear una experiencia de aprendizaje adaptativa.
 
 ## Arquitectura
 
-### Estructura de Almacenamiento
+El proyecto está dividido en dos componentes principales:
+
+### 1. Agentes de IA (Python/FastAPI)
+
 ```
-storage/
-├── users/
-│   └── email@ejemplo.com/
-│       ├── user.json         (datos básicos + auth)
-│       └── courses/
-│           └── nombre-curso/
-│               ├── preferences.json  (preferencias del curso)
-│               ├── roadmap.json     (plan completo)
-│               └── days/            (contenido diario)
-├── courses/                  (roadmaps compartidos)
-└── embeddings/              (vectores de similitud)
-```
-
-### Componentes Principales
-
-#### 1. Sistema de Autenticación
-- Utiliza email como identificador único
-- Almacenamiento seguro con hash de contraseñas (bcrypt)
-- Separación clara entre datos de usuario y datos de curso
-
-#### 2. Gestión de Cursos
-- Generación de ID único para cada curso
-- Sistema de embeddings para detectar cursos similares
-- Versionado de contenido por día
-- Estructura modular para contenido y preferencias
-
-#### 3. CLI Interactivo
-Comandos principales:
-- `signup`: Registro de nuevos usuarios
-- `login`: Inicio de sesión
-- `create-course`: Creación de curso personalizado
-- `status`: Verificación de estado de sesión
-
-### Flujo de Creación de Curso
-
-1. **Onboarding**
-   - Recolección de preferencias del usuario
-   - Validación de datos
-   - Generación de ID único del curso
-
-2. **Generación de Plan**
-   - Análisis de preferencias
-   - Creación de roadmap personalizado
-   - Estructuración en secciones y días
-
-3. **Generación de Contenido**
-   - Creación dinámica de contenido diario
-   - Sistema de puntos y recompensas (XP)
-   - Seguimiento de progreso
-
-### Modelos de Datos
-
-#### UserPreferences
-```python
-{
-    "name": str,
-    "skill": str,
-    "experience": str,
-    "motivation": str,
-    "time": str,
-    "learning_style": str,
-    "goal": str
-}
+agents/
+├── api/                    # API REST con FastAPI
+│   ├── auth/              # Autenticación con Firebase
+│   │   ├── providers/     # Proveedores de autenticación
+│   │   │   ├── apple.py   # Sign in with Apple
+│   │   │   └── google.py  # Sign in with Google
+│   │   └── middleware.py  # Middleware de autenticación Firebase
+│   ├── routes/           # Endpoints de la API
+│   │   ├── auth.py      # Rutas de autenticación
+│   │   ├── onboarding.py # Rutas de onboarding
+│   │   └── content.py    # Rutas de contenido
+│   └── main.py          # Configuración principal de FastAPI
+└── skillix_agents/      # Lógica de negocio y agentes IA
+    ├── orchestrator.py  # Orquestador de agentes
+    ├── content/        # Generación de contenido
+    └── learning/       # Lógica de aprendizaje
 ```
 
-#### Enrollment
-```python
-{
-    "roadmap_json": dict,
-    "last_generated_day": int,
-    "streak": int,
-    "xp_total": int,
-    "days": Dict[int, EnrollmentDay]
-}
+#### Responsabilidades:
+- Generación de contenido personalizado con IA
+- Orquestación de agentes de aprendizaje
+- API REST para interacción con el frontend
+- Autenticación con Firebase (Google y Apple Sign In)
+
+### 2. Data Connect (Base de Datos y SDK)
+
+```
+dataconnect/
+├── schema/                    # Modelos de datos
+│   ├── enums.gql             # Enumeraciones del sistema
+│   ├── user.gql              # Esquema de usuarios
+│   ├── learning.gql          # Esquema de aprendizaje
+│   ├── schema.gql            # Esquema principal
+│   ├── user.yaml             # Configuración de usuarios
+│   ├── learning_plans.yaml   # Configuración de planes
+│   └── daily_content.yaml    # Configuración de contenido
+├── connector/                # Operaciones de datos
+│   ├── queries.gql           # Consultas GraphQL
+│   ├── mutations.gql         # Mutaciones GraphQL
+│   └── connector.yaml        # Configuración del SDK
+└── dataconnect.yaml          # Configuración principal
 ```
 
-## Dependencias Principales
-- `passlib[bcrypt]`: Hash seguro de contraseñas
-- `click`: Interfaz de línea de comandos
-- `rich`: Formato mejorado de CLI
-- `requests`: Llamadas HTTP
-- `fastapi`: API REST
-- `pydantic`: Validación de datos
+#### Responsabilidades:
+- Persistencia de datos en PostgreSQL
+- Generación automática de SDK tipado
+- Reglas de autorización y seguridad
+- Integración con Firebase y TanStack Query
 
-## Instalación
+## Tecnologías Principales
 
-1. Clonar el repositorio:
+### Backend (Python)
+- FastAPI: Framework web moderno y rápido
+- Firebase Admin: Autenticación y autorización
+- OpenAI: Generación de contenido con IA
+- Pydantic: Validación de datos
+
+### Data Connect
+- PostgreSQL: Base de datos relacional
+- GraphQL: Lenguaje de consulta
+- Firebase Data Connect: ORM y generación de SDK
+- TanStack Query: Gestión de estado y caché
+
+## Configuración del Entorno
+
+1. **Variables de Entorno**:
 ```bash
+# Firebase
+FIREBASE_PROJECT_ID=tu-proyecto
+FIREBASE_PRIVATE_KEY=tu-clave
+FIREBASE_CLIENT_EMAIL=tu-email
+
+# OpenAI
+OPENAI_API_KEY=tu-api-key
+OPENAI_MODEL=gpt-4
+
+# Auth Providers
+GOOGLE_CLIENT_ID=tu-client-id
+APPLE_TEAM_ID=tu-team-id
+APPLE_KEY_ID=tu-key-id
+APPLE_PRIVATE_KEY=tu-private-key
+
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/skillix
+```
+
+2. **Instalación**:
+```bash
+# Clonar repositorio
 git clone https://github.com/tu-usuario/skillix-backend.git
 cd skillix-backend
-```
 
-2. Crear y activar un entorno virtual:
-```bash
-python3 -m venv venv
+# Instalar dependencias Python
+cd agents
+python -m venv venv
 source venv/bin/activate
-```
-> **IMPORTANTE**: Siempre debes activar el entorno virtual (`source venv/bin/activate`) antes de ejecutar cualquier comando del proyecto.
-
-3. Instalar dependencias:
-```bash
 pip install -r requirements.txt
+
+# Instalar Firebase Tools
+npm install -g firebase-tools
+firebase login
 ```
 
-4. Configurar variables de entorno:
+## Desarrollo
+
+### Backend Python (agents/)
+Ver [agents/README.md](agents/README.md) para más detalles.
+
+1. **Iniciar el servidor FastAPI**:
 ```bash
-cp .env.example .env
-# Editar .env con tus configuraciones
+cd agents
+uvicorn api.main:app --reload
 ```
 
-## Uso
-
-1. Activar el entorno virtual (si aún no está activado):
+2. **Ejecutar tests**:
 ```bash
-source venv/bin/activate
+pytest
 ```
 
-2. Iniciar el servidor:
+### Data Connect (dataconnect/)
+Ver [dataconnect/README.md](dataconnect/README.md) para más detalles.
+
+1. **Generar SDK**:
 ```bash
-uvicorn src.main:app --reload
+cd dataconnect
+firebase dataconnect:sdk:generate
 ```
 
-3. Usar el CLI:
+2. **Modo desarrollo**:
 ```bash
-python src/cli.py --help
+firebase dataconnect:sdk:generate --watch
 ```
 
-## Guía Detallada del CLI
-
-El CLI de Skillix permite interactuar con la plataforma desde la terminal. A continuación se detallan los comandos disponibles:
-
-### Registro de Usuario
+3. **Emulador**:
 ```bash
-python src/cli.py signup
+firebase emulators:start
 ```
-Este comando solicitará:
-- Email
-- Nombre
-- Contraseña
-- Confirmación de contraseña
 
-### Inicio de Sesión
+## Flujo de Datos
+
+1. **Autenticación**:
+   ```mermaid
+   graph LR
+   A[Frontend] --> B[Firebase Auth]
+   B --> C[Google/Apple]
+   C --> D[Token JWT]
+   D --> E[FastAPI]
+   E --> F[Middleware]
+   ```
+
+2. **Onboarding**:
+   ```mermaid
+   graph LR
+   A[Usuario] --> B[Auth]
+   B --> C[Preferencias]
+   C --> D[Agente IA]
+   D --> E[Plan Personal]
+   E --> F[Data Connect]
+   ```
+
+3. **Generación de Contenido**:
+   ```mermaid
+   graph LR
+   A[Plan] --> B[Orquestador]
+   B --> C[Agentes IA]
+   C --> D[Contenido]
+   D --> E[Data Connect]
+   ```
+
+## Despliegue
+
+1. **Backend Python**:
 ```bash
-python src/cli.py login
+# Build imagen Docker
+cd agents
+docker build -t skillix-agents .
+
+# Deploy a Cloud Run
+gcloud run deploy skillix-agents --image skillix-agents
 ```
-Este comando solicitará:
-- Email
-- Contraseña
 
-Una vez iniciada la sesión, se guardará en `~/.skillix/session.json`.
-
-### Verificar Estado de Sesión
+2. **Data Connect**:
 ```bash
-python src/cli.py status
-```
-Muestra información del usuario actualmente conectado o indica que no hay sesión activa.
-
-### Cerrar Sesión
-```bash
-python src/cli.py logout
-```
-Elimina la sesión actual.
-
-### Crear Curso Personalizado
-```bash
-python src/cli.py create-course
-```
-Este comando guiará al usuario a través de un proceso interactivo para crear un curso personalizado:
-1. Habilidad a aprender
-2. Nivel de experiencia (beginner, intermediate, advanced)
-3. Tiempo disponible (5min, 10min, 15min, 20min)
-4. Estilo de aprendizaje (visual, reading, interactive)
-5. Motivación
-6. Objetivo específico
-
-El sistema generará un plan de aprendizaje personalizado y mostrará:
-- Descripción general del curso
-- Secciones y días del curso
-- Contenido del primer día
-
-## Ejemplos de cURL para API
-
-A continuación se muestran ejemplos de cómo interactuar con la API de Skillix usando cURL:
-
-### Registro de Usuario
-```bash
-curl -X POST http://localhost:8000/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "usuario@ejemplo.com",
-    "name": "Nombre Usuario",
-    "password": "contraseña123"
-  }'
+cd dataconnect
+firebase deploy --only dataconnect
 ```
 
-**Campos requeridos:**
-- `email`: Correo electrónico del usuario (único)
-- `name`: Nombre completo del usuario
-- `password`: Contraseña para la cuenta
+## Documentación Detallada
 
-### Inicio de Sesión
-```bash
-curl -X POST http://localhost:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "usuario@ejemplo.com",
-    "password": "contraseña123"
-  }'
-```
+- [Agentes y API (agents/README.md)](agents/README.md)
+  - Configuración de autenticación
+  - Endpoints disponibles
+  - Agentes de IA
+  - Middleware y seguridad
 
-**Campos requeridos:**
-- `email`: Correo electrónico registrado
-- `password`: Contraseña asociada al correo
-
-### Datos del Usuario Actual
-```bash
-curl -X GET http://localhost:8000/auth/me?email=usuario@ejemplo.com
-```
-
-**Parámetros de consulta requeridos:**
-- `email`: Correo electrónico del usuario
-
-### Crear Plan de Aprendizaje
-```bash
-curl -X POST http://localhost:8000/api/plan \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "usuario@ejemplo.com",
-    "name": "Nombre Usuario",
-    "skill": "programación python",
-    "experience": "beginner",
-    "motivation": "desarrollo profesional",
-    "time": "10min",
-    "learning_style": "visual",
-    "goal": "crear aplicaciones web"
-  }'
-```
-
-**Campos requeridos:**
-- `email`: Correo electrónico del usuario
-- `name`: Nombre del usuario
-- `skill`: Habilidad que desea aprender
-- `experience`: Nivel de experiencia (`beginner`, `intermediate` o `advanced`)
-- `motivation`: Motivación para aprender
-- `time`: Tiempo disponible por día (`5min`, `10min`, `15min` o `20min`)
-- `learning_style`: Estilo de aprendizaje preferido (`visual`, `reading` o `interactive`)
-- `goal`: Objetivo específico del aprendizaje
-
-### Obtener Siguiente Día
-```bash
-curl -X POST http://localhost:8000/api/day \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "usuario@ejemplo.com",
-    "course_id": "programacion-python",
-    "current_day": 1,
-    "completed": true,
-    "score": 85.5,
-    "feedback": "Me gustó mucho el contenido, fue muy claro"
-  }'
-```
-
-**Campos requeridos:**
-- `email`: Correo electrónico del usuario
-- `course_id`: Identificador del curso (generalmente el nombre del skill con guiones)
-- `current_day`: Número del día actual completado
-- `completed`: Debe ser `true` para avanzar al siguiente día
-- `score`: (Opcional) Puntuación obtenida en el día actual
-- `feedback`: (Opcional) Comentarios sobre el contenido del día
-
-**Nota importante:** Al crear un curso mediante el CLI o la API, el sistema genera automáticamente un `course_id` basado en el nombre de la habilidad (convertido a minúsculas y con espacios reemplazados por guiones). Por ejemplo, para la habilidad "Programación Python", el `course_id` sería "programacion-python".
-
-## Características Avanzadas
-
-### Sistema de Similitud de Cursos
-- Utiliza embeddings de OpenAI para detectar cursos similares
-- Permite reutilización eficiente de contenido
-- Umbral de similitud configurable
-
-### Versionado de Contenido
-- Cada día tiene un sistema de versiones
-- Permite actualizaciones sin perder historial
-- Mantiene consistencia entre usuarios
-
-### Sistema de Progreso
-- Seguimiento de streak diario
-- Sistema de XP por actividad
-- Retroalimentación personalizada
+- [Data Connect (dataconnect/README.md)](dataconnect/README.md)
+  - Esquemas GraphQL
+  - Configuración del SDK
+  - Queries y Mutations
+  - Reglas de seguridad
 
 ## Contribución
+
 1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
+2. Crea una rama (`git checkout -b feature/amazing`)
+3. Commit cambios (`git commit -m 'Add feature'`)
+4. Push a la rama (`git push origin feature/amazing`)
 5. Abre un Pull Request
 
 ## Licencia
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE.md](LICENSE.md) para más detalles. 
+
+Este proyecto está bajo la Licencia MIT. 

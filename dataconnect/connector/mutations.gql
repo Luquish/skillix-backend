@@ -1,0 +1,441 @@
+# Mutations de autenticación y usuario
+mutation CreateUser(
+  $email: String!
+  $name: String!
+  $authProvider: AuthProvider!
+  $platform: Platform
+  $firebaseUid: String!
+  $photoUrl: String
+  $emailVerified: Boolean
+) {
+  createUser(data: {
+    email: $email
+    name: $name
+    authProvider: $authProvider
+    platform: $platform
+    firebaseUid: $firebaseUid
+    photoUrl: $photoUrl
+    emailVerified: $emailVerified
+  }) {
+    id
+    email
+    name
+    authProvider
+    platform
+    firebaseUid
+    createdAt
+  }
+}
+
+mutation UpdateUserAuth(
+  $userId: ID!
+  $appleUserIdentifier: String
+  $appleIdentityToken: String
+  $googleIdToken: String
+  $googleAccessToken: String
+) {
+  updateUser(
+    where: { id: { eq: $userId } }
+    data: {
+      appleUserIdentifier: $appleUserIdentifier
+      appleIdentityToken: $appleIdentityToken
+      googleIdToken: $googleIdToken
+      googleAccessToken: $googleAccessToken
+      lastSignInAt: "now()"
+    }
+  ) {
+    id
+    lastSignInAt
+  }
+}
+
+mutation CreateUserPreference(
+  $userId: ID!
+  $skill: String!
+  $experienceLevel: UserExperienceLevel!
+  $motivation: String!
+  $availableTimeMinutes: Int!
+  $learningStyle: LearningStyle!
+  $goal: String!
+) {
+  createUserPreference(data: {
+    userId: $userId
+    skill: $skill
+    experienceLevel: $experienceLevel
+    motivation: $motivation
+    availableTimeMinutes: $availableTimeMinutes
+    learningStyle: $learningStyle
+    goal: $goal
+  }) {
+    id
+    skill
+    experienceLevel
+    createdAt
+  }
+}
+
+mutation CreateLearningPlan(
+  $userId: ID!
+  $planData: JSON!
+  $generatedBy: String!
+) {
+  createLearningPlan(data: {
+    userId: $userId
+    planData: $planData
+    generatedBy: $generatedBy
+    generatedAt: "now()"
+  }) {
+    id
+    generatedAt
+  }
+}
+
+mutation CreatePlanSection(
+  $planId: ID!
+  $title: String!
+  $description: String
+  $order: Int!
+) {
+  createPlanSection(data: {
+    planId: $planId
+    title: $title
+    description: $description
+    order: $order
+  }) {
+    id
+    title
+    order
+  }
+}
+
+mutation CreateDayContent(
+  $sectionId: ID!
+  $dayNumber: Int!
+  $title: String!
+  $isActionDay: Boolean!
+  $content: JSON!
+  $generatedBy: String!
+) {
+  createDayContent(data: {
+    sectionId: $sectionId
+    dayNumber: $dayNumber
+    title: $title
+    isActionDay: $isActionDay
+    content: $content
+    generatedBy: $generatedBy
+    generatedAt: "now()"
+  }) {
+    id
+    dayNumber
+    title
+  }
+}
+
+mutation UpdateContentProgress(
+  $dayContentId: ID!
+  $userId: ID!
+  $blockId: String!
+  $blockType: ContentBlockType!
+  $completed: Boolean!
+  $xpEarned: Int!
+) {
+  upsertContentProgress(
+    where: {
+      dayContentId: { eq: $dayContentId }
+      userId: { eq: $userId }
+      blockId: { eq: $blockId }
+    }
+    create: {
+      dayContentId: $dayContentId
+      userId: $userId
+      blockId: $blockId
+      blockType: $blockType
+      completed: $completed
+      xpEarned: $xpEarned
+      attempts: 1
+      completedAt: $completed ? "now()" : null
+    }
+    update: {
+      completed: $completed
+      xpEarned: { increment: $xpEarned }
+      attempts: { increment: 1 }
+      completedAt: $completed ? "now()" : null
+    }
+  ) {
+    id
+    completed
+    xpEarned
+    attempts
+    completedAt
+  }
+}
+
+mutation CreateUserWithFirebase(
+  $firebaseUid: String!
+  $email: String!
+  $name: String!
+  $authProvider: String!
+  $platform: String
+) @auth(level: USER) @transaction {
+  user_insert(data: {
+    firebaseUid: $firebaseUid
+    email: $email
+    name: $name
+    hashedPassword: "firebase_auth" # No se usa con Firebase Auth
+    authProvider: $authProvider
+    platform: $platform
+    isActive: true
+  })
+}
+
+mutation CreateUserWithPreferences(
+  $firebaseUid: String!
+  $email: String!
+  $name: String!
+  $authProvider: String!
+  $platform: String
+  $skill: String!
+  $experience: String!
+  $motivation: String!
+  $time: String!
+  $learningStyle: String!
+  $goal: String!
+) @auth(level: USER) @transaction {
+  # Paso 1: Crear usuario
+  user_insert(data: {
+    firebaseUid: $firebaseUid
+    email: $email
+    name: $name
+    hashedPassword: "firebase_auth"
+    authProvider: $authProvider
+    platform: $platform
+    isActive: true
+  })
+  
+  # Paso 2: Crear preferencias usando el ID del usuario recién creado
+  userPreference_insert(data: {
+    userId_expr: "response.user_insert.id"
+    skill: $skill
+    experience: $experience
+    motivation: $motivation
+    time: $time
+    learningStyle: $learningStyle
+    goal: $goal
+  })
+}
+
+mutation UpdateUserPreferences(
+  $userId: UUID!
+  $skill: String!
+  $experience: String!
+  $motivation: String!
+  $time: String!
+  $learningStyle: String!
+  $goal: String!
+) @auth(level: USER) @transaction {
+  # Verificar que el usuario actual es el dueño
+  user(id: $userId) 
+  @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+    id
+    firebaseUid
+  }
+  
+  # Actualizar o crear preferencias
+  userPreference_upsert(
+    where: { userId: { eq: $userId } }
+    data: {
+      userId: $userId
+      skill: $skill
+      experience: $experience
+      motivation: $motivation
+      time: $time
+      learningStyle: $learningStyle
+      goal: $goal
+    }
+  )
+}
+
+# Mutations de enrollment
+mutation EnrollUserInCourse(
+  $userId: UUID!
+  $courseId: UUID!
+) @auth(level: USER) @transaction {
+  # Verificar que el usuario actual es el que se está inscribiendo
+  user(id: $userId) 
+  @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+    id
+    firebaseUid
+  }
+  
+  # Verificar que el curso existe
+  course(id: $courseId) 
+  @check(expr: "this != null", message: "Course not found") {
+    id
+  }
+  
+  # Crear enrollment
+  enrollment_insert(data: {
+    userId: $userId
+    courseId: $courseId
+    status: "active"
+    progressPercentage: 0
+    xpEarned: 0
+    lastActivityAt_expr: "request.time"
+  })
+}
+
+mutation UpdateBlockProgress(
+  $enrollmentId: UUID!
+  $blockId: UUID!
+  $completed: Boolean!
+  $xpEarned: Int!
+) @auth(level: USER) @transaction {
+  # Verificar que el enrollment pertenece al usuario actual
+  enrollment(id: $enrollmentId) {
+    id
+    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+      firebaseUid
+    }
+  }
+  
+  # Actualizar o crear progreso del bloque
+  blockProgress_upsert(
+    where: { 
+      _and: [
+        { enrollmentId: { eq: $enrollmentId } }
+        { blockId: { eq: $blockId } }
+      ]
+    }
+    data: {
+      enrollmentId: $enrollmentId
+      blockId: $blockId
+      completed: $completed
+      xpEarned: $xpEarned
+      attempts_expr: "this.attempts + 1"
+      completedAt_expr: "($completed ? request.time : null)"
+    }
+  )
+  
+  # Actualizar el enrollment con el nuevo progreso
+  enrollment_update(
+    id: $enrollmentId
+    data: {
+      lastActivityAt_expr: "request.time"
+      xpEarned_expr: "this.xpEarned + $xpEarned"
+    }
+  )
+}
+
+mutation CompleteEnrollment(
+  $enrollmentId: UUID!
+) @auth(level: USER) @transaction {
+  # Verificar que el enrollment pertenece al usuario actual
+  enrollment(id: $enrollmentId) {
+    id
+    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+      firebaseUid
+    }
+  }
+  
+  # Marcar como completado
+  enrollment_update(
+    id: $enrollmentId
+    data: {
+      status: "completed"
+      progressPercentage: 100
+      completedAt_expr: "request.time"
+      lastActivityAt_expr: "request.time"
+    }
+  )
+}
+
+# Mutation para actualizar progreso general
+mutation UpdateEnrollmentProgress(
+  $enrollmentId: UUID!
+  $progressPercentage: Int!
+) @auth(level: USER) {
+  # Verificar autorización
+  enrollment(id: $enrollmentId) {
+    id
+    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+      firebaseUid
+    }
+  }
+  
+  # Actualizar progreso
+  enrollment_update(
+    id: $enrollmentId
+    data: {
+      progressPercentage: $progressPercentage
+      lastActivityAt_expr: "request.time"
+      status_expr: "($progressPercentage >= 100 ? 'completed' : this.status)"
+      completedAt_expr: "($progressPercentage >= 100 ? request.time : this.completedAt)"
+    }
+  )
+}
+
+# Mutations para contenido generado por IA
+mutation SaveLearningPlan(
+  $userId: UUID!
+  $planData: Any!
+  $generatedBy: String!
+) @auth(level: USER) @transaction {
+  # Verificar que el usuario actual es el dueño
+  user(id: $userId) 
+  @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+    id
+    firebaseUid
+  }
+  
+  # Guardar o actualizar el plan de aprendizaje
+  learningPlan_upsert(
+    where: { userId: { eq: $userId } }
+    data: {
+      userId: $userId
+      planData: $planData
+      generatedBy: $generatedBy
+      generatedAt_expr: "request.time"
+    }
+  )
+}
+
+mutation SaveDayContent(
+  $enrollmentId: UUID!
+  $dayNumber: Int!
+  $content: Any!
+  $generatedBy: String!
+) @auth(level: USER) @transaction {
+  # Verificar que el enrollment pertenece al usuario actual
+  enrollment(id: $enrollmentId) {
+    id
+    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+      firebaseUid
+    }
+  }
+  
+  # Guardar contenido del día
+  dayContent_upsert(
+    where: { 
+      _and: [
+        { enrollmentId: { eq: $enrollmentId } }
+        { dayNumber: { eq: $dayNumber } }
+      ]
+    }
+    data: {
+      enrollmentId: $enrollmentId
+      dayNumber: $dayNumber
+      content: $content
+      generatedBy: $generatedBy
+      generatedAt_expr: "request.time"
+    }
+  )
+  
+  # Actualizar el último día generado en enrollment
+  enrollment_update(
+    id: $enrollmentId
+    data: {
+      lastGeneratedDay: $dayNumber
+      lastActivityAt_expr: "request.time"
+    }
+  )
+} 

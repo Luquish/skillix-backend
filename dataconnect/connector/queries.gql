@@ -1,0 +1,299 @@
+# Queries de usuario
+query GetUserByFirebaseUid($firebaseUid: String!) @auth(level: USER) {
+  users(where: { firebaseUid: { eq: $firebaseUid } }) {
+    id
+    email
+    name
+    isActive
+    authProvider
+    platform
+    firebaseUid
+    createdAt
+    updatedAt
+    preferences {
+      id
+      skill
+      experience
+      motivation
+      time
+      learningStyle
+      goal
+    }
+    enrollments {
+      id
+      courseId
+      status
+      progressPercentage
+      xpEarned
+      lastActivityAt
+      course {
+        id
+        title
+        description
+        level
+      }
+    }
+  }
+}
+
+query GetUserById($userId: UUID!) @auth(level: USER) {
+  user(id: $userId) @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+    id
+    email
+    name
+    isActive
+    authProvider
+    platform
+    createdAt
+    updatedAt
+    preferences {
+      id
+      skill
+      experience
+      motivation
+      time
+      learningStyle
+      goal
+    }
+  }
+}
+
+# Queries de cursos
+query ListCourses($level: String, $language: String) @auth(level: PUBLIC) {
+  courses(
+    where: {
+      _and: [
+        { level: { eq: $level } }
+        { language: { eq: $language } }
+      ]
+    }
+  ) {
+    id
+    title
+    description
+    level
+    version
+    language
+    canonical
+    tags
+    blocks {
+      id
+      type
+      xp
+      order
+    }
+  }
+}
+
+query GetCourseById($courseId: UUID!) @auth(level: PUBLIC) {
+  course(id: $courseId) {
+    id
+    title
+    description
+    level
+    version
+    language
+    canonical
+    tags
+    createdAt
+    updatedAt
+    blocks(orderBy: { order: ASC }) {
+      id
+      type
+      xp
+      content
+      order
+    }
+  }
+}
+
+# Queries de progreso y enrollment
+query GetUserEnrollments($userId: UUID!) @auth(level: USER) {
+  enrollments(where: { userId: { eq: $userId } }) 
+  @check(expr: "auth.uid == request.auth.uid", message: "Unauthorized") {
+    id
+    courseId
+    status
+    progressPercentage
+    xpEarned
+    completedAt
+    lastActivityAt
+    createdAt
+    course {
+      id
+      title
+      description
+      level
+      tags
+    }
+    progress {
+      id
+      blockId
+      completed
+      xpEarned
+      attempts
+      completedAt
+    }
+  }
+}
+
+query GetEnrollmentProgress($enrollmentId: UUID!) @auth(level: USER) {
+  enrollment(id: $enrollmentId) {
+    id
+    userId
+    courseId
+    status
+    progressPercentage
+    xpEarned
+    lastActivityAt
+    user @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+      id
+      firebaseUid
+    }
+    progress {
+      id
+      blockId
+      completed
+      xpEarned
+      attempts
+      completedAt
+      block {
+        id
+        type
+        content
+        order
+      }
+    }
+  }
+}
+
+# Query para plan de aprendizaje (learning plan)
+query GetUserLearningPlan($userId: UUID!) @auth(level: USER) {
+  user(id: $userId) @check(expr: "auth.uid == this.firebaseUid", message: "Unauthorized") {
+    id
+    name
+    enrollments(where: { status: { eq: "active" } }) {
+      id
+      courseId
+      progressPercentage
+      lastActivityAt
+      course {
+        id
+        title
+        description
+        level
+        blocks {
+          id
+          type
+          xp
+          order
+        }
+      }
+      progress {
+        blockId
+        completed
+        xpEarned
+      }
+    }
+  }
+}
+
+query GetUserByFirebaseId($firebaseUid: String!) {
+  user(where: { firebaseUid: { eq: $firebaseUid } }) {
+    id
+    email
+    name
+    isActive
+    authProvider
+    platform
+    photoUrl
+    emailVerified
+    lastSignInAt
+    createdAt
+  }
+}
+
+query GetUserPreferences($userId: ID!) {
+  userPreferences(where: { userId: { eq: $userId } }) {
+    id
+    skill
+    experienceLevel
+    motivation
+    availableTimeMinutes
+    learningStyle
+    goal
+    createdAt
+  }
+}
+
+query GetUserLearningPlan($userId: ID!) {
+  learningPlan(where: { userId: { eq: $userId } }) {
+    id
+    planData
+    generatedBy
+    generatedAt
+    sections {
+      id
+      title
+      description
+      order
+      days {
+        id
+        dayNumber
+        title
+        isActionDay
+        content
+        completionStatus
+        completedAt
+      }
+    }
+  }
+}
+
+query GetDayContent($sectionId: ID!, $dayNumber: Int!) {
+  dayContent(where: { 
+    AND: [
+      { sectionId: { eq: $sectionId } },
+      { dayNumber: { eq: $dayNumber } }
+    ]
+  }) {
+    id
+    title
+    isActionDay
+    content
+    generatedBy
+    completionStatus
+    progress {
+      blockType
+      blockId
+      completed
+      xpEarned
+      attempts
+      completedAt
+    }
+  }
+}
+
+query GetUserProgress($userId: ID!) {
+  contentProgress(
+    where: { userId: { eq: $userId } }
+    orderBy: { createdAt: DESC }
+  ) {
+    id
+    blockType
+    blockId
+    completed
+    xpEarned
+    attempts
+    completedAt
+    dayContent {
+      id
+      dayNumber
+      title
+      section {
+        id
+        title
+      }
+    }
+  }
+} 

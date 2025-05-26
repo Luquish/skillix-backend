@@ -1,0 +1,46 @@
+specVersion: "v1alpha"
+serviceId: "skillix-backend"
+location: "us-central1"
+
+service:
+  name: skillix-backend
+  description: "Backend para la aplicación Skillix de aprendizaje personalizado"
+  mode: strict
+
+database:
+  type: postgresql
+  name: skillix_db
+  
+schema:
+  files:
+    - schema/enums.gql
+    - schema/user.gql
+    - schema/learning.gql
+
+connectors:
+  - name: skillix-api
+    description: "API principal de Skillix"
+    files:
+      - connector/queries.gql
+      - connector/mutations.gql
+    auth:
+      type: firebase
+      rules:
+        - match: User
+          read: true
+          write: "auth.uid == resource.data.firebaseUid"
+        - match: UserPreference
+          read: "auth.uid == parent.User.firebaseUid"
+          write: "auth.uid == parent.User.firebaseUid"
+        - match: LearningPlan
+          read: "auth.uid == parent.User.firebaseUid"
+          write: "auth.uid == parent.User.firebaseUid"
+        - match: PlanSection
+          read: "auth.uid == parent.LearningPlan.User.firebaseUid"
+          write: "auth.uid == parent.LearningPlan.User.firebaseUid"
+        - match: DayContent
+          read: "auth.uid == parent.PlanSection.LearningPlan.User.firebaseUid"
+          write: "auth.uid == parent.PlanSection.LearningPlan.User.firebaseUid"
+        - match: ContentProgress
+          read: "auth.uid == resource.data.userId"
+          write: "auth.uid == resource.data.userId" 

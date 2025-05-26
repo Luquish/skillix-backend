@@ -1,0 +1,39 @@
+# Enums para autenticación y plataforma
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  APPLE
+}
+
+enum Platform {
+  IOS
+  ANDROID
+  WEB
+}
+
+# Enums para experiencia y aprendizaje
+enum UserExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+}
+
+# Enums para estado y progreso
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+}
+
+enum ContentBlockType {
+  AUDIO
+  READ
+  QUIZ_MCQ
+  ACTION_TASK
+} 
