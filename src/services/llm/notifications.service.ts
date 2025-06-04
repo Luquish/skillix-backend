@@ -1,8 +1,8 @@
 // src/services/notifications.service.ts
 
 import { getConfig } from '@/config';
-import { UserAnalytics, OptimalLearningTime, StreakMaintenance } from './analytics.service'; // Importar tipos de analytics
-import { SkiMessage, getSkiMotivationalMessage } from './toviTheFox.service'; // Para mensajes de Ski
+import { UserAnalytics } from './schemas';
+import { getSkiMotivationalMessage } from './toviTheFox.service'; // Para mensajes de Ski
 import { UserDataForContent } from './contentGenerator.service'; // Para contexto de usuario
 // ASUNCIÓN: Tienes un firebaseAdmin.service.ts que maneja la inicialización y el envío de FCM
 import { sendFcmNotification } from '@/services/firebaseAdmin.service'; // Esta función necesitarías implementarla

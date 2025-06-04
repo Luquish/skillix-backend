@@ -5,33 +5,16 @@ import { getConfig } from '../../config'; // Para acceder a configuraciones gene
 import OpenAI from 'openai';
 import { z } from 'zod'; // Importar Zod
 
+// Importar schemas y tipos desde el archivo centralizado
+import {
+  SkillAnalysisSchema,
+  type SkillAnalysis
+} from './schemas';
+import { SYSTEM_PROMPT_SKILL_ANALYZER } from './prompts';
+
 const config = getConfig();
 
-// --- Zod Schemas (equivalentes a tus Pydantic models) y TypeScript Interfaces ---
-
-export const SkillComponentSchema = z.object({
-  name: z.string().min(1, "Component name cannot be empty."),
-  description: z.string().min(1, "Component description cannot be empty."),
-  difficulty_level: z.enum(['beginner', 'intermediate', 'advanced']).or(z.string()).describe("Difficulty level: 'beginner', 'intermediate', or 'advanced' (or other string if necessary)."),
-  prerequisites: z.array(z.string()),
-  estimated_learning_hours: z.number().int().positive("Estimated learning hours must be a positive integer."),
-  practical_applications: z.array(z.string()),
-});
-export type SkillComponent = z.infer<typeof SkillComponentSchema>;
-
-export const SkillAnalysisSchema = z.object({
-  skill_name: z.string().min(1, "Skill name cannot be empty."),
-  skill_category: z.string().min(1, "Skill category cannot be empty (e.g., 'technical', 'soft', 'creative')."),
-  market_demand: z.string().min(1, "Market demand cannot be empty (e.g., 'high', 'medium', 'low')."),
-  components: z.array(SkillComponentSchema).min(1, "There must be at least one skill component if the skill is valid and detailed."),
-  learning_path_recommendation: z.string().min(1, "Learning path recommendation cannot be empty."),
-  real_world_applications: z.array(z.string()),
-  complementary_skills: z.array(z.string()),
-  is_skill_valid: z.boolean().describe("True if Skillix can/should teach this skill."),
-  viability_reason: z.string().nullable().describe("Reason if not viable, or confirmation if it is. Can be null."),
-});
-export type SkillAnalysis = z.infer<typeof SkillAnalysisSchema>;
-
+// --- Interfaz para el contexto del usuario ---
 
 // Interfaz para el contexto del usuario que se pasará a la función
 export interface UserSkillContext {
@@ -40,52 +23,6 @@ export interface UserSkillContext {
   time: string; // ej. '15 minutes daily', '1 hour on weekends'
   learning_style?: string; // Opcional, pero bueno tenerlo si el prompt lo usa
 }
-
-const SYSTEM_PROMPT_SKILL_ANALYZER = `You are an expert in analyzing skills and breaking them down into learnable components. You also determine if a skill is valid and appropriate for teaching on the Skillix platform.
-
-Skillix Platform Context: Skillix is an online microlearning platform aiming to teach a wide variety of skills safely, ethically, and effectively through short daily lessons. Avoid skills that are dangerous, illegal, unethical, hateful, promote misinformation, or are impossible to teach remotely and safely.
-
-Your responsibilities:
-1.  VALIDATE SKILL: First and foremost, determine if the requested skill is valid and appropriate for Skillix. Consider safety, legality, ethics, and teachability via online microlearning. Populate 'is_skill_valid' (boolean) and 'viability_reason' (string - explain why if not valid, or brief confirmation if valid, can be null if valid and reason is obvious).
-2.  If 'is_skill_valid' is true, then:
-    a.  DECOMPOSE the skill into 3-7 manageable sub-skills/components.
-    b.  For each component: provide name, description, difficulty_level ('beginner', 'intermediate', 'advanced'), prerequisites, estimated_learning_hours, and practical_applications.
-    c.  IDENTIFY skill_category, market_demand.
-    d.  SUGGEST learning_path_recommendation.
-    e.  LIST real_world_applications and complementary_skills for the overall skill.
-
-Analysis Framework (if skill is valid):
-- Start with the end goal. Break into atomic, teachable units.
-- Consider cognitive load, complexity, and map dependencies.
-- Include practical applications.
-
-Remember to consider (for valid skills):
-- Industry standards, common pitfalls, transferable skills, market trends.
-
-IMPORTANT: You MUST ALWAYS respond with a valid JSON object that strictly matches the following SkillAnalysis structure. Ensure all string fields that describe something (like skill_name, description, recommendation) are not empty if the skill is valid. 'estimated_learning_hours' must be a positive integer. 'components' array should not be empty if the skill is valid and detailed.
-{
-  "skill_name": "string (the skill being analyzed)",
-  "skill_category": "string",
-  "market_demand": "string",
-  "components": [
-    {
-      "name": "string",
-      "description": "string",
-      "difficulty_level": "string ('beginner', 'intermediate', or 'advanced')",
-      "prerequisites": ["string"],
-      "estimated_learning_hours": number,
-      "practical_applications": ["string"]
-    }
-  ],
-  "learning_path_recommendation": "string",
-  "real_world_applications": ["string"],
-  "complementary_skills": ["string"],
-  "is_skill_valid": boolean,
-  "viability_reason": "string or null"
-}
-
-If the skill is clearly not valid (e.g., "Learn to build a bomb"), 'is_skill_valid' should be false, 'viability_reason' should explain why, and other fields like 'components' can be an empty array or minimal, but 'skill_name' should still reflect the input.
-`;
 
 /**
  * Analiza una habilidad dada utilizando OpenAI para descomponerla y evaluar su viabilidad.

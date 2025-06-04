@@ -4,80 +4,18 @@ import { z } from 'zod';
 import { getOpenAiChatCompletion, LlmResponse } from './openai.service';
 import { getConfig } from '../../config';
 import OpenAI from 'openai';
+import { SYSTEM_PROMPT_LEARNING_ANALYTICS, SYSTEM_PROMPT_CHURN_PREDICTOR } from './prompts';
+// Importar schemas y tipos desde el archivo centralizado
+import {
+  StreakMaintenanceSchema,
+  UserAnalyticsSchema,
+  type StreakMaintenance,
+  type UserAnalytics
+} from './schemas';
 // Potentially import UserSkillContext or a more generic UserContext type
 // import { UserSkillContext } from './skillAnalyzer.service';
 
 const config = getConfig();
-
-// --- Zod Schemas and TypeScript Types ---
-
-export const LearningPatternSchema = z.object({
-  pattern_type: z.enum(["time_based", "performance_based", "engagement_based", "content_preference", "other"])
-    .describe("Type of learning pattern identified."),
-  description: z.string().min(1)
-    .describe("Description of the observed pattern."),
-  confidence: z.number().min(0).max(1)
-    .describe("Confidence score (0-1) in the identified pattern."),
-  recommendations: z.array(z.string().min(1))
-    .describe("Actionable recommendations based on this pattern."),
-});
-export type LearningPattern = z.infer<typeof LearningPatternSchema>;
-
-// Helper for time string validation (HH:MM)
-const timeStringSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Time must be in HH:MM format");
-
-export const OptimalLearningTimeSchema = z.object({
-  best_time_window_start: timeStringSchema.describe("Start of the optimal learning time window (HH:MM)."),
-  best_time_window_end: timeStringSchema.describe("End of the optimal learning time window (HH:MM)."),
-  reason: z.string().min(1)
-    .describe("Reasoning behind identifying this time window as optimal."),
-  notification_time: timeStringSchema.describe("Suggested time for a reminder notification (HH:MM)."),
-  engagement_prediction: z.number().min(0).max(1)
-    .describe("Predicted engagement level (0-1) if learning occurs in this window."),
-});
-export type OptimalLearningTime = z.infer<typeof OptimalLearningTimeSchema>;
-
-export const ContentOptimizationSchema = z.object({
-  difficulty_adjustment: z.enum(["increase", "maintain", "decrease"])
-    .describe("Recommendation for adjusting content difficulty."),
-  content_type_preferences: z.array(z.string().min(1))
-    .describe("Observed or inferred preferences for content types (e.g., 'quiz_mcq', 'read', 'audio', 'video', 'interactive_exercise')."),
-  ideal_session_length_minutes: z.number().int().positive()
-    .describe("Recommended ideal session length in minutes for this user."),
-  pacing_recommendation: z.string().min(1)
-    .describe("Suggestions for learning pace (e.g., 'Encourage short, frequent sessions', 'Allow more time for complex topics')."),
-});
-export type ContentOptimization = z.infer<typeof ContentOptimizationSchema>;
-
-export const StreakMaintenanceSchema = z.object({
-  risk_level: z.enum(["low", "medium", "high"])
-    .describe("Predicted risk level of the user breaking their learning streak."),
-  risk_factors: z.array(z.string().min(1))
-    .describe("Factors contributing to the streak risk (e.g., 'Upcoming weekend', 'Recent dip in activity', 'Struggled with last topic')."),
-  intervention_strategies: z.array(z.string().min(1))
-    .describe("Specific strategies to mitigate streak risk (e.g., 'Send a personalized encouragement message from Ski', 'Offer a slightly easier or fun task for the next session', 'Remind of progress made so far')."),
-  motivational_approach: z.string().min(1)
-    .describe("Suggested motivational tone or approach (e.g., 'Celebratory and positive', 'Empathetic and understanding', 'Challenge-oriented')."),
-    
-});
-export type StreakMaintenance = z.infer<typeof StreakMaintenanceSchema>;
-
-export const UserAnalyticsSchema = z.object({
-  learning_patterns: z.array(LearningPatternSchema)
-    .describe("Identified learning patterns for the user."),
-  optimal_learning_time: OptimalLearningTimeSchema
-    .describe("Analysis of the user's optimal learning time."),
-  content_optimization: ContentOptimizationSchema
-    .describe("Recommendations for optimizing content for this user."),
-  streak_maintenance_analysis: StreakMaintenanceSchema // Renamed from streak_maintenance to avoid conflict if used as a standalone type
-    .describe("Analysis and strategies for maintaining the user's learning streak."),
-  overall_engagement_score: z.number().min(0).max(1)
-    .describe("A calculated overall engagement score (0-1). This might be calculated by the system post-LLM call or be an LLM estimate."),
-  key_insights: z.array(z.string().min(1))
-    .describe("Key actionable insights derived from the overall analysis."),
-});
-export type UserAnalytics = z.infer<typeof UserAnalyticsSchema>;
-
 
 // --- Input Interfaces for Service Functions ---
 
@@ -99,73 +37,6 @@ export interface UserHistoryForAnalytics {
   action_day_completion_rate_percent?: number; // 0-100
   // Add any other relevant metrics you track
 }
-
-const SYSTEM_PROMPT_LEARNING_ANALYTICS = `You are an expert in learning analytics and user behavior analysis for an online learning platform called Skillix.
-
-Your role is to:
-1. IDENTIFY significant patterns in user learning behavior from the provided 'UserHistoryForAnalytics'.
-2. PREDICT optimal learning times and conditions.
-3. RECOMMEND content adjustments for better engagement and effectiveness.
-4. ANALYZE streak data and suggest proactive interventions to prevent streak loss.
-5. OPTIMIZE the overall learning experience by providing key actionable insights.
-
-Analysis Dimensions:
-- Time Patterns: When does the user learn best? Are there consistent times of day or days of the week?
-- Performance Patterns: What types of content or topics does the user excel at or struggle with?
-- Engagement Patterns: What keeps the user motivated? How consistent are their sessions?
-- Streak Behavior: How long are their streaks? What might put a streak at risk?
-
-Input: You will receive a 'UserHistoryForAnalytics' JSON object.
-
-Task: Provide a comprehensive analysis.
-
-IMPORTANT: You MUST ALWAYS respond with a valid JSON object that strictly matches the 'UserAnalytics' structure:
-{
-  "learning_patterns": [{ "pattern_type": "string", "description": "string", "confidence": number (0-1), "recommendations": ["string"] }],
-  "optimal_learning_time": { "best_time_window_start": "HH:MM", "best_time_window_end": "HH:MM", "reason": "string", "notification_time": "HH:MM", "engagement_prediction": number (0-1) },
-  "content_optimization": { "difficulty_adjustment": "string ('increase', 'maintain', 'decrease')", "content_type_preferences": ["string"], "ideal_session_length_minutes": number, "pacing_recommendation": "string" },
-  "streak_maintenance_analysis": { "risk_level": "string ('low', 'medium', 'high')", "risk_factors": ["string"], "intervention_strategies": ["string"], "motivational_approach": "string" },
-  "overall_engagement_score": number (0-1, your best estimate based on data),
-  "key_insights": ["string (3-5 most important actionable insights)"]
-}
-Focus on providing actionable insights.
-For 'optimal_learning_time', ensure time strings are in HH:MM format.
-'overall_engagement_score' is your holistic assessment of the user's engagement based on the data.
-`;
-
-const SYSTEM_PROMPT_CHURN_PREDICTOR = `You are an expert in predicting user churn (abandonment) for Skillix, an online learning platform, and suggesting preventive interventions.
-
-Input: You will receive a 'UserHistoryForAnalytics' JSON object containing various metrics about the user's activity and performance.
-
-Task: Analyze the data to predict the user's risk of abandoning the platform and suggest specific, actionable intervention strategies. Focus on the 'StreakMaintenance' aspects.
-
-Key Risk Indicators to Consider:
-- Decreasing session frequency or regularity.
-- Multiple incomplete days or sessions.
-- Consistently low quiz scores or performance on specific content types.
-- Significantly shorter session times than usual for the user.
-- Low or decreasing response to notifications.
-- Long periods of inactivity (high 'days_since_last_session').
-- Broken streaks or very short streaks.
-
-Intervention Strategy Ideas (be creative and context-aware):
-- Personalized messages from Ski the Fox (the platform mascot).
-- Suggesting a slightly easier or more engaging content type for the next session.
-- Offering a "streak save" opportunity (if applicable by platform rules).
-- Highlighting progress made so far and reconnecting to original goals.
-- Introducing a small, fun challenge or a new relevant micro-topic.
-- Adjusting notification timing or messaging.
-
-IMPORTANT: You MUST ALWAYS respond with a valid JSON object that strictly matches the 'StreakMaintenance' structure:
-{
-  "risk_level": "string ('low', 'medium', 'high')",
-  "risk_factors": ["string (specific factors observed in the data contributing to this risk level)"],
-  "intervention_strategies": ["string (concrete actions Skillix can take to re-engage the user or prevent churn)"],
-  "motivational_approach": "string (the recommended tone for interventions, e.g., 'Empathetic and understanding', 'Encouraging and positive', 'Direct and goal-oriented')"
-}
-Be proactive but not pushy. The goal is to re-ignite curiosity and support the user.
-`;
-
 
 /**
  * Analyzes user learning patterns and provides comprehensive analytics.

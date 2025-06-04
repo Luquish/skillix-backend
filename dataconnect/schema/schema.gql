@@ -1,563 +1,348 @@
-# ==================== ENUMS ====================
-enum AuthProvider {
-  EMAIL
-  GOOGLE
-  APPLE
+# dataconnect/schema/schema.gql
+
+"""
+Representa un usuario de la plataforma Skillix.
+El firebaseUid es la clave primaria, vinculada a Firebase Authentication.
+"""
+type User @table(name: "users") {
+  firebaseUid: String! @primaryKey @col(name: "firebase_uid")
+  email: String @unique # Asumiendo que quieres almacenar el email
+  displayName: String # Asumiendo que quieres almacenar el nombre para mostrar
+  createdAt: Timestamp @default(expr: "now()")
+
+  # Relaciones (ejemplos, se pueden expandir)
+  learningPlans: [LearningPlan] @relation(field: "user", references: "firebaseUid")
+  userProgress: [UserProgress] @relation(field: "user", references: "firebaseUid")
+  userAnalytics: UserAnalytics @relation(field: "user", references: "firebaseUid") # Asumiendo 1-a-1 con UserAnalytics
+  streakData: StreakData @relation(field: "user", references: "firebaseUid") # Asumiendo 1-a-1
+  notifications: [Notification] @relation(field: "user", references: "firebaseUid")
+  skiMessages: @relation(field: "user", references: "firebaseUid")
 }
 
-enum Platform {
-  IOS
-  ANDROID
-  WEB
+"""
+Plan de aprendizaje personalizado para un usuario.
+Derivado de LearningPlanSchema.
+"""
+type LearningPlan @table(name: "learning_plans") {
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  userId: String! @col(name: "user_firebase_uid") # Clave foránea a User
+  user: User @foreignKey(field: "userId", references: "firebaseUid")
+
+  totalDurationWeeks: Int! @col(name: "total_duration_weeks")
+  dailyTimeMinutes: Int! @col(name: "daily_time_minutes")
+  skillLevelTarget: SkillLevel! @col(name: "skill_level_target")
+  milestones:!
+  dailyActivities: # Embebido o tabla separada si es complejo/reutilizable
+  resources: # Embebido o tabla separada
+  progressMetrics:! @col(name: "progress_metrics")
+  flexibilityOptions: @col(name: "flexibility_options")
+  createdAt: Timestamp @default(expr: "now()")
+  updatedAt: Timestamp @default(expr: "now()")
+
+  # Relaciones
+  dayContents: @relation(field: "learningPlan", references: "id")
+  skillAnalysis: SkillAnalysis @relation(field: "learningPlan", references: "id") # Asumiendo 1-a-1
 }
 
-enum UserExperienceLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
+"""
+Actividad diaria dentro de un plan de aprendizaje.
+Parte de LearningPlan.
+"""
+type DailyActivity { # No es una tabla separada a menos que sea necesario, puede ser JSONB
+  type: String! # Podría ser un enum si los tipos son fijos
+  durationMinutes: Int! @col(name: "duration_minutes")
+  description: String!
 }
 
-enum LearningStyle {
-  VISUAL
-  AUDITORY
-  KINESTHETIC
-  MIXED
-}
-
-enum ContentBlockType {
-  AUDIO
-  READ
-  QUIZ_MCQ
-  ACTION_TASK
-  VIDEO
-  EXERCISE
-}
-
-enum CompletionStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-}
-
-enum SkillCategory {
-  TECHNICAL
-  CREATIVE
-  BUSINESS
-  PERSONAL_DEVELOPMENT
-  LANGUAGE
-  OTHER
-}
-
-enum MarketDemand {
-  HIGH
-  MEDIUM
-  LOW
-}
-
-enum ChurnRisk {
-  LOW
-  MEDIUM
-  HIGH
-}
-
-# ==================== USER TABLES ====================
-type User @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  email: String! @unique
+"""
+Recurso de aprendizaje.
+Parte de LearningPlan.
+"""
+type Resource { # No es una tabla separada a menos que sea necesario, puede ser JSONB
   name: String!
-  isActive: Boolean! @default(value: true)
-  authProvider: AuthProvider!
-  platform: Platform
-  firebaseUid: String @unique
+  url: String
+  description: String # Si no es una URL
+}
+
+"""
+Contenido específico para un día dentro de un plan de aprendizaje.
+Derivado de DayContentSchema.
+"""
+type DayContent @table(name: "day_contents") {
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  learningPlanId: ID! @col(name: "learning_plan_id") # Clave foránea a LearningPlan
+  learningPlan: LearningPlan @foreignKey(field: "learningPlanId", references: "id")
+  dayNumber: Int! @col(name: "day_number") # Para identificar el día dentro del plan
+
+  title: String!
+  isActionDay: Boolean! @col(name: "is_action_day")
+  objectives:!
+  mainContent: MainContent @col(name: "main_content") # Puede ser JSONB si es complejo y variable
+  actionTask: ActionTask @col(name: "action_task") # Puede ser JSONB
+  totalXp: Int! @col(name: "total_xp")
+  estimatedTime: String! @col(name: "estimated_time") # O Int si son minutos
+  createdAt: Timestamp @default(expr: "now()")
+  updatedAt: Timestamp @default(expr: "now()")
+
+  # Relaciones
+  exercises: [Exercise] @relation(field: "dayContent", references: "id") # Si Exercise es una tabla separada
+  # userProgress: UserProgress @relation(field: "dayContent", references: "id") # Si es 1-a-1 con un UserProgress específico del día
+}
+
+"""
+Contenido principal para un DayContent (lectura o audio).
+Derivado de MainContentSchema.
+"""
+type MainContent { # Puede ser JSONB en la tabla DayContent
+  type: ContentType! # 'read' o 'audio'
+  title: String!
+  # Campos para 'read'
+  content: String
+  estimatedTimeRead: Int @col(name: "estimated_time_read") # en minutos
+  keyConcepts: [KeyConcept]
+  # Campos para 'audio'
+  transcript: String
+  audioUrl: String @col(name: "audio_url")
+  durationAudio: Int @col(name: "duration_audio") # en segundos
   
-  # OAuth fields
-  photoUrl: String
-  emailVerified: Boolean! @default(value: false)
-  
-  # Auth provider specific
-  appleUserIdentifier: String @unique
-  appleIdentityToken: String
-  googleIdToken: String
-  googleAccessToken: String
-  
-  # Metadata
-  lastSignInAt: Timestamp
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  preferences: UserPreference @hasOne
-  learningPlan: LearningPlan @hasOne
-  enrollments: [Enrollment!]! @hasMany
-  progress: [ContentProgress!]! @hasMany
-  analytics: [UserAnalytics!]! @hasMany
-  adkSessions: [AdkSession!]! @hasMany
+  funFact: String @col(name: "fun_fact")
+  xp: Int!
 }
 
-type UserPreference @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  userId: ID! @foreignKey(references: "User.id") @unique
-  skill: String!
-  experienceLevel: UserExperienceLevel!
-  motivation: String!
-  availableTimeMinutes: Int!
-  learningStyle: LearningStyle!
-  goal: String!
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  user: User! @belongsTo
-}
-
-# ==================== LEARNING PLAN TABLES ====================
-type LearningPlan @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  userId: ID! @foreignKey(references: "User.id") @unique
-  generatedBy: String!
-  generatedAt: Timestamp!
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  user: User! @belongsTo
-  sections: [PlanSection!]! @hasMany
-  skillAnalysis: SkillAnalysis @hasOne
-  pedagogicalAnalysis: PedagogicalAnalysis @hasOne
-}
-
-type SkillAnalysis @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  learningPlanId: ID! @foreignKey(references: "LearningPlan.id") @unique
-  skill: String!
-  skillCategory: SkillCategory!
-  marketDemand: MarketDemand!
-  generatedBy: String!
-  createdAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  learningPlan: LearningPlan! @belongsTo
-  components: [SkillComponent!]! @hasMany
-  prerequisites: [SkillPrerequisite!]! @hasMany
-  careerPaths: [CareerPath!]! @hasMany
-}
-
-type SkillComponent @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  skillAnalysisId: ID! @foreignKey(references: "SkillAnalysis.id")
-  name: String!
-  description: String!
-  importance: Int! # 1-5
-  order: Int!
-
-  # Relations
-  skillAnalysis: SkillAnalysis! @belongsTo
-}
-
-type SkillPrerequisite @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  skillAnalysisId: ID! @foreignKey(references: "SkillAnalysis.id")
-  name: String!
-  description: String!
-  isRequired: Boolean!
-  order: Int!
-
-  # Relations
-  skillAnalysis: SkillAnalysis! @belongsTo
-}
-
-type CareerPath @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  skillAnalysisId: ID! @foreignKey(references: "SkillAnalysis.id")
-  title: String!
-  description: String!
-  averageSalary: String
-  demandLevel: MarketDemand!
-  order: Int!
-
-  # Relations
-  skillAnalysis: SkillAnalysis! @belongsTo
-}
-
-type PedagogicalAnalysis @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  learningPlanId: ID! @foreignKey(references: "LearningPlan.id") @unique
-  cognitivLoadAssessment: String!
-  createdAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  learningPlan: LearningPlan! @belongsTo
-  objectives: [LearningObjective!]! @hasMany
-  bloomsLevels: [BloomsTaxonomy!]! @hasMany
-  engagementTechniques: [EngagementTechnique!]! @hasMany
-  assessmentMethods: [AssessmentMethod!]! @hasMany
-}
-
-type LearningObjective @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  pedagogicalAnalysisId: ID! @foreignKey(references: "PedagogicalAnalysis.id")
-  objective: String!
-  measurable: Boolean!
-  timeframe: String!
-  order: Int!
-
-  # Relations
-  pedagogicalAnalysis: PedagogicalAnalysis! @belongsTo
-}
-
-type BloomsTaxonomy @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  pedagogicalAnalysisId: ID! @foreignKey(references: "PedagogicalAnalysis.id")
-  level: String! # Remember, Understand, Apply, Analyze, Evaluate, Create
-  percentage: Int!
-
-  # Relations
-  pedagogicalAnalysis: PedagogicalAnalysis! @belongsTo
-
-  @@unique([pedagogicalAnalysisId, level])
-}
-
-type EngagementTechnique @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  pedagogicalAnalysisId: ID! @foreignKey(references: "PedagogicalAnalysis.id")
-  name: String!
-  description: String!
-  frequency: String! # Daily, Weekly, Per Section
-
-  # Relations
-  pedagogicalAnalysis: PedagogicalAnalysis! @belongsTo
-}
-
-type AssessmentMethod @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  pedagogicalAnalysisId: ID! @foreignKey(references: "PedagogicalAnalysis.id")
-  type: String!
-  description: String!
-  frequency: String!
-
-  # Relations
-  pedagogicalAnalysis: PedagogicalAnalysis! @belongsTo
-}
-
-type PlanSection @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  planId: ID! @foreignKey(references: "LearningPlan.id")
-  title: String!
-  description: String
-  order: Int!
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  plan: LearningPlan! @belongsTo
-  days: [DayContent!]! @hasMany
-}
-
-# ==================== CONTENT TABLES ====================
-type DayContent @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  sectionId: ID! @foreignKey(references: "PlanSection.id")
-  dayNumber: Int!
-  title: String!
-  focusArea: String!
-  isActionDay: Boolean!
-  generatedBy: String!
-  generatedAt: Timestamp!
-  completionStatus: CompletionStatus! @default(value: "PENDING")
-  completedAt: Timestamp
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  section: PlanSection! @belongsTo
-  objectives: [DayObjective!]! @hasMany
-  mainContent: MainContent @hasOne  # Contenido principal (audio o lectura)
-  exercises: [ContentBlock!]! @hasMany  # Ejercicios basados en el contenido
-  progress: [ContentProgress!]! @hasMany
-
-  @@unique([sectionId, dayNumber])
-}
-
-type DayObjective @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  dayContentId: ID! @foreignKey(references: "DayContent.id")
-  objective: String!
-  order: Int!
-
-  # Relations
-  dayContent: DayContent! @belongsTo
-}
-
-# Contenido principal del día (audio o lectura)
-type MainContent @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  dayContentId: ID! @foreignKey(references: "DayContent.id") @unique
-  contentType: MainContentType! # AUDIO o READ
-  title: String!
-  funFact: String!  # Fun fact al final del contenido
-  xp: Int! @default(value: 20)
-  createdAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  dayContent: DayContent! @belongsTo
-  audioContent: AudioContent @hasOne
-  readContent: ReadContent @hasOne
-}
-
-# Bloques de ejercicios (basados en el contenido principal)
-type ContentBlock @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  dayContentId: ID! @foreignKey(references: "DayContent.id")
-  blockType: ContentBlockType!
-  title: String!
-  xp: Int! @default(value: 0)
-  order: Int!
-  estimatedMinutes: Int
-  createdAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  dayContent: DayContent! @belongsTo
-  quizContent: QuizContent @hasOne
-  actionTask: ActionTask @hasOne
-  exerciseContent: ExerciseContent @hasOne
-  progress: [ContentProgress!]! @hasMany
-}
-
-type AudioContent @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  mainContentId: ID! @foreignKey(references: "MainContent.id") @unique
-  audioUrl: String!
-  transcript: String!
-  duration: Int! # seconds
-  voiceType: String!
-
-  # Relations
-  mainContent: MainContent! @belongsTo
-}
-
-type ReadContent @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  mainContentId: ID! @foreignKey(references: "MainContent.id") @unique
-  content: String!
-  estimatedReadTime: Int! # minutes
-  
-  # Relations
-  mainContent: MainContent! @belongsTo
-  keyConcepts: [KeyConcept!]! @hasMany
-}
-
-type KeyConcept @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  readContentId: ID! @foreignKey(references: "ReadContent.id")
-  concept: String!
+"""
+Concepto clave dentro de MainContent.
+"""
+type KeyConcept { # Puede ser JSONB
+  term: String!
   definition: String!
-  order: Int!
-
-  # Relations
-  readContent: ReadContent! @belongsTo
 }
 
-type QuizContent @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
-  
-  # Relations
-  contentBlock: ContentBlock! @belongsTo
-  questions: [QuizQuestion!]! @hasMany
+"""
+Tarea de acción para un DayContent.
+Derivado de ActionTaskSchema.
+"""
+type ActionTask { # Puede ser JSONB en la tabla DayContent
+  title: String!
+  challengeDescription: String! @col(name: "challenge_description")
+  steps:!
+  timeEstimate: String! @col(name: "time_estimate")
+  tips:
+  realWorldContext: String! @col(name: "real_world_context")
+  successCriteria:! @col(name: "success_criteria")
+  skiMotivation: String! @col(name: "ski_motivation")
+  difficultyAdaptation: String @col(name: "difficulty_adaptation") # Podría ser un enum
+  xp: Int!
 }
 
-type QuizQuestion @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  quizContentId: ID! @foreignKey(references: "QuizContent.id")
-  question: String!
-  correctAnswer: String!
-  explanation: String!
-  order: Int!
+"""
+Representa un bloque de ejercicio. Será una unión de tipos específicos de ejercicio.
+Derivado de ExerciseBlockSchema.
+"""
+type Exercise @table(name: "exercises"){ # O podría ser JSONB en DayContent si la estructura varía mucho y no se consulta individualmente
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  dayContentId: ID @col(name: "day_content_id") # Opcional si algunos ejercicios no están ligados a un día
+  dayContent: DayContent @foreignKey(field: "dayContentId", references: "id")
 
-  # Relations
-  quizContent: QuizContent! @belongsTo
-  options: [QuizOption!]! @hasMany
+  type: ContentType! # quiz_mcq, quiz_truefalse, etc.
+  # Común
+  xp: Int!
+  explanation: String
+
+  # Específico para QuizMCQ
+  questionMCQ: String @col(name: "question_mcq")
+  optionsMCQ: @col(name: "options_mcq")
+  answerMCQ: Int @col(name: "answer_mcq") # 0-indexed
+
+  # Específico para TrueFalse
+  statementTF: String @col(name: "statement_tf")
+  answerTF: Boolean @col(name: "answer_tf")
+
+  # Específico para MatchToMeaning
+  pairsMTM: [MatchPair] @col(name: "pairs_mtm") # JSONB
+
+  # Específico para ScenarioQuiz
+  scenarioSQ: String @col(name: "scenario_sq")
+  questionSQ: String @col(name: "question_sq")
+  optionsSQ: @col(name: "options_sq")
+  answerSQ: Int @col(name: "answer_sq")
 }
 
-type QuizOption @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  questionId: ID! @foreignKey(references: "QuizQuestion.id")
-  optionText: String!
-  isCorrect: Boolean!
-  order: Int!
-
-  # Relations
-  question: QuizQuestion! @belongsTo
+"""
+Par para ejercicios de tipo MatchToMeaning.
+"""
+type MatchPair { # JSONB
+  term: String!
+  meaning: String!
 }
 
-type ActionTask @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
-  taskType: String! # practice, project, reflection
+
+"""
+Análisis de usuario y patrones de aprendizaje.
+Derivado de UserAnalyticsSchema.
+"""
+type UserAnalytics @table(name: "user_analytics") {
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  userId: String! @unique @col(name: "user_firebase_uid") # Clave foránea a User
+  user: User @foreignKey(field: "userId", references: "firebaseUid")
+
+  learningPatterns: @col(name: "learning_patterns") # JSONB o tabla separada
+  optimalLearningTime: OptimalLearningTimeData @col(name: "optimal_learning_time") # JSONB o tabla separada
+  contentOptimization: ContentOptimizationData @col(name: "content_optimization") # JSONB o tabla separada
+  streakMaintenanceAnalysis: StreakMaintenanceData @col(name: "streak_maintenance_analysis") # JSONB o tabla separada
+  overallEngagementScore: Float @col(name: "overall_engagement_score")
+  keyInsights: @col(name: "key_insights")
+  createdAt: Timestamp @default(expr: "now()")
+  updatedAt: Timestamp @default(expr: "now()")
+}
+
+"""
+Datos de un patrón de aprendizaje específico.
+Parte de UserAnalytics.
+"""
+type LearningPatternData { # JSONB
+  patternType: PatternType! @col(name: "pattern_type")
   description: String!
-  instructions: String!
-  estimatedTime: Int! # minutes
-  
-  # Relations
-  contentBlock: ContentBlock! @belongsTo
-  steps: [ActionStep!]! @hasMany
-  deliverables: [ActionDeliverable!]! @hasMany
+  confidence: Float!
+  recommendations:!
 }
 
-type ActionStep @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  actionTaskId: ID! @foreignKey(references: "ActionTask.id")
-  instruction: String!
-  order: Int!
-
-  # Relations
-  actionTask: ActionTask! @belongsTo
+"""
+Datos del tiempo óptimo de aprendizaje.
+Parte de UserAnalytics.
+"""
+type OptimalLearningTimeData { # JSONB
+  bestTimeWindowStart: String! @col(name: "best_time_window_start") # HH:MM
+  bestTimeWindowEnd: String! @col(name: "best_time_window_end")   # HH:MM
+  reason: String!
+  notificationTime: String! @col(name: "notification_time")     # HH:MM
+  engagementPrediction: Float! @col(name: "engagement_prediction")
 }
 
-type ActionDeliverable @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  actionTaskId: ID! @foreignKey(references: "ActionTask.id")
+"""
+Datos de optimización de contenido.
+Parte de UserAnalytics.
+"""
+type ContentOptimizationData { # JSONB
+  difficultyAdjustment: DifficultyAdjustment! @col(name: "difficulty_adjustment")
+  contentTypePreferences:! @col(name: "content_type_preferences") # Podría ser si se alinea
+  idealSessionLengthMinutes: Int! @col(name: "ideal_session_length_minutes")
+  pacingRecommendation: String! @col(name: "pacing_recommendation")
+}
+
+"""
+Datos del análisis de mantenimiento de rachas.
+Parte de UserAnalytics.
+"""
+type StreakMaintenanceData { # JSONB
+  riskLevel: RiskLevel! @col(name: "risk_level")
+  riskFactors:! @col(name: "risk_factors")
+  interventionStrategies:! @col(name: "intervention_strategies")
+  motivationalApproach: String! @col(name: "motivational_approach")
+}
+
+"""
+Progreso del usuario en la plataforma.
+"""
+type UserProgress @table(name: "user_progress") {
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  userId: String! @col(name: "user_firebase_uid") # Clave foránea a User
+  user: User @foreignKey(field: "userId", references: "firebaseUid")
+  dayContentId: ID @col(name: "day_content_id") # Opcional: progreso general o por día
+  dayContent: DayContent @foreignKey(field: "dayContentId", references: "id")
+
+  currentStreak: Int @default(expr: "0") @col(name: "current_streak")
+  totalXp: Int @default(expr: "0") @col(name: "total_xp")
+  completedDays: Int @default(expr: "0") @col(name: "completed_days")
+  averageQuizScore: Float @col(name: "average_quiz_score")
+  # Otros campos de progreso, como xp por día, ejercicios completados, etc.
+  lastCompletedDate: Timestamp
+  createdAt: Timestamp @default(expr: "now()")
+  updatedAt: Timestamp @default(expr: "now()")
+}
+
+"""
+Análisis de una habilidad específica.
+Derivado de SkillAnalysisSchema.
+"""
+type SkillAnalysis @table(name: "skill_analyses") {
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  learningPlanId: ID @unique @col(name: "learning_plan_id") # Opcional, si un análisis puede existir sin plan
+  learningPlan: LearningPlan @foreignKey(field: "learningPlanId", references: "id")
+
+  skillName: String! @col(name: "skill_name")
+  skillCategory: String! @col(name: "skill_category")
+  marketDemand: String! @col(name: "market_demand") # Podría ser un enum
+  components:! @col(name: "components") # JSONB
+  learningPathRecommendation: String! @col(name: "learning_path_recommendation")
+  realWorldApplications: @col(name: "real_world_applications")
+  complementarySkills: @col(name: "complementary_skills")
+  isSkillValid: Boolean! @col(name: "is_skill_valid")
+  viabilityReason: String @col(name: "viability_reason")
+  createdAt: Timestamp @default(expr: "now()")
+}
+
+"""
+Componente de una habilidad.
+Parte de SkillAnalysis.
+"""
+type SkillComponentData { # JSONB
+  name: String!
   description: String!
-  type: String! # document, code, presentation, etc
-  order: Int!
-
-  # Relations
-  actionTask: ActionTask! @belongsTo
+  difficultyLevel: SkillLevel! @col(name: "difficulty_level")
+  prerequisites:
+  estimatedLearningHours: Int! @col(name: "estimated_learning_hours")
+  practicalApplications: @col(name: "practical_applications")
 }
 
-# Nuevo tipo para ejercicios genéricos
-type ExerciseContent @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  contentBlockId: ID! @foreignKey(references: "ContentBlock.id") @unique
-  exerciseType: String! # fill-in-blanks, matching, ordering, etc
-  instructions: String!
-  exerciseData: String! # JSON string con la estructura específica del ejercicio
+"""
+Notificaciones para el usuario.
+"""
+type Notification @table(name: "notifications") {
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  userId: String! @col(name: "user_firebase_uid")
+  user: User @foreignKey(field: "userId", references: "firebaseUid")
   
-  # Relations
-  contentBlock: ContentBlock! @belongsTo
+  message: String!
+  type: String # Ej: 'reminder', 'achievement', 'streak_risk'
+  isRead: Boolean @default(expr: "false") @col(name: "is_read")
+  scheduledTime: Timestamp @col(name: "scheduled_time") # Si es una notificación programada
+  createdAt: Timestamp @default(expr: "now()")
 }
 
-# ==================== ENROLLMENT & PROGRESS TABLES ====================
-type Enrollment @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  userId: ID! @foreignKey(references: "User.id")
-  learningPlanId: ID! @foreignKey(references: "LearningPlan.id")
-  status: CompletionStatus! @default(value: "PENDING")
-  startedAt: Timestamp
-  completedAt: Timestamp
-  lastActivityAt: Timestamp
-  currentDayNumber: Int! @default(value: 0)
-  totalXpEarned: Int! @default(value: 0)
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
+"""
+Datos de rachas de aprendizaje del usuario.
+"""
+type StreakData @table(name: "streak_data") {
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  userId: String! @unique @col(name: "user_firebase_uid")
+  user: User @foreignKey(field: "userId", references: "firebaseUid")
 
-  # Relations
-  user: User! @belongsTo
-  learningPlan: LearningPlan! @belongsTo
-
-  @@unique([userId, learningPlanId])
+  currentStreak: Int! @default(expr: "0") @col(name: "current_streak")
+  longestStreak: Int! @default(expr: "0") @col(name: "longest_streak")
+  lastContributionDate: Date @col(name: "last_contribution_date")
+  # Otros campos relevantes para rachas
+  updatedAt: Timestamp @default(expr: "now()")
 }
 
-type ContentProgress @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  userId: ID! @foreignKey(references: "User.id")
-  contentBlockId: ID! @foreignKey(references: "ContentBlock.id")
-  completed: Boolean! @default(value: false)
-  xpEarned: Int! @default(value: 0)
-  attempts: Int! @default(value: 0)
-  timeSpent: Int! @default(value: 0) # seconds
-  score: Float # For quizzes
-  completedAt: Timestamp
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  user: User! @belongsTo
-  contentBlock: ContentBlock! @belongsTo
-  responses: [QuizResponse!]! @hasMany
-
-  @@unique([userId, contentBlockId])
+"""
+Mensajes de la mascota AI, Ski.
+Derivado de SkiMessageSchema.
+"""
+type SkiMessage @table(name: "ski_messages") {
+  id: ID! @primaryKey @default(expr: "uuidV4()")
+  userId: String! @col(name: "user_firebase_uid") # A quién va dirigido el mensaje
+  user: User @foreignKey(field: "userId", references: "firebaseUid")
+  
+  situation: String # Contexto del mensaje, ej: 'daily_motivation', 'streak_celebration_7_days'
+  message: String!
+  emojiStyle: SkiEmojiStyle! @col(name: "emoji_style")
+  animationSuggestion: String! @col(name: "animation_suggestion")
+  isDelivered: Boolean @default(expr: "false") @col(name: "is_delivered")
+  createdAt: Timestamp @default(expr: "now()")
 }
 
-type QuizResponse @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  progressId: ID! @foreignKey(references: "ContentProgress.id")
-  questionId: ID! @foreignKey(references: "QuizQuestion.id")
-  selectedOptionId: ID! @foreignKey(references: "QuizOption.id")
-  isCorrect: Boolean!
-  answeredAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  progress: ContentProgress! @belongsTo
-  question: QuizQuestion! @belongsTo
-  selectedOption: QuizOption! @belongsTo
-}
-
-# ==================== ANALYTICS TABLES ====================
-type UserAnalytics @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  userId: ID! @foreignKey(references: "User.id")
-  date: Date!
-  totalXp: Int! @default(value: 0)
-  sessionsCount: Int! @default(value: 0)
-  averageSessionTime: Int! # minutes
-  blocksCompleted: Int! @default(value: 0)
-  quizAvgScore: Float
-  currentStreak: Int! @default(value: 0)
-  longestStreak: Int! @default(value: 0)
-  preferredLearningTime: String # morning, afternoon, evening
-  engagementScore: Float
-  churnRisk: ChurnRisk
-  lastActiveAt: Timestamp! @default(expr: "now()")
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  user: User! @belongsTo
-
-  @@unique([userId, date])
-}
-
-# ==================== ADK SESSION TABLES ====================
-type AdkSession @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  userId: ID! @foreignKey(references: "User.id")
-  sessionId: String! @unique
-  appName: String!
-  lastUpdateTime: Timestamp! @default(expr: "now()")
-  createdAt: Timestamp! @default(expr: "now()")
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  user: User! @belongsTo
-  messages: [AdkMessage!]! @hasMany
-  state: AdkSessionState @hasOne
-
-  @@unique([userId, appName])
-}
-
-type AdkSessionState @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  sessionId: ID! @foreignKey(references: "AdkSession.id") @unique
-  currentContext: String
-  userLevel: String
-  lastTopics: String
-  preferences: String
-  updatedAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  session: AdkSession! @belongsTo
-}
-
-type AdkMessage @table {
-  id: ID! @id @default(expr: "uuid_generate_v4()")
-  sessionId: ID! @foreignKey(references: "AdkSession.id")
-  role: String! # user, assistant
-  content: String!
-  createdAt: Timestamp! @default(expr: "now()")
-
-  # Relations
-  session: AdkSession! @belongsTo
-
-  @@index([sessionId, createdAt])
-} 
+# Podríamos añadir más tipos como LearningSection, LearningDay si son necesarios como tablas separadas
+# o si su estructura es compleja y se reutiliza. Por ahora, muchos de los detalles
+# de LearningPlan y DayContent se han modelado como campos directos o tipos embebidos (JSONB).
+# Si necesitas consultas muy específicas sobre esos sub-componentes, separarlos en tablas
+# podría ser beneficioso.

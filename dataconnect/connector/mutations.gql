@@ -1,669 +1,433 @@
-# ==================== USER MUTATIONS ====================
-mutation CreateUser(
-  $email: String!
-  $name: String!
-  $authProvider: AuthProvider!
-  $platform: Platform
-  $firebaseUid: String!
-  $photoUrl: String
-  $emailVerified: Boolean
-) @auth(level: PUBLIC) {
-  createUser(data: {
-    email: $email
-    name: $name
-    authProvider: $authProvider
-    platform: $platform
-    firebaseUid: $firebaseUid
-    photoUrl: $photoUrl
-    emailVerified: $emailVerified
-  }) {
-    id
-    email
-    name
-    firebaseUid
-  }
+# dataconnect/connector/mutations.gql
+
+# --- Input Types para Mutaciones ---
+
+input CreateUserInput {
+  firebaseUid: String!
+  email: String!
+  name: String
+  authProvider: AuthProvider! # Usando el enum de enums.gql
+  platform: Platform
+  photoUrl: String
+  emailVerified: Boolean
 }
 
-mutation UpdateUserAuth(
-  $userId: ID!
-  $appleUserIdentifier: String
-  $appleIdentityToken: String
-  $googleIdToken: String
-  $googleAccessToken: String
-) @auth(level: USER) {
-  updateUser(
-    where: { id: { eq: $userId } }
-    data: {
-      appleUserIdentifier: $appleUserIdentifier
-      appleIdentityToken: $appleIdentityToken
-      googleIdToken: $googleIdToken
-      googleAccessToken: $googleAccessToken
-      lastSignInAt: "now()"
-    }
-  ) {
-    id
-    lastSignInAt
-  }
+input CreateUserPreferenceInput {
+  userId: ID! # ID interno del User, no firebaseUid
+  skill: String!
+  experienceLevel: UserExperienceLevel!
+  motivation: String!
+  availableTimeMinutes: Int!
+  learningStyle: LearningStyle!
+  goal: String!
 }
 
-mutation CreateUserPreference(
-  $userId: ID!
-  $skill: String!
-  $experienceLevel: UserExperienceLevel!
-  $motivation: String!
-  $availableTimeMinutes: Int!
-  $learningStyle: LearningStyle!
-  $goal: String!
-) @auth(level: USER) {
-  createUserPreference(data: {
-    userId: $userId
-    skill: $skill
-    experienceLevel: $experienceLevel
-    motivation: $motivation
-    availableTimeMinutes: $availableTimeMinutes
-    learningStyle: $learningStyle
-    goal: $goal
-  }) {
-    id
-    skill
-    experienceLevel
-  }
+input LearningPlanDailyActivityInput {
+  type: String!
+  durationMinutes: Int!
+  description: String!
+  order: Int
 }
 
-# ==================== LEARNING PLAN MUTATIONS ====================
-mutation CreateLearningPlanWithAnalysis(
-  $userId: ID!
-  $generatedBy: String!
-  # Skill Analysis
-  $skill: String!
-  $skillCategory: SkillCategory!
-  $marketDemand: MarketDemand!
-  # Pedagogical Analysis
-  $cognitivLoadAssessment: String!
-) @auth(level: SERVICE) @transaction {
-  # 1. Create learning plan
-  learningPlan: createLearningPlan(data: {
-    userId: $userId
-    generatedBy: $generatedBy
-    generatedAt: "now()"
-  }) {
-    id
-  }
-  
-  # 2. Create skill analysis
-  skillAnalysis: createSkillAnalysis(data: {
-    learningPlanId: $learningPlan.id
-    skill: $skill
-    skillCategory: $skillCategory
-    marketDemand: $marketDemand
-    generatedBy: $generatedBy
-  }) {
-    id
-  }
-  
-  # 3. Create pedagogical analysis
-  pedagogicalAnalysis: createPedagogicalAnalysis(data: {
-    learningPlanId: $learningPlan.id
-    cognitivLoadAssessment: $cognitivLoadAssessment
-  }) {
-    id
-  }
+input LearningPlanResourceInput {
+  name: String!
+  urlOrDescription: String!
+  resourceType: String
+  order: Int
 }
 
-mutation CreateSkillComponents(
-  $skillAnalysisId: ID!
-  $components: [SkillComponentInput!]!
-) @auth(level: SERVICE) {
-  createManySkillComponents(data: $components) {
-    id
-    name
-  }
-}
-
-mutation CreateSkillPrerequisites(
-  $skillAnalysisId: ID!
-  $prerequisites: [SkillPrerequisiteInput!]!
-) @auth(level: SERVICE) {
-  createManySkillPrerequisites(data: $prerequisites) {
-    id
-    name
-  }
-}
-
-mutation CreateCareerPaths(
-  $skillAnalysisId: ID!
-  $careerPaths: [CareerPathInput!]!
-) @auth(level: SERVICE) {
-  createManyCareerPaths(data: $careerPaths) {
-    id
-    title
-  }
-}
-
-mutation CreateLearningObjectives(
-  $pedagogicalAnalysisId: ID!
-  $objectives: [LearningObjectiveInput!]!
-) @auth(level: SERVICE) {
-  createManyLearningObjectives(data: $objectives) {
-    id
-    objective
-  }
-}
-
-mutation CreateBloomsTaxonomyLevels(
-  $pedagogicalAnalysisId: ID!
-  $levels: [BloomsTaxonomyInput!]!
-) @auth(level: SERVICE) {
-  createManyBloomsTaxonomy(data: $levels) {
-    id
-    level
-    percentage
-  }
-}
-
-mutation CreatePlanSection(
-  $planId: ID!
-  $title: String!
-  $description: String
-  $order: Int!
-) @auth(level: SERVICE) {
-  createPlanSection(data: {
-    planId: $planId
-    title: $title
-    description: $description
-    order: $order
-  }) {
-    id
-  }
-}
-
-# ==================== CONTENT MUTATIONS ====================
-mutation CreateDayContent(
-  $sectionId: ID!
-  $dayNumber: Int!
-  $title: String!
-  $focusArea: String!
-  $isActionDay: Boolean!
-  $generatedBy: String!
-) @auth(level: SERVICE) {
-  createDayContent(data: {
-    sectionId: $sectionId
-    dayNumber: $dayNumber
-    title: $title
-    focusArea: $focusArea
-    isActionDay: $isActionDay
-    generatedBy: $generatedBy
-    generatedAt: "now()"
-  }) {
-    id
-  }
-}
-
-mutation CreateDayObjectives(
-  $dayContentId: ID!
-  $objectives: [DayObjectiveInput!]!
-) @auth(level: SERVICE) {
-  createManyDayObjectives(data: $objectives) {
-    id
-    objective
-  }
-}
-
-mutation CreateMainContent(
-  $dayContentId: ID!
-  $contentType: MainContentType!
-  $title: String!
-  $funFact: String!
-  $xp: Int
-) @auth(level: SERVICE) {
-  createMainContent(data: {
-    dayContentId: $dayContentId
-    contentType: $contentType
-    title: $title
-    funFact: $funFact
-    xp: $xp
-  }) {
-    id
-  }
-}
-
-mutation CreateAudioContent(
-  $mainContentId: ID!
-  $audioUrl: String!
-  $transcript: String!
-  $duration: Int!
-  $voiceType: String!
-) @auth(level: SERVICE) {
-  createAudioContent(data: {
-    mainContentId: $mainContentId
-    audioUrl: $audioUrl
-    transcript: $transcript
-    duration: $duration
-    voiceType: $voiceType
-  }) {
-    id
-  }
-}
-
-mutation CreateReadContent(
-  $mainContentId: ID!
-  $content: String!
-  $estimatedReadTime: Int!
-) @auth(level: SERVICE) {
-  createReadContent(data: {
-    mainContentId: $mainContentId
-    content: $content
-    estimatedReadTime: $estimatedReadTime
-  }) {
-    id
-  }
-}
-
-mutation CreateKeyConcepts(
-  $readContentId: ID!
-  $concepts: [KeyConceptInput!]!
-) @auth(level: SERVICE) {
-  createManyKeyConcepts(data: $concepts) {
-    id
-    concept
-  }
-}
-
-mutation CreateContentBlock(
-  $dayContentId: ID!
-  $blockType: ContentBlockType!
-  $title: String!
-  $xp: Int!
-  $order: Int!
-  $estimatedMinutes: Int
-) @auth(level: SERVICE) {
-  createContentBlock(data: {
-    dayContentId: $dayContentId
-    blockType: $blockType
-    title: $title
-    xp: $xp
-    order: $order
-    estimatedMinutes: $estimatedMinutes
-  }) {
-    id
-  }
-}
-
-mutation CreateQuizContent(
-  $contentBlockId: ID!
-) @auth(level: SERVICE) {
-  createQuizContent(data: {
-    contentBlockId: $contentBlockId
-  }) {
-    id
-  }
-}
-
-mutation CreateQuizQuestion(
-  $quizContentId: ID!
-  $question: String!
-  $correctAnswer: String!
-  $explanation: String!
-  $order: Int!
-) @auth(level: SERVICE) {
-  createQuizQuestion(data: {
-    quizContentId: $quizContentId
-    question: $question
-    correctAnswer: $correctAnswer
-    explanation: $explanation
-    order: $order
-  }) {
-    id
-  }
-}
-
-mutation CreateQuizOptions(
-  $questionId: ID!
-  $options: [QuizOptionInput!]!
-) @auth(level: SERVICE) {
-  createManyQuizOptions(data: $options) {
-    id
-    optionText
-    isCorrect
-  }
-}
-
-mutation CreateActionTask(
-  $contentBlockId: ID!
-  $taskType: String!
-  $description: String!
-  $instructions: String!
-  $estimatedTime: Int!
-) @auth(level: SERVICE) {
-  createActionTask(data: {
-    contentBlockId: $contentBlockId
-    taskType: $taskType
-    description: $description
-    instructions: $instructions
-    estimatedTime: $estimatedTime
-  }) {
-    id
-  }
-}
-
-mutation CreateActionSteps(
-  $actionTaskId: ID!
-  $steps: [ActionStepInput!]!
-) @auth(level: SERVICE) {
-  createManyActionSteps(data: $steps) {
-    id
-    instruction
-  }
-}
-
-mutation CreateActionDeliverables(
-  $actionTaskId: ID!
-  $deliverables: [ActionDeliverableInput!]!
-) @auth(level: SERVICE) {
-  createManyActionDeliverables(data: $deliverables) {
-    id
-    description
-  }
-}
-
-mutation CreateExerciseContent(
-  $contentBlockId: ID!
-  $exerciseType: String!
-  $instructions: String!
-  $exerciseData: String!
-) @auth(level: SERVICE) {
-  createExerciseContent(data: {
-    contentBlockId: $contentBlockId
-    exerciseType: $exerciseType
-    instructions: $instructions
-    exerciseData: $exerciseData
-  }) {
-    id
-  }
-}
-
-# ==================== ENROLLMENT & PROGRESS MUTATIONS ====================
-mutation CreateEnrollment(
-  $userId: ID!
-  $learningPlanId: ID!
-) @auth(level: USER) {
-  createEnrollment(data: {
-    userId: $userId
-    learningPlanId: $learningPlanId
-    startedAt: "now()"
-    lastActivityAt: "now()"
-  }) {
-    id
-  }
-}
-
-mutation UpdateEnrollmentProgress(
-  $enrollmentId: ID!
-  $currentDayNumber: Int!
-  $totalXpEarned: Int!
-) @auth(level: USER) {
-  updateEnrollment(
-    where: { id: { eq: $enrollmentId } }
-    data: {
-      currentDayNumber: $currentDayNumber
-      totalXpEarned: $totalXpEarned
-      lastActivityAt: "now()"
-    }
-  ) {
-    id
-    currentDayNumber
-    totalXpEarned
-  }
-}
-
-mutation UpdateContentProgress(
-  $userId: ID!
-  $contentBlockId: ID!
-  $completed: Boolean!
-  $xpEarned: Int!
-  $timeSpent: Int!
-  $score: Float
-) @auth(level: USER) {
-  upsertContentProgress(
-    where: {
-      userId: { eq: $userId }
-      contentBlockId: { eq: $contentBlockId }
-    }
-    create: {
-      userId: $userId
-      contentBlockId: $contentBlockId
-      completed: $completed
-      xpEarned: $xpEarned
-      timeSpent: $timeSpent
-      score: $score
-      attempts: 1
-      completedAt: $completed ? "now()" : null
-    }
-    update: {
-      completed: $completed
-      xpEarned: $xpEarned
-      timeSpent: { increment: $timeSpent }
-      score: $score
-      attempts: { increment: 1 }
-      completedAt: $completed ? "now()" : null
-      updatedAt: "now()"
-    }
-  ) {
-    id
-    completed
-    xpEarned
-  }
-}
-
-mutation SaveQuizResponse(
-  $progressId: ID!
-  $questionId: ID!
-  $selectedOptionId: ID!
-  $isCorrect: Boolean!
-) @auth(level: USER) {
-  createQuizResponse(data: {
-    progressId: $progressId
-    questionId: $questionId
-    selectedOptionId: $selectedOptionId
-    isCorrect: $isCorrect
-  }) {
-    id
-    isCorrect
-  }
-}
-
-# ==================== ANALYTICS MUTATIONS ====================
-mutation UpdateUserAnalytics(
-  $userId: ID!
-  $date: Date!
-  $totalXp: Int!
-  $sessionsCount: Int!
-  $averageSessionTime: Int!
-  $blocksCompleted: Int!
-  $quizAvgScore: Float
-  $currentStreak: Int!
-  $longestStreak: Int!
-  $preferredLearningTime: String
-  $engagementScore: Float
-  $churnRisk: ChurnRisk
-) @auth(level: SERVICE) {
-  upsertUserAnalytics(
-    where: {
-      userId: { eq: $userId }
-      date: { eq: $date }
-    }
-    create: {
-      userId: $userId
-      date: $date
-      totalXp: $totalXp
-      sessionsCount: $sessionsCount
-      averageSessionTime: $averageSessionTime
-      blocksCompleted: $blocksCompleted
-      quizAvgScore: $quizAvgScore
-      currentStreak: $currentStreak
-      longestStreak: $longestStreak
-      preferredLearningTime: $preferredLearningTime
-      engagementScore: $engagementScore
-      churnRisk: $churnRisk
-      lastActiveAt: "now()"
-    }
-    update: {
-      totalXp: { increment: $totalXp }
-      sessionsCount: { increment: $sessionsCount }
-      averageSessionTime: $averageSessionTime
-      blocksCompleted: { increment: $blocksCompleted }
-      quizAvgScore: $quizAvgScore
-      currentStreak: $currentStreak
-      longestStreak: $longestStreak
-      preferredLearningTime: $preferredLearningTime
-      engagementScore: $engagementScore
-      churnRisk: $churnRisk
-      lastActiveAt: "now()"
-      updatedAt: "now()"
-    }
-  ) {
-    id
-  }
-}
-
-# ==================== ADK SESSION MUTATIONS ====================
-mutation CreateOrGetAdkSession(
-  $userId: ID!
-  $appName: String!
-  $sessionId: String!
-) @auth(level: USER) {
-  upsertAdkSession(
-    where: {
-      userId: { eq: $userId }
-      appName: { eq: $appName }
-    }
-    create: {
-      userId: $userId
-      appName: $appName
-      sessionId: $sessionId
-    }
-    update: {
-      sessionId: $sessionId
-      lastUpdateTime: "now()"
-    }
-  ) {
-    id
-    sessionId
-  }
-}
-
-mutation UpdateAdkSessionState(
-  $sessionId: ID!
-  $currentContext: String
-  $userLevel: String
-  $lastTopics: String
-  $preferences: String
-) @auth(level: USER) {
-  upsertAdkSessionState(
-    where: { sessionId: { eq: $sessionId } }
-    create: {
-      sessionId: $sessionId
-      currentContext: $currentContext
-      userLevel: $userLevel
-      lastTopics: $lastTopics
-      preferences: $preferences
-    }
-    update: {
-      currentContext: $currentContext
-      userLevel: $userLevel
-      lastTopics: $lastTopics
-      preferences: $preferences
-      updatedAt: "now()"
-    }
-  ) {
-    id
-  }
-}
-
-mutation CreateAdkMessage(
-  $sessionId: ID!
-  $role: String!
-  $content: String!
-) @auth(level: USER) {
-  createAdkMessage(data: {
-    sessionId: $sessionId
-    role: $role
-    content: $content
-  }) {
-    id
-    createdAt
-  }
-}
-
-# ==================== INPUT TYPES ====================
-input SkillComponentInput {
-  skillAnalysisId: ID!
+input CreateSkillComponentInput {
   name: String!
   description: String!
-  importance: Int!
+  difficultyLevel: DifficultyLevel!
+  prerequisitesText: [String!]!
+  estimatedLearningHours: Int!
+  practicalApplications: [String!]!
   order: Int!
 }
 
-input SkillPrerequisiteInput {
-  skillAnalysisId: ID!
-  name: String!
-  description: String!
-  isRequired: Boolean!
-  order: Int!
+input CreateSkillAnalysisForPlanInput {
+  skillName: String!
+  skillCategory: SkillCategory!
+  marketDemand: MarketDemand!
+  isSkillValid: Boolean!
+  viabilityReason: String
+  learningPathRecommendation: String!
+  realWorldApplications: [String!]!
+  complementarySkills: [String!]!
+  generatedBy: String!
+  components: [CreateSkillComponentInput!]
 }
 
-input CareerPathInput {
-  skillAnalysisId: ID!
-  title: String!
-  description: String!
-  averageSalary: String
-  demandLevel: MarketDemand!
-  order: Int!
-}
-
-input LearningObjectiveInput {
-  pedagogicalAnalysisId: ID!
+input CreateLearningObjectiveInput {
   objective: String!
   measurable: Boolean!
   timeframe: String!
   order: Int!
 }
 
-input BloomsTaxonomyInput {
-  pedagogicalAnalysisId: ID!
-  level: String!
-  percentage: Int!
+input CreatePedagogicalAnalysisForPlanInput {
+  effectivenessScore: Float!
+  cognitiveLoadAssessment: String!
+  scaffoldingQuality: String!
+  engagementPotential: Float!
+  recommendations: [String!]!
+  assessmentStrategies: [String!]!
+  improvementAreas: [String!]!
+  generatedBy: String!
+  objectives: [CreateLearningObjectiveInput!]
 }
 
-input DayObjectiveInput {
-  dayContentId: ID!
-  objective: String!
-  order: Int!
+input CreatePlanDayInput {
+  dayNumber: Int!
+  title: String!
+  focusArea: String!
+  isActionDay: Boolean!
+  objectives: [String!]!
+  generatedBy: String
+  generatedAt: Timestamp
+  completionStatus: CompletionStatus # Por defecto PENDING
 }
 
-input KeyConceptInput {
-  readContentId: ID!
-  concept: String!
-  definition: String!
+input CreatePlanSectionInput {
+  title: String!
+  description: String
   order: Int!
+  days: [CreatePlanDayInput!]
 }
 
-input QuizOptionInput {
-  questionId: ID!
-  optionText: String!
-  isCorrect: Boolean!
-  order: Int!
+input CreateFullLearningPlanInput {
+  userId: ID! # ID interno del User
+  skillName: String!
+  generatedBy: String!
+  generatedAt: Timestamp!
+  totalDurationWeeks: Int!
+  dailyTimeMinutes: Int!
+  skillLevelTarget: UserExperienceLevel!
+  milestones: [String!]!
+  progressMetrics: [String!]!
+  flexibilityOptions: [String!]
+  skillAnalysis: CreateSkillAnalysisForPlanInput!
+  pedagogicalAnalysis: CreatePedagogicalAnalysisForPlanInput!
+  sections: [CreatePlanSectionInput!]
+  dailyActivityTemplates: [LearningPlanDailyActivityInput!]
+  suggestedResources: [LearningPlanResourceInput!]
 }
 
-input ActionStepInput {
-  actionTaskId: ID!
-  instruction: String!
-  order: Int!
+# --- Input Types para las mutaciones granulares de DayContentDetails ---
+input CreateAudioContentForMainInput {
+    audioUrl: String!
+    transcript: String!
+    durationSeconds: Int!
+    voiceType: String
 }
 
-input ActionDeliverableInput {
-  actionTaskId: ID!
-  description: String!
-  type: String!
-  order: Int!
-} 
+input CreateKeyConceptForReadInput {
+    term: String!
+    definition: String!
+    order: Int!
+}
+
+input CreateReadContentForMainInput {
+    contentHtml: String!
+    estimatedReadTimeMinutes: Int!
+    keyConcepts: [CreateKeyConceptForReadInput!]
+}
+
+input CreateMainContentForItemInput { # Usado por InsertMainContent
+    dayContentId: ID! # Referencia al DayContent existente
+    contentType: MainContentType!
+    title: String!
+    funFact: String!
+    xp: Int!
+    audioDetails: CreateAudioContentForMainInput
+    readDetails: CreateReadContentForMainInput
+}
+
+input CreateQuizOptionForQuestionInput {
+    optionText: String!
+    isCorrect: Boolean!
+    order: Int!
+}
+
+input CreateQuizQuestionForQuizContentInput {
+    questionText: String!
+    explanation: String!
+    order: Int!
+    trueFalseAnswer: Boolean
+    matchPairsJson: String
+    scenarioText: String
+    options: [CreateQuizOptionForQuestionInput!]
+}
+
+input CreateQuizContentForBlockInput {
+    quizType: String!
+    questions: [CreateQuizQuestionForQuizContentInput!]
+}
+
+input CreateExerciseContentForBlockInput {
+    exerciseType: String!
+    instructions: String!
+    exerciseDataJson: String!
+}
+
+input CreateContentBlockForDayInput { # Usado por InsertContentBlock
+    dayContentId: ID! # Referencia al DayContent existente
+    blockType: ContentBlockType!
+    title: String!
+    xp: Int!
+    order: Int!
+    estimatedMinutes: Int
+    quizDetails: CreateQuizContentForBlockInput
+    exerciseDetails: CreateExerciseContentForBlockInput
+}
+
+input CreateActionStepForTaskInput {
+    instruction: String!
+    order: Int!
+}
+
+input CreateActionTaskForDayInput { # Usado por InsertActionTask
+    dayContentId: ID! # Referencia al DayContent existente
+    title: String!
+    challengeDescription: String!
+    timeEstimateString: String!
+    tips: [String!]!
+    realWorldContext: String!
+    successCriteria: [String!]!
+    skiMotivation: String!
+    difficultyAdaptation: DifficultyLevel
+    xp: Int!
+    steps: [CreateActionStepForTaskInput!]
+}
+
+input CreateEnrollmentInput {
+    userId: ID!
+    learningPlanId: ID!
+    status: CompletionStatus!
+    currentDayNumber: Int!
+    totalXpEarned: Int!
+}
+
+input CreateChatSessionInput {
+  userId: ID!
+}
+
+input AddChatMessageInput {
+  chatSessionId: ID!
+  userId: ID!
+  role: String!
+  content: String!
+}
+
+input UpdateUserProfileInput {
+  name: String # Corregido de displayName
+  photoUrl: String
+  llmKeyInsights: [String!]
+  llmOverallEngagementScore: Float
+  fcmTokens: [String!]
+}
+
+input MarkNotificationAsReadInput {
+  notificationId: ID!
+}
+
+input UpdateStreakDataInput {
+    userId: ID!
+    currentStreak_inc: Int
+    currentStreak_set: Int
+    longestStreak_set: Int
+    lastContributionDate_set: Date # Formato "YYYY-MM-DD"
+}
+
+
+# --- Mutaciones ---
+
+"""
+Crea un nuevo usuario. Llamada por el backend tras la autenticación de Firebase.
+"""
+mutation CreateUser($input: CreateUserInput!) @auth(level: NO_ACCESS) {
+  user_insert(
+    data: {
+      firebaseUid: $input.firebaseUid
+      email: $input.email
+      name: $input.name
+      authProvider: $input.authProvider
+      platform: $input.platform
+      photoUrl: $input.photoUrl
+      emailVerified: $input.emailVerified
+      isActive: true
+    }
+  ) {
+    id
+    firebaseUid
+    email
+    name
+  }
+}
+
+"""
+Crea las preferencias iniciales para un usuario.
+"""
+mutation CreateUserPreference($input: CreateUserPreferenceInput!) @auth(level: NO_ACCESS) {
+  userPreference_insert(data: $input) {
+    id
+    userId
+    skill
+  }
+}
+
+"""
+Crea un Plan de Aprendizaje completo con todas sus sub-entidades.
+Llamada por el backend (LearningPlanner.service.ts).
+"""
+mutation CreateFullLearningPlan($input: CreateFullLearningPlanInput!) @auth(level: NO_ACCESS) {
+  learningPlan_insert(
+    data: {
+      userId: $input.userId
+      skillName: $input.skillName
+      generatedBy: $input.generatedBy
+      generatedAt: $input.generatedAt
+      totalDurationWeeks: $input.totalDurationWeeks
+      dailyTimeMinutes: $input.dailyTimeMinutes
+      skillLevelTarget: $input.skillLevelTarget
+      milestones: $input.milestones
+      progressMetrics: $input.progressMetrics
+      flexibilityOptions: $input.flexibilityOptions
+      skillAnalysis: { create: $input.skillAnalysis }
+      pedagogicalAnalysis: { create: $input.pedagogicalAnalysis }
+      sections: { create: $input.sections }
+      dailyActivityTemplates: { create: $input.dailyActivityTemplates }
+      suggestedResources: { create: $input.suggestedResources }
+    }
+  ) {
+    id
+    skillName
+    user { id }
+    skillAnalysis { id }
+    pedagogicalAnalysis { id }
+    sections { id, days { id, dayNumber } }
+  }
+}
+
+"""
+Inserta el MainContent para un DayContent existente.
+Llamada por el backend (ContentGenerator.service.ts como parte de saveDailyContentDetailsInDB).
+"""
+mutation InsertMainContent($input: CreateMainContentForItemInput!) @auth(level: NO_ACCESS) {
+  mainContent_insert(data: $input) {
+    id
+    dayContentId
+    contentType
+  }
+}
+
+"""
+Inserta un ContentBlock (ejercicio, quiz) para un DayContent existente.
+Llamada por el backend (ContentGenerator.service.ts como parte de saveDailyContentDetailsInDB).
+"""
+mutation InsertContentBlock($input: CreateContentBlockForDayInput!) @auth(level: NO_ACCESS) {
+  contentBlock_insert(data: $input) {
+    id
+    dayContentId
+    blockType
+  }
+}
+
+"""
+Inserta una ActionTask para un DayContent existente (si es un día de acción).
+Llamada por el backend (ContentGenerator.service.ts como parte de saveDailyContentDetailsInDB).
+"""
+mutation InsertActionTask($input: CreateActionTaskForDayInput!) @auth(level: NO_ACCESS) {
+  actionTask_insert(data: $input) {
+    id
+    dayContentId
+    title
+  }
+}
+
+"""
+Crea una inscripción (Enrollment) para un usuario en un plan de aprendizaje.
+"""
+mutation CreateEnrollment($input: CreateEnrollmentInput!) @auth(level: NO_ACCESS) {
+  enrollment_insert(data: $input) {
+    id
+    userId
+    learningPlanId
+    status # Añadido
+  }
+}
+
+"""
+Crea una sesión de chat para un usuario.
+"""
+mutation CreateChatSession($input: CreateChatSessionInput!) @auth(level: NO_ACCESS) {
+  chatSession_insert(data: $input) {
+    id
+    userId
+    createdAt
+  }
+}
+
+"""
+Añade un mensaje a una sesión de chat existente.
+"""
+mutation AddChatMessage($input: AddChatMessageInput!) @auth(level: NO_ACCESS) {
+  chatMessage_insert(data: $input) {
+    id
+    chatSessionId
+    role
+    content
+    createdAt # Añadido
+  }
+}
+
+"""
+Permite al backend actualizar el perfil de un usuario.
+"""
+mutation UpdateUserProfile($firebaseUid: String!, $input: UpdateUserProfileInput!) @auth(level: NO_ACCESS) {
+  user_update(
+    where: { firebaseUid: { eq: $firebaseUid } }
+    data: $input
+  ) {
+    firebaseUid
+    name # Corregido de displayName
+    email
+    photoUrl
+  }
+}
+
+"""
+Marca una notificación como leída. El backend debe verificar la pertenencia.
+"""
+mutation MarkNotificationAsRead($input: MarkNotificationAsReadInput!) @auth(level: NO_ACCESS) {
+  notification_update(
+    where: { id: { eq: $input.notificationId } }
+    data: { isRead: true, updatedAt_expr: "now()" }
+  ) {
+    id
+    isRead
+  }
+}
+
+"""
+Actualiza los datos de racha del usuario.
+Llamada por el backend después de una actividad relevante.
+"""
+mutation UpdateStreakData($input: UpdateStreakDataInput!) @auth(level: NO_ACCESS) {
+  streakData_update(
+    where: { userId: { eq: $input.userId } }
+    data: {
+      currentStreak_inc: $input.currentStreak_inc
+      currentStreak: $input.currentStreak_set
+      longestStreak: $input.longestStreak_set
+      lastContributionDate: $input.lastContributionDate_set
+    }
+  ) {
+    id
+    userId
+    currentStreak
+    longestStreak
+    lastContributionDate
+  }
+}

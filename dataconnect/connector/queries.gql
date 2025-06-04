@@ -1,464 +1,247 @@
-# ==================== USER QUERIES ====================
-query GetUserByFirebaseUid($firebaseUid: String!) @auth(level: USER) {
-  user(where: { firebaseUid: { eq: $firebaseUid } }) {
-    id
-    email
-    name
-    isActive
-    authProvider
-    platform
-    firebaseUid
-    createdAt
-    updatedAt
-    preferences {
-      id
-      skill
-      experienceLevel
-      motivation
-      availableTimeMinutes
-      learningStyle
-      goal
-    }
-    learningPlan {
-      id
-      generatedBy
-      generatedAt
-    }
-  }
-}
+# dataconnect/connector/queries.gql
 
-query GetUserById($userId: ID!) @auth(level: USER) {
-  user(where: { id: { eq: $userId } }) {
-    id
-    email
-    name
-    isActive
-    authProvider
-    platform
-    createdAt
-    updatedAt
-    preferences {
-      id
-      skill
-      experienceLevel
-      motivation
-      availableTimeMinutes
-      learningStyle
-      goal
-    }
-  }
-}
+# Estas consultas están diseñadas para ser llamadas por el SDK del cliente (React Native).
+# Se asume que el schema.gql define los tipos y relaciones correspondientes.
 
-# ==================== LEARNING PLAN QUERIES ====================
-query GetUserLearningPlan($userId: ID!) @auth(level: USER) {
-  learningPlan(where: { userId: { eq: $userId } }) {
-    id
-    generatedBy
-    generatedAt
-    skillAnalysis {
-      id
-      skill
-      skillCategory
-      marketDemand
-      components {
+"""
+Obtiene el plan de aprendizaje activo de un usuario específico.
+El usuario debe estar autenticado y solo puede solicitar su propio plan.
+"""
+query GetUserActiveLearningPlan @auth(level: USER) {
+  # Asume que LearningPlan tiene un campo 'userId' y un campo 'isActive' (o una lógica similar para determinar actividad)
+  # Esta consulta busca el LearningPlan por el firebaseUid (mapeado a userId en LearningPlan) del token de autenticación.
+  learningPlanCollection( # Usar 'learningPlanCollection' si es el nombre generado para la colección
+    filter: {
+      userId: { eq_expr: "auth.uid" }, # Asume que 'userId' en LearningPlan es el firebaseUid
+      isActive: { eq: true } # Necesitarías este campo en tu schema.gql para LearningPlan
+    },
+    first: 1 # Si solo puede haber un plan activo
+  ) {
+    edges {
+      node {
         id
-        name
-        description
-        importance
-      }
-      prerequisites {
-        id
-        name
-        description
-        isRequired
-      }
-      careerPaths {
-        id
-        title
-        description
-        averageSalary
-        demandLevel
-      }
-    }
-    pedagogicalAnalysis {
-      id
-      cognitivLoadAssessment
-      objectives {
-        id
-        objective
-        measurable
-        timeframe
-      }
-      bloomsLevels {
-        level
-        percentage
-      }
-      engagementTechniques {
-        id
-        name
-        description
-        frequency
-      }
-      assessmentMethods {
-        id
-        type
-        description
-        frequency
-      }
-    }
-    sections {
-      id
-      title
-      description
-      order
-      days {
-        id
-        dayNumber
-        title
-        focusArea
-        isActionDay
-        completionStatus
-        completedAt
-      }
-    }
-  }
-}
-
-query GetPlanSectionWithDays($sectionId: ID!) @auth(level: USER) {
-  planSection(where: { id: { eq: $sectionId } }) {
-    id
-    title
-    description
-    order
-    days {
-      id
-      dayNumber
-      title
-      focusArea
-      isActionDay
-      completionStatus
-      objectives {
-        id
-        objective
-        order
-      }
-      blocks {
-        id
-        blockType
-        title
-        xp
-        order
-        estimatedMinutes
-      }
-    }
-  }
-}
-
-# ==================== CONTENT QUERIES ====================
-query GetDayContent($dayContentId: ID!) @auth(level: USER) {
-  dayContent(where: { id: { eq: $dayContentId } }) {
-    id
-    dayNumber
-    title
-    focusArea
-    isActionDay
-    completionStatus
-    generatedBy
-    generatedAt
-    objectives {
-      id
-      objective
-      order
-    }
-    mainContent {
-      id
-      contentType
-      title
-      funFact
-      xp
-      audioContent {
-        id
-        audioUrl
-        transcript
-        duration
-        voiceType
-      }
-      readContent {
-        id
-        content
-        estimatedReadTime
-        keyConcepts {
+        skillName
+        totalDurationWeeks
+        dailyTimeMinutes
+        skillLevelTarget
+        # currentDay # Necesitarías un campo para esto, o calcularlo en el cliente/backend
+        milestones
+        progressMetrics
+        flexibilityOptions
+        sections(orderBy: { field: order, direction: ASC }) { # Asume que PlanSection tiene 'order'
           id
-          concept
-          definition
+          title
+          description
           order
-        }
-      }
-    }
-    exercises {
-      id
-      blockType
-      title
-      xp
-      order
-      estimatedMinutes
-      quizContent {
-        id
-        questions {
-          id
-          question
-          correctAnswer
-          explanation
-          order
-          options {
+          days(orderBy: { field: dayNumber, direction: ASC }) { # Asume que DayContent tiene 'dayNumber'
             id
-            optionText
-            isCorrect
-            order
+            dayNumber
+            title
+            focusArea
+            isActionDay
+            objectives
+            completionStatus
+            # Podrías querer más detalles aquí o en una query separada para el día
           }
         }
       }
-      actionTask {
-        id
-        taskType
-        description
-        instructions
-        estimatedTime
-        steps {
-          id
-          instruction
-          order
-        }
-        deliverables {
-          id
-          description
-          type
-          order
-        }
-      }
-      exerciseContent {
-        id
-        exerciseType
-        instructions
-        exerciseData
-      }
     }
   }
 }
 
-query GetContentBlock($blockId: ID!) @auth(level: USER) {
-  contentBlock(where: { id: { eq: $blockId } }) {
-    id
-    blockType
-    title
-    xp
-    order
-    estimatedMinutes
-    dayContent {
-      id
-      dayNumber
-      title
-    }
-    quizContent {
-      id
-      questions {
-        id
-        question
-        correctAnswer
-        explanation
-        options {
-          id
-          optionText
-          isCorrect
-        }
-      }
-    }
-    actionTask {
-      id
-      taskType
-      description
-      instructions
-      estimatedTime
-      steps {
-        instruction
-      }
-      deliverables {
-        description
-        type
-      }
-    }
-    exerciseContent {
-      id
-      exerciseType
-      instructions
-      exerciseData
-    }
-  }
-}
-
-# ==================== ENROLLMENT & PROGRESS QUERIES ====================
-query GetUserEnrollment($userId: ID!) @auth(level: USER) {
-  enrollment(where: { userId: { eq: $userId } }) {
-    id
-    status
-    startedAt
-    completedAt
-    lastActivityAt
-    currentDayNumber
-    totalXpEarned
-    learningPlan {
-      id
-      sections {
+"""
+Obtiene el contenido de un día específico para un plan de aprendizaje.
+El usuario debe estar autenticado y ser propietario del plan.
+"""
+query GetDayContent($learningPlanId: ID!, $dayNumber: Int!) @auth(level: USER) {
+  # Esta consulta busca un DayContent específico.
+  # La seguridad se refuerza asegurando que el LearningPlan asociado pertenezca al usuario autenticado.
+  dayContentCollection(
+    filter: {
+      # learningPlanId: { eq: $learningPlanId }, # Si DayContent tiene learningPlanId directamente
+      section: { learningPlanId: { eq: $learningPlanId } }, # Si DayContent está bajo Section que tiene learningPlanId
+      dayNumber: { eq: $dayNumber },
+      # Filtro de seguridad adicional: el plan del día debe pertenecer al usuario autenticado
+      section: { learningPlan: { userId: { eq_expr: "auth.uid" } } }
+    },
+    first: 1
+  ) {
+    edges {
+      node {
         id
         title
-        order
-        days {
-          id
-          dayNumber
+        isActionDay
+        objectives
+        completionStatus
+        mainContentItem { # Asume que esta es la relación a DbMainContent
+          contentType
           title
-          completionStatus
+          funFact
+          xp
+          audioDetails { audioUrl transcript durationSeconds voiceType }
+          readDetails { contentHtml estimatedReadTimeMinutes keyConcepts { term definition order } }
         }
-      }
-    }
-  }
-}
-
-query GetUserProgress($userId: ID!) @auth(level: USER) {
-  contentProgress(
-    where: { userId: { eq: $userId } }
-    orderBy: { createdAt: DESC }
-  ) {
-    id
-    completed
-    xpEarned
-    attempts
-    timeSpent
-    score
-    completedAt
-    contentBlock {
-      id
-      blockType
-      title
-      dayContent {
-        id
-        dayNumber
-        title
-        section {
+        contentBlocks(orderBy: { field: order, direction: ASC }) { # Asume que ContentBlock tiene 'order'
           id
+          blockType
           title
+          xp
+          order
+          estimatedMinutes
+          quizDetails {
+            quizType
+            questions(orderBy: { field: order, direction: ASC }) {
+              id
+              questionText
+              explanation
+              order
+              trueFalseAnswer
+              matchPairsJson
+              scenarioText
+              options(orderBy: { field: order, direction: ASC }) {
+                id
+                optionText
+                isCorrect
+                order
+              }
+            }
+          }
+          exerciseDetails {
+            exerciseType
+            instructions
+            exerciseDataJson
+          }
         }
+        actionTaskItem { # Asume que esta es la relación a DbActionTask
+          title
+          challengeDescription
+          timeEstimateString
+          tips
+          realWorldContext
+          successCriteria
+          skiMotivation
+          difficultyAdaptation
+          xp
+          steps(orderBy: { field: order, direction: ASC }) {
+            instruction
+            order
+          }
+        }
+        # totalXp y estimatedTime podrían ser campos calculados o almacenados en DayContent
       }
     }
-    responses {
-      id
-      isCorrect
-      question {
+  }
+}
+
+"""
+Obtiene los analytics de un usuario específico.
+El usuario debe estar autenticado y solo puede solicitar sus propios analytics.
+"""
+query GetUserAnalytics @auth(level: USER) {
+  # Asume una tabla UserAnalyticsEntry y que quieres la más reciente o un resumen.
+  # Si es una entrada única por usuario, usa userAnalytics(filter: {userId: {eq_expr: "auth.uid"}})
+  userAnalyticsEntryCollection(
+    filter: { userId: { eq_expr: "auth.uid" } },
+    orderBy: { field: date, direction: DESC }, # O el campo de timestamp relevante
+    first: 1 # Para la entrada más reciente
+  ) {
+    edges {
+      node {
         id
-        question
+        date
+        totalXpEarnedThisDay
+        sessionsCountThisDay
+        timeSpentLearningMinutesThisDay
+        contentBlocksCompletedThisDay
+        quizAverageScoreThisDay
+        currentStreakForDate
+        llmLearningPatternsJson
+        llmOptimalTimeJson
+        llmContentOptimizationJson
+        llmStreakMaintenanceJson
+        llmGeneratedOverallEngagementScore
+        llmGeneratedKeyInsights
       }
-      selectedOption {
+    }
+  }
+}
+
+"""
+Obtiene el progreso general de un usuario, incluyendo su inscripción activa y datos de racha.
+El usuario debe estar autenticado.
+"""
+query GetUserProgress @auth(level: USER) {
+  # Obtener la inscripción activa del usuario
+  enrollmentCollection(
+    filter: {
+      userId: { eq_expr: "auth.uid" },
+      status: { in: [PENDING, IN_PROGRESS] } # Asumiendo que estos son estados activos
+    },
+    orderBy: { field: createdAt, direction: DESC}, # La más reciente si hay varias
+    first: 1
+  ) {
+    edges {
+      node {
         id
-        optionText
+        status
+        currentDayNumber
+        totalXpEarned
+        learningPlan {
+            id
+            skillName
+            totalDurationWeeks
+        }
+        # Podrías añadir más campos de Enrollment o LearningPlan aquí
+      }
+    }
+  }
+  # Obtener datos de racha del usuario
+  streakDataCollection(filter: { userId: { eq_expr: "auth.uid" } }, first: 1) {
+    edges {
+      node {
+        id
+        currentStreak
+        longestStreak
+        lastContributionDate
       }
     }
   }
 }
 
-query GetDayProgress($userId: ID!, $dayContentId: ID!) @auth(level: USER) {
-  contentProgress(
-    where: {
-      AND: [
-        { userId: { eq: $userId } }
-        { contentBlock: { dayContentId: { eq: $dayContentId } } }
-      ]
-    }
+
+"""
+Obtiene mensajes de Ski personalizados para una situación dada.
+El usuario debe estar autenticado.
+"""
+query GetSkiMessages($situation: String!) @auth(level: USER) {
+  # Asume una tabla SkiMessage o Notification con un campo 'userId' y 'situation'
+  # y que quieres los no leídos o los más recientes para esa situación.
+  notificationCollection( # O el nombre de tu tabla de mensajes de Ski
+    filter: {
+      userId: { eq_expr: "auth.uid" },
+      type: { eq: "SKI_MESSAGE" }, # Asumiendo un campo 'type' para diferenciar notificaciones
+      # Podrías tener un campo específico como 'situation' o usar 'dataJson' para filtrar por situación.
+      # Ejemplo si 'dataJson' contiene { "situation": "..." }:
+      # dataJson_CONTAINS: $situation # La sintaxis exacta para filtrar JSON puede variar
+      # Por ahora, asumimos que 'title' o 'body' podrían contener la situación o hay un campo dedicado.
+      # Este filtro es un placeholder y necesitará ajuste según tu schema.gql:
+      # title: { contains: $situation } # Ejemplo muy simplificado
+    },
+    orderBy: { field: createdAt, direction: DESC },
+    first: 5 # Limitar el número de mensajes
   ) {
-    id
-    completed
-    xpEarned
-    timeSpent
-    contentBlock {
-      id
-      blockType
-      title
-      order
+    edges {
+      node {
+        id
+        title # Si el mensaje de Ski está en el título
+        body  # O en el cuerpo
+        # Si tienes campos específicos en tu tabla de mensajes de Ski:
+        # message
+        # emojiStyle
+        # animationSuggestion
+        createdAt
+        isRead
+      }
     }
   }
 }
-
-# ==================== ANALYTICS QUERIES ====================
-query GetUserAnalytics($userId: ID!, $startDate: Date!, $endDate: Date!) @auth(level: USER) {
-  userAnalytics(
-    where: {
-      AND: [
-        { userId: { eq: $userId } }
-        { date: { gte: $startDate } }
-        { date: { lte: $endDate } }
-      ]
-    }
-    orderBy: { date: ASC }
-  ) {
-    id
-    date
-    totalXp
-    sessionsCount
-    averageSessionTime
-    blocksCompleted
-    quizAvgScore
-    currentStreak
-    longestStreak
-    preferredLearningTime
-    engagementScore
-    churnRisk
-  }
-}
-
-query GetLatestUserAnalytics($userId: ID!) @auth(level: USER) {
-  userAnalytics(
-    where: { userId: { eq: $userId } }
-    orderBy: { date: DESC }
-    limit: 1
-  ) {
-    id
-    date
-    totalXp
-    currentStreak
-    engagementScore
-    churnRisk
-    preferredLearningTime
-  }
-}
-
-# ==================== ADK SESSION QUERIES ====================
-query GetAdkSession($sessionId: String!) @auth(level: USER) {
-  adkSession(where: { sessionId: { eq: $sessionId } }) {
-    id
-    appName
-    lastUpdateTime
-    state {
-      id
-      currentContext
-      userLevel
-      lastTopics
-      preferences
-    }
-    messages(orderBy: { createdAt: ASC }) {
-      id
-      role
-      content
-      createdAt
-    }
-  }
-}
-
-query GetUserAdkSessions($userId: ID!) @auth(level: USER) {
-  adkSessions(
-    where: { userId: { eq: $userId } }
-    orderBy: { lastUpdateTime: DESC }
-  ) {
-    id
-    appName
-    sessionId
-    lastUpdateTime
-  }
-} 

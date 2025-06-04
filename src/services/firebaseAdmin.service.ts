@@ -21,7 +21,7 @@ export function initializeFirebaseAdmin(): void {
   }
 
   try {
-    const serviceAccountPath = config.firebaseServiceAccountPath; // De tu config/index.ts
+    const serviceAccountPath = config.firebaseServiceAccount; // De tu config/index.ts
 
     if (serviceAccountPath) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires

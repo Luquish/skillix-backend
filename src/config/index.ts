@@ -14,10 +14,11 @@ interface AppConfig {
   nodeEnv: string;
   port: number;
   openaiApiKey: string | undefined;
-  openaiModel: string; // Modelo OpenAI por defecto
-  llmModelConfig: LlmModelConfig; // Configuración genérica para LLM
-  firebaseServiceAccountPath: string;
-  // Añade aquí otras configuraciones que necesites
+  openaiModel: string;
+  llmModelConfig: LlmModelConfig;
+  firebaseServiceAccount: string;
+  dataConnectServiceId: string;
+  dataConnectLocation: string;
 }
 
 const config: AppConfig = {
@@ -32,7 +33,9 @@ const config: AppConfig = {
     frequency_penalty: parseFloat(process.env.LLM_FREQUENCY_PENALTY || '0'),
     presence_penalty: parseFloat(process.env.LLM_PRESENCE_PENALTY || '0'),
   },
-  firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+  firebaseServiceAccount: JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '{}'),
+  dataConnectServiceId: process.env.DATA_CONNECT_SERVICE_ID,
+  dataConnectLocation: process.env.DATA_CONNECT_LOCATION,
 };
 
 export function getConfig(): AppConfig {

@@ -1,31 +1,41 @@
-connectorId: "skillix-connector"
-authMode: "FIREBASE_AUTH"
+connectorId: "tovi-connector" # Nombre de tu conector, está bien.
+authMode: "FIREBASE_AUTH" # Correcto para usar Firebase Auth y las directivas @auth.
 
-# Configuración de generación de SDK
+# Configuración de generación de SDK para el cliente (React Native)
 generate:
-  # SDK para React Native
   javascriptSdk:
-    outputDir: "/Users/lucamazzarello_/Desktop/Repositories/skillix/src/services/dataconnect"
-    package: "@skillix/dataconnect"
-    framework: "react-native"
+    # outputDir: "/Users/lucamazzarello_/Desktop/Repositories/skillix/src/services/dataconnect"
+    # COMENTARIO: Esta ruta absoluta es específica de tu máquina.
+    # Para colaboración o CI/CD, considera:
+    # 1. Usar una ruta relativa si ejecutas la generación desde una ubicación específica
+    #    en relación con tu proyecto frontend.
+    # 2. Generar el SDK en una carpeta local (ej. './generated-sdk/dataconnect-client')
+    #    y luego copiarlo manualmente al repositorio del frontend o publicarlo como un paquete privado.
+    # 3. Si ambos repositorios están en un monorepo, una ruta relativa podría funcionar.
+    # Por ahora, lo dejo como lo tenías, pero ten esto en cuenta.
+    outputDir: "./generated-sdk/dataconnect-client" # Ejemplo de ruta relativa local
+    package: "@tovi/dataconnect" # Nombre del paquete para tu SDK cliente, está bien.
+    framework: "react-native" # Correcto.
     options:
-      tanstack: true
-      typescript: true
-      reactNative: true
+      tanstack: true      # Genera hooks para TanStack Query, muy útil.
+      typescript: true    # Genera en TypeScript, excelente.
+      reactNative: true   # Optimiza para React Native.
+      # La configuración del emulador para el SDK generado es para que el cliente
+      # pueda apuntar al emulador durante el desarrollo del frontend.
       emulator:
-        host: "localhost"
+        host: "localhost" # O la IP donde corra tu emulador si es diferente.
         port: 9399
 
-# Configuración de desarrollo
+# Configuración de desarrollo para las herramientas CLI de Data Connect
 development:
-  watch: true  # Auto-regenerar SDK cuando cambien los archivos .gql
+  watch: true  # Auto-regenerar SDK cliente cuando cambien los archivos .gql, muy útil.
   emulator:
-    enabled: true
-    port: 9399
+    enabled: true # Habilita el emulador de Data Connect localmente.
+    port: 9399    # Puerto en el que correrá el emulador.
     host: "localhost"
 
-# Configuración de tipos personalizados
+# Configuración de mapeo de tipos personalizados (si es necesario)
 typeMapping:
-  Timestamp: "string"
-  UUID: "string"
-  JSON: "any" 
+  Timestamp: "string" # Correcto, los Timestamps de GQL a menudo son strings ISO en el cliente.
+  UUID: "string"      # Correcto, ID de GQL es un string.
+  Date: "string"      # Si usas el tipo escalar Date de GQL, mapearlo a string es común.

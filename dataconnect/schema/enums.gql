@@ -1,69 +1,78 @@
-# Enums para autenticación y plataforma
-enum AuthProvider {
-  EMAIL
-  GOOGLE
-  APPLE
-}
+# dataconnect/schema/enums.gql
 
-enum Platform {
-  IOS
-  ANDROID
-  WEB
-}
-
-# Enums para experiencia y aprendizaje
-enum UserExperienceLevel {
+"""
+Nivel de habilidad del usuario o del contenido.
+"""
+enum SkillLevel {
   BEGINNER
   INTERMEDIATE
   ADVANCED
+  # Puedes añadir otros niveles si es necesario
 }
 
-enum LearningStyle {
-  VISUAL
-  AUDITORY
-  KINESTHETIC
-  MIXED
-}
-
-# Enums para tipos de contenido
-enum MainContentType {
+"""
+Tipos de contenido principal o de ejercicio.
+"""
+enum ContentType {
   AUDIO
   READ
-}
-
-enum ContentBlockType {
   QUIZ_MCQ
-  ACTION_TASK
-  EXERCISE
+  QUIZ_TRUEFALSE
+  MATCH_MEANING
+  SCENARIO_QUIZ
+  FOCUSED_READING # Añadido desde daily_activities
+  INTERACTIVE_QUIZ # Añadido desde daily_activities
+  # Otros tipos de contenido/ejercicio que puedas necesitar
 }
 
-# Enums para estado y progreso
-enum CompletionStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
+"""
+Ajuste de dificultad recomendado.
+"""
+enum DifficultyAdjustment {
+  INCREASE
+  MAINTAIN
+  DECREASE
 }
 
-# Enums para categorías de habilidades
-enum SkillCategory {
-  TECHNICAL
-  CREATIVE
-  BUSINESS
-  PERSONAL_DEVELOPMENT
-  LANGUAGE
+"""
+Nivel de riesgo para el mantenimiento de rachas.
+"""
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+"""
+Tipo de patrón de aprendizaje identificado.
+"""
+enum PatternType {
+  TIME_BASED
+  PERFORMANCE_BASED
+  ENGAGEMENT_BASED
+  CONTENT_PREFERENCE
   OTHER
 }
 
-# Enums para demanda de mercado
-enum MarketDemand {
-  HIGH
-  MEDIUM
-  LOW
+"""
+Rol del mensaje en el chat.
+"""
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
 }
 
-# Enums para riesgo de abandono
-enum ChurnRisk {
-  LOW
-  MEDIUM
-  HIGH
-} 
+"""
+Estilo emocional/emoji para los mensajes de Ski.
+"""
+enum SkiEmojiStyle {
+  PLAYFUL
+  CELEBRATORY
+  ENCOURAGING
+  WISE
+  GENTLE
+  CALM
+  ENERGETIC
+  SUPPORTIVE
+}
