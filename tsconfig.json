@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+      // ... otras opciones que ya tengas (target, module, esModuleInterop, etc.) ...
+  
+      "baseUrl": "./", // O "." - Directorio base para resolver módulos no relativos.
+      "paths": {
+        "@/*": ["src/*"] // Mapea "@/" a "src/"
+      },
+  
+      // ... otras opciones ...
+      "outDir": "./dist", // Directorio de salida para los archivos .js compilados
+      "rootDir": "./src"  // Especifica el directorio raíz de los archivos fuente .ts
+    },
+    "include": [
+      "src/**/*.ts" // Asegúrate de que TypeScript incluya todos tus archivos .ts en src
+    ],
+    "exclude": [
+      "node_modules",
+      "dist"
+    ]
+  }

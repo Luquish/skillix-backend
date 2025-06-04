@@ -1,223 +1,72 @@
-# Skillix Backend
+# 🗂️ Estructura del Proyecto
 
-Backend para la plataforma de aprendizaje personalizado Skillix, que combina FastAPI, Firebase Data Connect y agentes de IA para crear una experiencia de aprendizaje adaptativa.
+A continuación se detalla la estructura propuesta para el backend, siguiendo buenas prácticas de organización y escalabilidad:
 
-## Arquitectura
+---
 
-El proyecto está dividido en dos componentes principales:
+## src/
+Directorio principal del código fuente.
 
-### 1. Agentes de IA (Python/FastAPI)
+### api/
+- **index.js**: Importa y registra todos los archivos de rutas en el router principal de la API.
+- **`*.routes.js`**: Cada archivo define endpoints para una funcionalidad específica (ejemplo: `POST /onboarding/pre-analyze-skill`). Importan y usan funciones de los controladores.
 
-```
-agents/
-├── api/                    # API REST con FastAPI
-│   ├── auth/              # Autenticación con Firebase
-│   │   ├── providers/     # Proveedores de autenticación
-│   │   │   ├── apple.py   # Sign in with Apple
-│   │   │   └── google.py  # Sign in with Google
-│   │   └── middleware.py  # Middleware de autenticación Firebase
-│   ├── routes/           # Endpoints de la API
-│   │   ├── auth.py      # Rutas de autenticación
-│   │   ├── onboarding.py # Rutas de onboarding
-│   │   └── content.py    # Rutas de contenido
-│   └── main.py          # Configuración principal de FastAPI
-└── skillix_agents/      # Lógica de negocio y agentes IA
-    ├── orchestrator.py  # Orquestador de agentes
-    ├── content/        # Generación de contenido
-    └── learning/       # Lógica de aprendizaje
-```
+### controllers/
+Actúan como la capa de orquestación para cada solicitud de API. Reciben la solicitud, llaman a los servicios necesarios para ejecutar la lógica de negocio y el workflow, y luego formulan la respuesta HTTP.
 
-#### Responsabilidades:
-- Generación de contenido personalizado con IA
-- Orquestación de agentes de aprendizaje
-- API REST para interacción con el frontend
-- Autenticación con Firebase (Google y Apple Sign In)
+> **Ejemplo:**
+> `onboarding.controller.js` tendría una función `handlePreAnalyzeSkill` que:
+> - Valida la entrada.
+> - Llama a `skillAnalyzer.service.js` (que a su vez usa `openai.service.js`).
+> - (Opcional) Guarda algún resultado preliminar o log en `dataConnect.service.js`.
+> - Devuelve la respuesta al cliente.
 
-### 2. Data Connect (Base de Datos y SDK)
+### services/
+Contiene la lógica de negocio principal.
+- **firebaseAdmin.service.js**: Inicializa el Firebase Admin SDK para Node.js. Provee funciones para verificar los ID Tokens de Firebase.
+- **dataConnect.service.js**: Componente **crucial**. Reemplaza tu antiguo bridge Python y la lógica de tu proyecto `dataconnect-bridge`. Utiliza el SDK de Firebase Data Connect para Node.js (o la API GraphQL directamente si es necesario) para todas las interacciones con la base de datos. Expone métodos como:
+  - `getUserByFirebaseUid`
+  - `createFullLearningPlanInDB` (crea LearningPlan, SkillAnalysis, PedagogicalAnalysis, PlanSection, DayContent iniciales, etc.)
+  - `saveDailyContentInDB`
+  - `getLearningPlanProgress`
 
-```
-dataconnect/
-├── schema/                    # Modelos de datos
-│   ├── enums.gql             # Enumeraciones del sistema
-│   ├── user.gql              # Esquema de usuarios
-│   ├── learning.gql          # Esquema de aprendizaje
-│   ├── schema.gql            # Esquema principal
-│   ├── user.yaml             # Configuración de usuarios
-│   ├── learning_plans.yaml   # Configuración de planes
-│   └── daily_content.yaml    # Configuración de contenido
-├── connector/                # Operaciones de datos
-│   ├── queries.gql           # Consultas GraphQL
-│   ├── mutations.gql         # Mutaciones GraphQL
-│   └── connector.yaml        # Configuración del SDK
-└── dataconnect.yaml          # Configuración principal
-```
+### llm/
+Subdirectorio para toda la lógica relacionada con LLMs (OpenAI).
+- **openai.service.js**: Configura el cliente de API de OpenAI y provee una función genérica para hacer llamadas al API, manejar reintentos, etc.
+- **prompts.js** (opcional): Centraliza prompts largos o numerosos.
+- **skillAnalyzer.service.js, learningPlanner.service.js, etc.**: Reemplazan la lógica de los antiguos agentes Python. Incluyen:
+  - Prompt del sistema específico para la tarea.
+  - Funciones para formatear la entrada al LLM.
+  - Llamadas a `openai.service.js`.
+  - Parseo y validación de la respuesta (puedes usar [Zod](https://zod.dev/) o validación manual).
+- **chatOrchestrator.service.js**: El "cerebro" LLM del chatbot. Orquesta mensajes, historial, llamadas a servicios y genera la respuesta.
+- **session.service.js** (opcional pero recomendado): Maneja el estado de conversación complejo (variables de contexto, resultados intermedios, etc.) usando Redis, Memorystore o una tabla en Data Connect.
 
-#### Responsabilidades:
-- Persistencia de datos en PostgreSQL
-- Generación automática de SDK tipado
-- Reglas de autorización y seguridad
-- Integración con Firebase y TanStack Query
+### middleware/
+- **auth.middleware.js**: Middleware de Express para verificar el token de Firebase ID en rutas protegidas, usando `firebaseAdmin.service.js`.
 
-## Tecnologías Principales
+### utils/
+Funciones de utilidad (logger, manejo de errores global para Express).
 
-### Backend (Python)
-- FastAPI: Framework web moderno y rápido
-- Firebase Admin: Autenticación y autorización
-- OpenAI: Generación de contenido con IA
-- Pydantic: Validación de datos
+### config/
+Carga y exporta variables de entorno y otras configuraciones.
 
-### Data Connect
-- PostgreSQL: Base de datos relacional
-- GraphQL: Lenguaje de consulta
-- Firebase Data Connect: ORM y generación de SDK
-- TanStack Query: Gestión de estado y caché
+### app.js
+Punto de entrada de la aplicación Express. Configura la app, aplica middlewares globales (CORS, body-parser, logger, errorHandler) y registra los routers de API definidos en `src/api/index.js`.
 
-## Configuración del Entorno
+### tests/
+Es fundamental tener pruebas para esta nueva estructura.
 
-1. **Variables de Entorno**:
-```bash
-# Firebase
-FIREBASE_PROJECT_ID=tu-proyecto
-FIREBASE_PRIVATE_KEY=tu-clave
-FIREBASE_CLIENT_EMAIL=tu-email
+---
 
-# OpenAI
-OPENAI_API_KEY=tu-api-key
-OPENAI_MODEL=gpt-4
+## Archivos Raíz
 
-# Auth Providers
-GOOGLE_CLIENT_ID=tu-client-id
-APPLE_TEAM_ID=tu-team-id
-APPLE_KEY_ID=tu-key-id
-APPLE_PRIVATE_KEY=tu-private-key
+- `package.json`
+- `.env`
+- `.gitignore`
+- `Dockerfile`
+- `README.md`
 
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/skillix
-```
+---
 
-2. **Instalación**:
-```bash
-# Clonar repositorio
-git clone https://github.com/tu-usuario/skillix-backend.git
-cd skillix-backend
-
-# Instalar dependencias Python
-cd agents
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Instalar Firebase Tools
-npm install -g firebase-tools
-firebase login
-```
-
-## Desarrollo
-
-### Backend Python (agents/)
-Ver [agents/README.md](agents/README.md) para más detalles.
-
-1. **Iniciar el servidor FastAPI**:
-```bash
-cd agents
-uvicorn api.main:app --reload
-```
-
-2. **Ejecutar tests**:
-```bash
-pytest
-```
-
-### Data Connect (dataconnect/)
-Ver [dataconnect/README.md](dataconnect/README.md) para más detalles.
-
-1. **Generar SDK**:
-```bash
-cd dataconnect
-firebase dataconnect:sdk:generate
-```
-
-2. **Modo desarrollo**:
-```bash
-firebase dataconnect:sdk:generate --watch
-```
-
-3. **Emulador**:
-```bash
-firebase emulators:start
-```
-
-## Flujo de Datos
-
-1. **Autenticación**:
-   ```mermaid
-   graph LR
-   A[Frontend] --> B[Firebase Auth]
-   B --> C[Google/Apple]
-   C --> D[Token JWT]
-   D --> E[FastAPI]
-   E --> F[Middleware]
-   ```
-
-2. **Onboarding**:
-   ```mermaid
-   graph LR
-   A[Usuario] --> B[Auth]
-   B --> C[Preferencias]
-   C --> D[Agente IA]
-   D --> E[Plan Personal]
-   E --> F[Data Connect]
-   ```
-
-3. **Generación de Contenido**:
-   ```mermaid
-   graph LR
-   A[Plan] --> B[Orquestador]
-   B --> C[Agentes IA]
-   C --> D[Contenido]
-   D --> E[Data Connect]
-   ```
-
-## Despliegue
-
-1. **Backend Python**:
-```bash
-# Build imagen Docker
-cd agents
-docker build -t skillix-agents .
-
-# Deploy a Cloud Run
-gcloud run deploy skillix-agents --image skillix-agents
-```
-
-2. **Data Connect**:
-```bash
-cd dataconnect
-firebase deploy --only dataconnect
-```
-
-## Documentación Detallada
-
-- [Agentes y API (agents/README.md)](agents/README.md)
-  - Configuración de autenticación
-  - Endpoints disponibles
-  - Agentes de IA
-  - Middleware y seguridad
-
-- [Data Connect (dataconnect/README.md)](dataconnect/README.md)
-  - Esquemas GraphQL
-  - Configuración del SDK
-  - Queries y Mutations
-  - Reglas de seguridad
-
-## Contribución
-
-1. Fork el repositorio
-2. Crea una rama (`git checkout -b feature/amazing`)
-3. Commit cambios (`git commit -m 'Add feature'`)
-4. Push a la rama (`git push origin feature/amazing`)
-5. Abre un Pull Request
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT. 
+> **¡Esta estructura te permitirá escalar, mantener y testear tu backend de manera eficiente!**
