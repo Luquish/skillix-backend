@@ -40,8 +40,8 @@ export async function generateLearningPlanWithOpenAI(
 ): Promise<LearningPlan | null> {
   const { onboardingData, skillAnalysis, pedagogicalAnalysis } = input;
 
-  if (!skillAnalysis.is_skill_valid) {
-    console.error(`Intento de generar plan para habilidad no válida: "${skillAnalysis.skill_name}". Razón: ${skillAnalysis.viability_reason}`);
+  if (!skillAnalysis.isSkillValid) {
+    console.error(`Intento de generar plan para habilidad no válida: "${skillAnalysis.skillName}". Razón: ${skillAnalysis.viabilityReason}`);
     return null; 
   }
 

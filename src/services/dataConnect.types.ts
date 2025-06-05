@@ -5,12 +5,12 @@
 
 export type AuthProvider = "EMAIL" | "GOOGLE" | "APPLE" | "ANONYMOUS";
 export type Platform = "IOS" | "ANDROID" | "WEB" | "UNKNOWN";
-export type UserExperienceLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
-export type LearningStyle = "VISUAL" | "AUDITORY" | "KINESTHETIC" | "READING_WRITING" | "MIXED" | "UNDEFINED"; // Añadido UNDEFINED como posible default
-export type MainContentType = "AUDIO" | "READ"; // Debe coincidir con el enum en schema.gql
-
-export type ContentBlockType = // Debe coincidir con el enum en schema.gql
-  | "MAIN_CONTENT_AUDIO" // Ejemplo, si los diferencias así
+export type UserExperienceLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EASIER" | "HARDER" | "STANDARD";
+export type LearningStyle = "VISUAL" | "AUDITORY" | "KINESTHETIC" | "READING_WRITING" | "MIXED" | "UNDEFINED";
+export type ContentBlockType =
+  | "AUDIO"
+  | "READ"
+  | "MAIN_CONTENT_AUDIO"
   | "MAIN_CONTENT_READ"
   | "QUIZ_MCQ"
   | "QUIZ_TRUE_FALSE"
@@ -19,60 +19,59 @@ export type ContentBlockType = // Debe coincidir con el enum en schema.gql
   | "ACTION_TASK"
   | "EXERCISE_GENERAL"
   | "VIDEO"
-  | "INFO_BLOCK" // Añade todos los tipos de tu enum ContentBlockType
+  | "INFO_BLOCK"
   | "OTHER";
 
-
-export type CompletionStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "FAILED"; // Añadido FAILED
+export type CompletionStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "FAILED";
 export type SkillCategory =
   | "TECHNICAL"
+  | "SOFT_SKILL"
   | "CREATIVE"
   | "BUSINESS"
-  | "PERSONAL_DEVELOPMENT"
-  | "LANGUAGE"
   | "ACADEMIC"
-  | "HOBBY"
+  | "LANGUAGE"
   | "HEALTH_WELLNESS"
-  | "SOFT_SKILLS"
-  | "PHYSICAL_SPORTS"
+  | "HOBBY"
   | "OTHER";
-export type MarketDemand = "HIGH" | "MEDIUM" | "LOW" | "NICHE" | "EMERGING" | "UNDEFINED"; // Añadido UNDEFINED
-export type RiskLevel = "LOW" | "MEDIUM" | "HIGH"; // Para UserAnalytics o StreakMaintenance
-export type DifficultyLevel = "EASIER" | "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "HARDER" | "STANDARD";
-export type LearningPatternType = "TIME_BASED" | "PERFORMANCE_BASED" | "ENGAGEMENT_BASED" | "CONTENT_PREFERENCE" | "PACING_STYLE" | "OTHER";
+export type MarketDemand = "HIGH" | "MEDIUM" | "LOW" | "NICHE" | "EMERGING" | "UNKNOWN";
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
+export type PatternType = "TIME_BASED" | "PERFORMANCE_BASED" | "ENGAGEMENT_BASED" | "CONTENT_PREFERENCE" | "PACING_STYLE" | "OTHER";
+export type DifficultyAdjustment = "INCREASE" | "MAINTAIN" | "DECREASE";
+export type MessageRole = "USER" | "ASSISTANT" | "SYSTEM";
+export type ToviEmojiStyle = "PLAYFUL" | "CELEBRATORY" | "ENCOURAGING" | "WISE" | "GENTLE" | "CALM" | "ENERGETIC" | "SUPPORTIVE";
 
 // ==================== USER RELATED TABLE INTERFACES ====================
 export interface DbUser {
   id: string;
   email: string;
-  name?: string | null; // name es preferido sobre displayName para consistencia con GQL
-  isActive: boolean; // Generalmente no nulo, con default true
+  name?: string | null;
+  isActive: boolean;
   authProvider: AuthProvider;
   platform?: Platform | null;
-  firebaseUid: string; // Clave única
+  firebaseUid: string;
   photoUrl?: string | null;
-  emailVerified: boolean; // Generalmente no nulo, con default false
+  emailVerified: boolean;
   appleUserIdentifier?: string | null;
-  lastSignInAt?: string | null; // ISO Timestamp string
-  createdAt: string; // ISO Timestamp string
-  updatedAt: string; // ISO Timestamp string
+  lastSignInAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
   llmKeyInsights?: string[] | null;
   llmOverallEngagementScore?: number | null;
   fcmTokens?: string[] | null;
 
-  // Relaciones (pueden ser solo IDs o los objetos completos si se hace un fetch profundo)
-  preferences?: DbUserPreference | null; // Asumiendo one-to-one o one-to-few
+  preferences?: DbUserPreference | null;
   enrollments?: DbEnrollment[];
   chatSessions?: DbChatSession[];
-  streakData?: DbStreakData | null; // Asumiendo one-to-one
+  streakData?: DbStreakData | null;
   notifications?: DbNotification[];
   analyticsEntries?: DbUserAnalyticsEntry[];
+  toviMessages?: DbToviMessage[];
 }
 
 export interface DbUserPreference {
   id: string;
-  userId: string; // Foreign Key a User.id
-  user?: DbUser; // Relación inversa
+  userId: string;
+  user?: DbUser;
   skill: string;
   experienceLevel: UserExperienceLevel;
   motivation: string;
@@ -85,84 +84,82 @@ export interface DbUserPreference {
 
 export interface DbStreakData {
     id: string;
-    userId: string; // Foreign Key a User.id
-    user?: DbUser; // Relación inversa
+    userId: string;
+    user?: DbUser;
     currentStreak: number;
     longestStreak: number;
-    lastContributionDate?: string | null; // YYYY-MM-DD
+    lastContributionDate?: string | null;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface DbNotification {
     id: string;
-    userId: string; // Foreign Key a User.id
-    user?: DbUser; // Relación inversa
-    title: string;
-    body: string;
-    type: string; // Ej: "STREAK_REMINDER", "NEW_CONTENT_AVAILABLE"
+    userId: string;
+    user?: DbUser;
+    message: string;
+    type?: string | null;
     isRead: boolean;
-    readAt?: string | null;
-    dataJson?: string | null; // Para deep-linking u otra info
+    scheduledTime?: string | null;
     createdAt: string;
     updatedAt: string;
 }
 
+export interface DbToviMessage {
+    id: string;
+    userId: string;
+    user?: DbUser;
+    situation?: string | null;
+    message: string;
+    toviEmojiStyle: ToviEmojiStyle;
+    animationSuggestion: string;
+    isDelivered: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
 
 // ==================== LEARNING PLAN TABLE INTERFACES ====================
 export interface DbLearningPlan {
   id: string;
-  userId: string; // Foreign Key a User.id
-  user?: DbUser;   // Relación inversa
+  userId: string;
+  user?: DbUser;
   skillName: string;
-  generatedBy: string; // Ej: "LearningPlannerLLM_v1.2"
-  generatedAt: string; // ISO Timestamp
+  generatedBy: string;
+  generatedAt: string;
   totalDurationWeeks: number;
   dailyTimeMinutes: number;
   skillLevelTarget: UserExperienceLevel;
-  milestones: string[]; // Array de strings
-  progressMetrics: string[]; // Array de strings
-  flexibilityOptions?: string[] | null; // Array de strings
+  milestones: string[];
+  progressMetrics: string[];
+  flexibilityOptions?: string[] | null;
   createdAt: string;
   updatedAt: string;
 
-  // Relaciones
-  skillAnalysis?: DbSkillAnalysis | null; // One-to-one
-  pedagogicalAnalysis?: DbPedagogicalAnalysis | null; // One-to-one
-  sections?: DbPlanSection[]; // One-to-many
-  dailyActivityTemplates?: DbDailyActivityItem[]; // One-to-many
-  suggestedResources?: DbLearningResourceItem[]; // One-to-many
-  enrollments?: DbEnrollment[]; // One-to-many (usuarios inscritos en este plan si fuera un plan plantilla)
-                               // Si es un plan específico de usuario, la relación es más bien User (1) -> LearningPlan (many)
+  skillAnalysis?: DbSkillAnalysis | null;
+  pedagogicalAnalysis?: DbPedagogicalAnalysis | null;
+  sections?: DbPlanSection[];
+  dailyActivityTemplates?: DbDailyActivityTemplate[];
+  suggestedResources?: DbLearningPlanResource[];
+  enrollments?: DbEnrollment[];
 }
 
-export interface DbDailyActivityItem {
-  id: string;
-  learningPlanId: string; // FK a LearningPlan.id
-  learningPlan?: DbLearningPlan;
+export interface DbDailyActivityTemplate {
   type: string;
   durationMinutes: number;
   description: string;
   order?: number | null;
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
 }
 
-export interface DbLearningResourceItem {
-  id: string;
-  learningPlanId: string; // FK a LearningPlan.id
-  learningPlan?: DbLearningPlan;
+export interface DbLearningPlanResource {
   name: string;
   urlOrDescription: string;
-  resourceType?: string | null; // Ej: "VIDEO", "ARTICLE", "BOOK"
+  resourceType?: string | null;
   order?: number | null;
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
 }
 
 export interface DbSkillAnalysis {
   id: string;
-  learningPlanId: string; // FK a LearningPlan.id (si es 1-to-1 con plan) o podría ser independiente
+  learningPlanId: string;
   learningPlan?: DbLearningPlan;
   skillName: string;
   skillCategory: SkillCategory;
@@ -174,58 +171,47 @@ export interface DbSkillAnalysis {
   complementarySkills: string[];
   generatedBy: string;
   createdAt: string;
-  updatedAt: string; // Añadido
-  components?: DbSkillComponent[];
-  // prerequisites ya no es una tabla separada, sino parte de components o un array de strings en SkillAnalysis
+  updatedAt: string;
+  components?: DbSkillComponentData[];
 }
 
-export interface DbSkillComponent {
-  id: string;
-  skillAnalysisId: string; // FK a SkillAnalysis.id
-  skillAnalysis?: DbSkillAnalysis;
+export interface DbSkillComponentData {
   name: string;
   description: string;
-  difficultyLevel: DifficultyLevel;
-  prerequisitesText: string[]; // Array de strings
+  difficultyLevel: UserExperienceLevel;
+  prerequisitesText: string[];
   estimatedLearningHours: number;
   practicalApplications: string[];
   order: number;
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
 }
 
 export interface DbPedagogicalAnalysis {
   id: string;
-  learningPlanId: string; // FK a LearningPlan.id
+  learningPlanId: string;
   learningPlan?: DbLearningPlan;
-  effectivenessScore: number; // Float
-  cognitiveLoadAssessment: string; // Podría ser un enum si se define en GQL
-  scaffoldingQuality: string;    // Podría ser un enum
-  engagementPotential: number; // Float
+  effectivenessScore: number;
+  cognitiveLoadAssessment: string;
+  scaffoldingQuality: string;
+  engagementPotential: number;
   recommendations: string[];
   assessmentStrategies: string[];
   improvementAreas: string[];
   generatedBy: string;
   createdAt: string;
-  updatedAt: string; // Añadido
-  objectives?: DbLearningObjective[];
+  updatedAt: string;
+  objectives?: DbLearningObjectiveData[];
 }
 
-export interface DbLearningObjective {
-  id: string;
-  pedagogicalAnalysisId: string; // FK a PedagogicalAnalysis.id
-  pedagogicalAnalysis?: DbPedagogicalAnalysis;
+export interface DbLearningObjectiveData {
   objective: string;
   measurable: boolean;
-  timeframe: string; // Ej: "End of Week 1", "Within this module"
+  timeframe: string;
   order: number;
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
 }
 
 export interface DbPlanSection {
   id: string;
-  learningPlanId: string; // FK a LearningPlan.id (corregido de planId)
+  learningPlanId: string;
   learningPlan?: DbLearningPlan;
   title: string;
   description?: string | null;
@@ -238,248 +224,226 @@ export interface DbPlanSection {
 // ==================== CONTENT (DAILY) TABLE INTERFACES ====================
 export interface DbDayContent {
   id: string;
-  sectionId: string; // FK a PlanSection.id
+  sectionId: string;
   section?: DbPlanSection;
-  dayNumber: number; // Relativo a la sección o al plan total? Asumimos relativo al plan total si no hay DayInPlan.
+  dayNumber: number;
   title: string;
   focusArea: string;
   isActionDay: boolean;
   objectives: string[];
-  generatedBy?: string | null; // Ej: "ContentGeneratorLLM_v1.0"
-  generatedAt?: string | null; // ISO Timestamp
-  completionStatus: CompletionStatus; // Default PENDING
-  completedAt?: string | null; // ISO Timestamp
+  generatedBy?: string | null;
+  generatedAt?: string | null;
+  completionStatus: CompletionStatus;
+  completedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 
-  // Relaciones
-  mainContentItem?: DbMainContent | null; // One-to-one
-  contentBlocks?: DbContentBlock[]; // One-to-many
-  actionTaskItem?: DbActionTask | null; // One-to-one (si isActionDay es true)
-  enrollmentProgress?: DbContentProgress[]; // Progreso de varios usuarios en este día
-}
-
-export interface DbMainContent {
-  id: string;
-  dayContentId: string; // FK a DayContent.id
-  dayContent?: DbDayContent;
-  contentType: MainContentType;
-  title: string;
-  funFact: string;
-  xp: number;
-  createdAt: string;
-  updatedAt: string; // Añadido
-  // Detalles específicos (one-to-one con MainContent)
-  audioDetails?: DbAudioContent | null;
-  readDetails?: DbReadContent | null;
-}
-
-export interface DbAudioContent {
-  id: string;
-  mainContentId: string; // FK a MainContent.id
-  mainContent?: DbMainContent;
-  audioUrl: string; // Podría ser un path o URL completa
-  transcript: string; // TEXT
-  durationSeconds: number;
-  voiceType?: string | null; // Ej: "StandardMale", "PremiumFemale"
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
-}
-
-export interface DbReadContent {
-  id: string;
-  mainContentId: string; // FK a MainContent.id
-  mainContent?: DbMainContent;
-  contentHtml: string; // TEXT o HTML
-  estimatedReadTimeMinutes: number;
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
-  keyConcepts?: DbKeyConcept[]; // One-to-many
+  mainContentItem?: DbMainContentItem | null;
+  contentBlocks?: DbContentBlockItem[];
+  actionTaskItem?: DbActionTaskItem | null;
+  enrollmentProgress?: DbContentProgress[];
 }
 
 export interface DbKeyConcept {
-  id: string;
-  readContentId: string; // FK a ReadContent.id
-  readContent?: DbReadContent;
   term: string;
   definition: string;
   order: number;
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
 }
 
-export interface DbContentBlock {
+export interface DbMainContentItem {
   id: string;
-  dayContentId: string; // FK a DayContent.id
+  dayContentId: string;
+  dayContent?: DbDayContent;
+  title: string;
+  textContent: string;
+  audioUrl?: string | null;
+  estimatedReadTimeMinutes?: number | null;
+  audioDurationSeconds?: number | null;
+  funFact: string;
+  xp: number;
+  keyConcepts: DbKeyConcept[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DbContentBlockItem {
+  id: string;
+  dayContentId: string;
   dayContent?: DbDayContent;
   blockType: ContentBlockType;
-  title: string; // Ej: "Pregunta 1", "Ejercicio Práctico"
+  title: string;
   xp: number;
   order: number;
   estimatedMinutes?: number | null;
   createdAt: string;
-  updatedAt: string; // Añadido
-  // Detalles específicos (one-to-one con ContentBlock)
-  quizDetails?: DbQuizContent | null;
-  exerciseDetails?: DbExerciseContent | null;
-  // ActionTask se movió a ser una relación directa de DayContent
+  updatedAt: string;
+  quizDetails?: DbQuizContentDetails | null;
+  exerciseDetails?: DbExerciseDetailsData | null;
 }
 
-export interface DbQuizContent { // Contiene una colección de preguntas para un bloque de tipo Quiz
-  id: string;
-  contentBlockId: string; // FK a ContentBlock.id
-  contentBlock?: DbContentBlock;
-  quizType: string; // Ej: "MCQ", "TrueFalse", "Scenario" (podría ser un enum si es fijo)
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
-  questions?: DbQuizQuestion[]; // One-to-many
+export interface DbQuizContentDetails {
+  quizType: string;
+  questions: DbQuizQuestionData[];
 }
 
-export interface DbQuizQuestion {
-  id: string;
-  quizContentId: string; // FK a QuizContent.id
-  quizContent?: DbQuizContent;
+export interface DbQuizQuestionData {
   questionText: string;
   explanation: string;
   order: number;
-  trueFalseAnswer?: boolean | null; // Para True/False
-  matchPairsJson?: string | null; // Para Match-to-Meaning (JSON string de pares)
-  scenarioText?: string | null; // Para Scenario Quiz
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
-  options?: DbQuizOption[]; // One-to-many (para MCQ, Scenario)
+  trueFalseAnswer?: boolean | null;
+  matchPairsJson?: string | null;
+  scenarioText?: string | null;
+  options?: DbQuizOptionData[] | null;
 }
 
-export interface DbQuizOption {
-  id: string;
-  questionId: string; // FK a QuizQuestion.id
-  question?: DbQuizQuestion;
+export interface DbQuizOptionData {
   optionText: string;
   isCorrect: boolean;
   order: number;
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
 }
 
-export interface DbActionTask {
+export interface DbExerciseDetailsData {
+  exerciseType: string;
+  instructions: string;
+  exerciseDataJson: string;
+}
+
+export interface DbActionTaskItem {
   id: string;
-  dayContentId: string; // FK a DayContent.id
+  dayContentId: string;
   dayContent?: DbDayContent;
   title: string;
   challengeDescription: string;
-  timeEstimateString: string; // Ej: "30-45 minutes"
+  timeEstimateString: string;
   tips: string[];
   realWorldContext: string;
   successCriteria: string[];
   skiMotivation: string;
-  difficultyAdaptation?: DifficultyLevel | null;
+  difficultyAdaptation?: UserExperienceLevel | null;
   xp: number;
   createdAt: string;
   updatedAt: string;
-  steps?: DbActionStep[]; // One-to-many
+  steps?: DbActionStepItem[];
 }
 
-export interface DbActionStep {
+export interface DbActionStepItem {
   id: string;
-  actionTaskId: string; // FK a ActionTask.id
-  actionTask?: DbActionTask;
+  actionTaskId: string;
+  actionTask?: DbActionTaskItem;
   instruction: string;
   order: number;
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface DbExerciseContent { // Para ejercicios generales que no son quizzes estructurados
+export interface DbContentProgress {
   id: string;
-  contentBlockId: string; // FK a ContentBlock.id
-  contentBlock?: DbContentBlock;
-  exerciseType: string; // Ej: "CodeCompletion", "FreeTextResponse"
-  instructions: string;
-  exerciseDataJson: string; // JSON string para la configuración/datos del ejercicio
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
+  enrollmentId: string;
+  enrollment?: DbEnrollment;
+  dayContentId: string;
+  dayContent?: DbDayContent;
+  contentBlockId: string;
+  contentBlock?: DbContentBlockItem;
+  completed: boolean;
+  xpEarned: number;
+  attempts: number;
+  timeSpentSeconds: number;
+  scorePercent?: number | null;
+  completedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  quizResponses?: DbQuizResponse[];
+}
+
+export interface DbQuizResponse {
+  id: string;
+  contentProgressId: string;
+  contentProgress?: DbContentProgress;
+  quizQuestionId: string;
+  quizQuestion?: DbQuizQuestionData;
+  selectedOptionId?: string | null;
+  responseTextAnswer?: string | null;
+  isCorrect: boolean;
+  answeredAt: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ==================== ENROLLMENT & PROGRESS TABLE INTERFACES ====================
-export interface DbEnrollment { // Un usuario inscrito en un LearningPlan
+export interface DbEnrollment {
   id: string;
-  userId: string; // FK a User.id
+  userId: string;
   user?: DbUser;
-  learningPlanId: string; // FK a LearningPlan.id
+  learningPlanId: string;
   learningPlan?: DbLearningPlan;
-  status: CompletionStatus; // PENDING, IN_PROGRESS, COMPLETED
-  startedAt?: string | null; // ISO Timestamp
-  completedAt?: string | null; // ISO Timestamp
-  lastActivityAt?: string | null; // ISO Timestamp
-  currentDayNumber: number; // El día actual del plan en el que está el usuario
+  status: CompletionStatus;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  lastActivityAt?: string | null;
+  currentDayNumber: number;
   totalXpEarned: number;
   createdAt: string;
   updatedAt: string;
   progressEntries?: DbContentProgress[];
 }
 
-export interface DbContentProgress { // Progreso de un usuario en un ContentBlock específico
-  id: string;
-  enrollmentId: string; // FK a Enrollment.id
-  enrollment?: DbEnrollment;
-  dayContentId: string; // FK a DayContent.id (para agrupar progreso por día)
-  dayContent?: DbDayContent;
-  contentBlockId: string; // FK a ContentBlock.id
-  contentBlock?: DbContentBlock;
-  completed: boolean;
-  xpEarned: number;
-  attempts: number;
-  timeSpentSeconds: number;
-  scorePercent?: number | null; // Para quizzes
-  completedAt?: string | null; // ISO Timestamp
-  createdAt: string;
-  updatedAt: string;
-  quizResponses?: DbQuizResponse[]; // Si es un quiz
-}
-
-export interface DbQuizResponse { // Respuesta de un usuario a una QuizQuestion específica
-  id: string;
-  contentProgressId: string; // FK a ContentProgress.id
-  contentProgress?: DbContentProgress;
-  quizQuestionId: string; // FK a QuizQuestion.id
-  quizQuestion?: DbQuizQuestion;
-  selectedOptionId?: string | null; // FK a QuizOption.id (para MCQ)
-  selectedOption?: DbQuizOption | null;
-  responseTextAnswer?: string | null; // Para respuestas de texto libre si se implementan
-  isCorrect: boolean;
-  answeredAt: string; // ISO Timestamp
-  createdAt: string; // Añadido
-  updatedAt: string; // Añadido
-}
-
 // ==================== ANALYTICS TABLE INTERFACES ====================
-export interface DbUserAnalyticsEntry { // Podría ser una tabla que se actualiza diariamente o por evento
+export interface DbUserAnalyticsEntry {
   id: string;
-  userId: string; // FK a User.id
+  userId: string;
   user?: DbUser;
-  date: string; // ISO Date string (YYYY-MM-DD) o Timestamp si es por evento
-  totalXpEarnedThisDay: number;
-  sessionsCountThisDay: number;
-  timeSpentLearningMinutesThisDay: number;
-  contentBlocksCompletedThisDay: number;
+  date?: string;
+  totalXpEarnedThisDay?: number;
+  sessionsCountThisDay?: number;
+  timeSpentLearningMinutesThisDay?: number;
+  contentBlocksCompletedThisDay?: number;
   quizAverageScoreThisDay?: number | null;
-  currentStreakForDate: number; // Racha del usuario en esa fecha
-  // Campos para almacenar las salidas de los LLM de analytics
-  llmLearningPatternsJson?: string | null; // JSON de LearningPattern[]
-  llmOptimalTimeJson?: string | null;      // JSON de OptimalLearningTime
-  llmContentOptimizationJson?: string | null; // JSON de ContentOptimization
-  llmStreakMaintenanceJson?: string | null; // JSON de StreakMaintenance
-  llmGeneratedOverallEngagementScore?: number | null; // Score estimado por LLM
-  llmGeneratedKeyInsights?: string[] | null;          // Insights generados por LLM
-  lastActivityAt: string; // Timestamp de la última actividad que contribuyó a esta entrada
+  currentStreakForDate?: number;
+  
+  llmLearningPatternsJson?: DbLearningPatternData[] | null;
+  llmOptimalTimeJson?: DbOptimalLearningTimeData | null;
+  llmContentOptimizationJson?: DbContentOptimizationData | null;
+  llmStreakMaintenanceJson?: DbStreakMaintenanceData | null;
+  llmGeneratedOverallEngagementScore?: number | null;
+  llmGeneratedKeyInsights?: string[] | null;
+  lastActivityAt?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface DbLearningPatternData {
+    patternType: PatternType;
+    description: string;
+    confidence: number;
+    recommendations: string[];
+}
+
+export interface DbOptimalLearningTimeData {
+    bestTimeWindowStart: string;
+    bestTimeWindowEnd: string;
+    reason: string;
+    notificationTime: string;
+    engagementPrediction: number;
+}
+
+export interface DbContentOptimizationData {
+    difficultyAdjustment: DifficultyAdjustment;
+    contentTypePreferences: string[];
+    idealSessionLengthMinutes: number;
+    pacingRecommendation: string;
+}
+
+export interface DbStreakMaintenanceData {
+    riskLevel: RiskLevel;
+    riskFactors: string[];
+    interventionStrategies: string[];
+    motivationalApproach: string;
 }
 
 // ==================== CHAT SESSION TABLE INTERFACES ====================
 export interface DbChatSession {
   id: string;
-  userId: string; // FK a User.id
+  userId: string;
   user?: DbUser;
   createdAt: string;
   updatedAt: string;
@@ -488,12 +452,11 @@ export interface DbChatSession {
 
 export interface DbChatMessage {
   id: string;
-  chatSessionId: string; // FK a ChatSession.id
+  chatSessionId: string;
   chatSession?: DbChatSession;
-  userId: string; // Quién envió el mensaje (puede ser el usuario o el 'assistant')
-  user?: DbUser;   // El usuario que envió este mensaje
-  role: "user" | "assistant" | "system" | string; // string para flexibilidad
-  content: string; // TEXT
+  userId: string;
+  user?: DbUser;
+  role: MessageRole | string;
+  content: string;
   createdAt: string;
-  // updatedAt no suele ser necesario para mensajes de chat
 }

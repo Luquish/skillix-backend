@@ -1,29 +1,6 @@
 # dataconnect/schema/enums.gql
 
-"""
-Nivel de habilidad del usuario o del contenido.
-"""
-enum SkillLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  # Puedes añadir otros niveles si es necesario
-}
 
-"""
-Tipos de contenido principal o de ejercicio.
-"""
-enum ContentType {
-  AUDIO
-  READ
-  QUIZ_MCQ
-  QUIZ_TRUEFALSE
-  MATCH_MEANING
-  SCENARIO_QUIZ
-  FOCUSED_READING # Añadido desde daily_activities
-  INTERACTIVE_QUIZ # Añadido desde daily_activities
-  # Otros tipos de contenido/ejercicio que puedas necesitar
-}
 
 """
 Ajuste de dificultad recomendado.
@@ -66,7 +43,7 @@ enum MessageRole {
 """
 Estilo emocional/emoji para los mensajes de Ski.
 """
-enum SkiEmojiStyle {
+enum ToviEmojiStyle {
   PLAYFUL
   CELEBRATORY
   ENCOURAGING
@@ -75,4 +52,103 @@ enum SkiEmojiStyle {
   CALM
   ENERGETIC
   SUPPORTIVE
+}
+
+# --- Enums Añadidos ---
+
+"""
+Nivel de experiencia del usuario.
+Utilizado para skillLevelTarget en LearningPlan y UserPreference.
+"""
+enum UserExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+"""
+Proveedor de autenticación del usuario.
+"""
+enum AuthProvider {
+  EMAIL_PASSWORD
+  GOOGLE
+  APPLE
+  FACEBOOK
+  ANONYMOUS
+  # Otros proveedores según sea necesario
+}
+
+"""
+Plataforma desde la que el usuario accede.
+"""
+enum Platform {
+  IOS
+  ANDROID
+}
+
+"""
+Estilo de aprendizaje preferido por el usuario.
+"""
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+  READING_WRITING
+  MIXED
+  # Otros estilos según sea necesario
+}
+
+"""
+Categoría de la habilidad.
+"""
+enum SkillCategory {
+  TECHNICAL
+  SOFT_SKILL
+  CREATIVE
+  BUSINESS
+  ACADEMIC
+  LANGUAGE
+  HEALTH_WELLNESS
+  HOBBY
+  OTHER
+}
+
+"""
+Demanda de mercado para una habilidad.
+"""
+enum MarketDemand {
+  HIGH
+  MEDIUM
+  LOW
+  NICHE
+  EMERGING
+  UNKNOWN
+}
+
+"""
+Estado de finalización para planes, secciones o días.
+"""
+enum CompletionStatus {
+  PENDING
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  SKIPPED
+  FAILED # Opcional, si aplica
+}
+
+"""
+Tipo de bloque de contenido (ejercicio, quiz) para un DayContent (usado en CreateContentBlockForDayInput).
+"""
+enum ContentBlockType {
+  QUIZ_MCQ
+  QUIZ_TRUE_FALSE
+  QUIZ_MATCH_MEANING
+  QUIZ_SCENARIO
+  EXERCISE_CODE # Ejemplo si tienes ejercicios de código
+  EXERCISE_WRITING # Ejemplo si tienes ejercicios de escritura
+  EXERCISE_GENERAL # Para ejercicios más genéricos
+  VIDEO_LESSON
+  EXTERNAL_RESOURCE
+  OTHER
 }

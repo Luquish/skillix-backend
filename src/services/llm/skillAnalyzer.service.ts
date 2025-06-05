@@ -74,13 +74,13 @@ Provide a comprehensive skill breakdown and viability assessment in the exact JS
     const validatedAnalysis = SkillAnalysisSchema.parse(rawAnalysisResult);
     
     // Si is_skill_valid es true, pero components está vacío, podría ser un problema de generación del LLM.
-    if (validatedAnalysis.is_skill_valid && validatedAnalysis.components.length === 0) {
+    if (validatedAnalysis.isSkillValid && validatedAnalysis.components.length === 0) {
         console.warn(`Skill "${skill}" marcada como válida pero no tiene componentes. Revisar output del LLM.`);
         // Podrías decidir si esto es un error o si es aceptable en algunos casos.
         // Por ahora, lo permitimos pero logueamos una advertencia.
     }
     
-    console.log(`Análisis de habilidad completado y validado para: "${skill}". Viable: ${validatedAnalysis.is_skill_valid}`);
+    console.log(`Análisis de habilidad completado y validado para: "${skill}". Viable: ${validatedAnalysis.isSkillValid}`);
     return validatedAnalysis;
   } catch (error) {
     if (error instanceof z.ZodError) {

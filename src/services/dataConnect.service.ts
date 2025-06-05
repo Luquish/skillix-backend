@@ -8,16 +8,12 @@ import * as DbTypes from './dataConnect.types';
 
 // Importar tipos de LLM para los datos de entrada
 import {
-    SkillAnalysis as LlmSkillAnalysis,
-    LearningPlan as LlmLearningPlan,
-    PedagogicalAnalysis as LlmPedagogicalAnalysis,
     DayContent as LlmDayContent,
     KeyConcept as LlmKeyConcept,
     ExerciseBlock as LlmExerciseBlock,
     ActionTask as LlmActionTask,
-    MainContent as LlmMainContent,
-    MainAudioContent as LlmMainAudioContent, // Importar tipo específico
-    MainReadContent as LlmMainReadContent,   // Importar tipo específico
+    UnifiedMainContentSchema as LlmUnifiedMainContentSchemaZod, // Renombrar para evitar confusión con el tipo inferido
+    MainContent as LlmMainContentType, // Este es el tipo inferido z.infer<typeof MainContentSchema>
     QuizMCQBlock as LlmQuizMCQBlock, // Para el ejemplo de mapeo
     // Añade otros tipos de LLM que puedas necesitar
 } from './llm/schemas'; // Asumiendo que schemas.ts exporta estos tipos
@@ -184,6 +180,50 @@ const GET_CHAT_MESSAGES_QUERY = `
   }
 `;
 
+const GET_USER_BY_ID_QUERY = `
+  query GetUserById($userId: ID!) {
+    user(id: $userId) {
+      id
+      firebaseUid
+      email
+      name
+      isActive
+      authProvider
+      platform
+      photoUrl
+      emailVerified
+      preferences {
+        skill
+        experienceLevel
+        motivation
+        availableTimeMinutes
+        learningStyle
+        goal
+      }
+    }
+  }
+`;
+
+const GET_ENROLLMENT_QUERY = `
+  query GetEnrollment($userId: ID!, $learningPlanId: ID!) {
+    enrollmentCollection(filter: { userId: { eq: $userId }, learningPlanId: { eq: $learningPlanId } }, first: 1) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+`;
+
+const UPDATE_ENROLLMENT_PROGRESS_MUTATION = `
+  mutation UpdateEnrollmentProgress($enrollmentId: ID!, $day: Int!) {
+    enrollment_update(by: { id: $enrollmentId }, data: { currentDayNumber: { set: $day }, lastActivityAt: { set: "now()" } }) {
+      id
+      currentDayNumber
+    }
+  }
+`;
 
 // --- MUTATIONS (Alineadas con tu mutations.gql) ---
 
@@ -265,7 +305,7 @@ export type CreateFullLearningPlanInputForService = {
       components?: Array<{ // Coincide con CreateSkillComponentInput
         name: string;
         description: string;
-        difficultyLevel: DbTypes.DifficultyLevel;
+        difficultyLevel: DbTypes.UserExperienceLevel;
         prerequisitesText: string[];
         estimatedLearningHours: number;
         practicalApplications: string[];
@@ -319,40 +359,34 @@ export type CreateFullLearningPlanInputForService = {
 
 
 // Mutaciones granulares para SaveDayContentDetails
-const INSERT_MAIN_CONTENT_MUTATION = `
-  mutation InsertMainContent($input: CreateMainContentForItemInput!) { # Nombre del input debe coincidir con mutations.gql
-    mainContent_insert(data: $input) {
+const INSERT_MAIN_CONTENT_ITEM_MUTATION = `
+  mutation InsertMainContentItem($input: CreateMainContentForItemInput!) {
+    mainContentItem_insert(data: $input) {
       id
       dayContentId
-      contentType
+      title
+      xp
     }
   }
 `;
-export type InsertMainContentInputForService = { // Basado en CreateMainContentForItemInput de mutations.gql
+// Actualizado para reflejar CreateMainContentForItemInput de mutations.gql y UnifiedMainContentSchema de LLM
+export type InsertMainContentItemInputForService = { 
     dayContentId: string;
-    contentType: DbTypes.MainContentType;
     title: string;
+    textContent: string; // Proviene del LLM
     funFact: string;
     xp: number;
-    audioDetails?: { // Basado en CreateAudioContentForMainInput
-        audioUrl: string;
-        transcript: string;
-        durationSeconds: number;
-        voiceType?: string | null;
-    } | null;
-    readDetails?: { // Basado en CreateReadContentForMainInput
-        contentHtml: string;
-        estimatedReadTimeMinutes: number;
-        keyConcepts: Array<{ // Basado en CreateKeyConceptForReadInput
-            term: string;
-            definition: string;
-            order: number;
-        }>;
-    } | null;
+    keyConcepts: Array<{ // Proviene del LLM, mapeado desde LlmKeyConcept
+        term: string;
+        definition: string;
+        order: number;
+    }>;
+    // audioUrl, estimatedReadTimeMinutes, audioDurationSeconds no son parte de este input inicial,
+    // se calculan/añaden por el backend después.
 };
 
 const INSERT_CONTENT_BLOCK_MUTATION = `
-  mutation InsertContentBlock($input: CreateContentBlockForDayInput!) { # Nombre del input debe coincidir con mutations.gql
+  mutation InsertContentBlock($input: CreateContentBlockForDayInput!) { 
     contentBlock_insert(data: $input) {
       id
       dayContentId
@@ -360,39 +394,40 @@ const INSERT_CONTENT_BLOCK_MUTATION = `
     }
   }
 `;
-export type InsertContentBlockInputForService = { // Basado en CreateContentBlockForDayInput
+// InsertContentBlockInputForService se mantiene mayormente, pero asegurar consistencia con mutations.gql
+export type InsertContentBlockInputForService = { 
     dayContentId: string;
-    blockType: DbTypes.ContentBlockType;
+    blockType: DbTypes.ContentBlockType; // Asegurar que DbTypes.ContentBlockType esté correcto
     title: string;
     xp: number;
     order: number;
     estimatedMinutes?: number | null;
-    quizDetails?: { // Basado en CreateQuizContentForBlockInput
-        quizType: string; // Ej: "MCQ", "TrueFalse"
-        questions: Array<{ // Basado en CreateQuizQuestionForQuizContentInput
+    quizDetails?: { 
+        quizType: string; 
+        questions: Array<{ 
             questionText: string;
             explanation: string;
             order: number;
             trueFalseAnswer?: boolean | null;
             matchPairsJson?: string | null;
             scenarioText?: string | null;
-            options?: Array<{ // Basado en CreateQuizOptionForQuestionInput
+            options?: Array<{ 
                 optionText: string;
                 isCorrect: boolean;
                 order: number;
             }> | null;
         }>;
     } | null;
-    exerciseDetails?: { // Basado en CreateExerciseContentForBlockInput
+    exerciseDetails?: { 
         exerciseType: string;
         instructions: string;
-        exerciseDataJson: string; // JSON String
+        exerciseDataJson: string; 
     } | null;
 };
 
 
 const INSERT_ACTION_TASK_MUTATION = `
-  mutation InsertActionTask($input: CreateActionTaskForDayInput!) { # Nombre del input debe coincidir con mutations.gql
+  mutation InsertActionTask($input: CreateActionTaskForDayInput!) { 
     actionTask_insert(data: $input) {
       id
       dayContentId
@@ -400,7 +435,8 @@ const INSERT_ACTION_TASK_MUTATION = `
     }
   }
 `;
-export type InsertActionTaskInputForService = { // Basado en CreateActionTaskForDayInput
+// InsertActionTaskInputForService se mantiene, pero asegurar consistencia con mutations.gql
+export type InsertActionTaskInputForService = { 
     dayContentId: string;
     title: string;
     challengeDescription: string;
@@ -408,10 +444,10 @@ export type InsertActionTaskInputForService = { // Basado en CreateActionTaskFor
     tips: string[];
     realWorldContext: string;
     successCriteria: string[];
-    skiMotivation: string;
-    difficultyAdaptation?: DbTypes.DifficultyLevel | null;
+    skiMotivation: string; // 'toviMotivation' en GQL
+    difficultyAdaptation?: DbTypes.UserExperienceLevel | null;
     xp: number;
-    steps: Array<{ // Basado en CreateActionStepForTaskInput
+    steps: Array<{ 
         instruction: string;
         order: number;
     }>;
@@ -551,6 +587,24 @@ export async function getUserByFirebaseUid(firebaseUid: string): Promise<DbTypes
   }
 }
 
+export async function getUserById(userId: string): Promise<DbTypes.DbUser | null> {
+  try {
+    const response = await executeGraphQL<{ user: DbTypes.DbUser }>(
+      GET_USER_BY_ID_QUERY,
+      { userId },
+      true
+    );
+    if (response.errors) {
+      console.error(`GraphQL error fetching user by ID ${userId}:`, response.errors);
+      return null;
+    }
+    return response.data?.user ?? null;
+  } catch (error) {
+    console.error(`DataConnect service error in getUserById for user ${userId}:`, error);
+    return null;
+  }
+}
+
 export async function createUser(userData: CreateUserInputForService): Promise<DbTypes.DbUser | null> {
   const inputForMutation = {
       firebaseUid: userData.firebaseUid,
@@ -626,81 +680,61 @@ export async function createFullLearningPlanInDB(
  */
 export async function saveDailyContentDetailsInDB(
   dayContentId: string,
-  llmContentData: LlmDayContent // Datos del LLM
+  llmContentData: LlmDayContent 
 ): Promise<boolean> {
   logger.info(`DataConnect: Guardando detalles para DayContent.id: ${dayContentId}`);
   let allSuccess = true;
 
   try {
-    // 1. Guardar MainContent si existe
-    if (llmContentData.main_content) {
-      const mainContentLlm = llmContentData.main_content; // Variable para type narrowing
-      let audioDetailsInput: InsertMainContentInputForService['audioDetails'] = null;
-      let readDetailsInput: InsertMainContentInputForService['readDetails'] = null;
-
-      if (mainContentLlm.type === 'audio') {
-        // Ahora TypeScript sabe que mainContentLlm es LlmMainAudioContent
-        const audioContent = mainContentLlm as LlmMainAudioContent;
-        audioDetailsInput = {
-          audioUrl: audioContent.audioUrl,
-          transcript: audioContent.transcript,
-          durationSeconds: audioContent.duration,
-          voiceType: "StandardVoice",
-        };
-      } else if (mainContentLlm.type === 'read') {
-        // Ahora TypeScript sabe que mainContentLlm es LlmMainReadContent
-        const readContent = mainContentLlm as LlmMainReadContent;
-        readDetailsInput = {
-          contentHtml: readContent.content,
-          estimatedReadTimeMinutes: readContent.estimated_time,
-          keyConcepts: readContent.key_concepts.map((kc: LlmKeyConcept, i) => ({
-            term: kc.term,
-            definition: kc.definition,
-            order: i + 1
-          }))
-        };
-      }
-
-      const mainContentInput: InsertMainContentInputForService = {
+    // 1. Guardar MainContentItem si existe
+    if (llmContentData.main_content) { 
+      // Dentro de este if, llmContentData.main_content es de tipo LlmMainContentType (el tipo inferido)
+      const mainContentLlm: LlmMainContentType = llmContentData.main_content;
+      
+      const mainContentInput: InsertMainContentItemInputForService = {
         dayContentId: dayContentId,
-        contentType: mainContentLlm.type.toUpperCase() as DbTypes.MainContentType,
         title: mainContentLlm.title,
-        funFact: mainContentLlm.fun_fact,
+        textContent: mainContentLlm.textContent,
+        funFact: mainContentLlm.funFact,
         xp: mainContentLlm.xp,
-        audioDetails: audioDetailsInput,
-        readDetails: readDetailsInput,
+        keyConcepts: mainContentLlm.keyConcepts.map((kc: LlmKeyConcept) => ({ 
+          term: kc.term,
+          definition: kc.definition,
+          order: kc.order, 
+        })),
       };
-      const mcResponse = await executeGraphQL<{ mainContent_insert: { id: string } }>(
-        INSERT_MAIN_CONTENT_MUTATION, { input: mainContentInput }
+
+      const mcResponse = await executeGraphQL<{ mainContentItem_insert: { id: string } }>(
+        INSERT_MAIN_CONTENT_ITEM_MUTATION, { input: mainContentInput }
       );
-      if (!mcResponse.data?.mainContent_insert?.id) {
-        logger.error(`DataConnect: Fallo al guardar MainContent para DayContent.id ${dayContentId}. Errors: ${JSON.stringify(mcResponse.errors)}`);
+
+      if (!mcResponse.data?.mainContentItem_insert?.id) {
+        logger.error(`DataConnect: Fallo al guardar MainContentItem para DayContent.id ${dayContentId}. Errors: ${JSON.stringify(mcResponse.errors)}`);
         allSuccess = false;
       } else {
-        logger.info(`DataConnect: MainContent guardado ID: ${mcResponse.data.mainContent_insert.id}`);
+        logger.info(`DataConnect: MainContentItem guardado ID: ${mcResponse.data.mainContentItem_insert.id}`);
       }
     }
 
     // 2. Guardar ContentBlocks (ejercicios) si existen
     if (llmContentData.exercises && llmContentData.exercises.length > 0 && allSuccess) {
-      // Usar forEach para evitar problemas con downlevelIteration
-      llmContentData.exercises.forEach(async (exBlock, index) => {
-        if (!allSuccess) return; // Si una operación anterior falló, no continuar
+      // Cambiado a un bucle for tradicional para compatibilidad
+      for (let index = 0; index < llmContentData.exercises.length; index++) {
+        if (!allSuccess) break; 
+        const exBlock = llmContentData.exercises[index];
+        const currentExBlock = exBlock as LlmExerciseBlock; // Mantener aserción si exBlock es de un tipo unión más amplio.
+                                                        // Si llmContentData.exercises es LlmExerciseBlock[], no es necesaria.
 
-        // Asegurar que exBlock es del tipo LlmExerciseBlock
-        const currentExBlock = exBlock as LlmExerciseBlock;
-
-        // Mapeo robusto de LlmExerciseBlock.type a DbTypes.ContentBlockType
         let dbBlockType: DbTypes.ContentBlockType;
         switch (currentExBlock.type.toUpperCase()) {
             case "QUIZ_MCQ": dbBlockType = "QUIZ_MCQ"; break;
-            case "QUIZ_TRUEFALSE": dbBlockType = "QUIZ_TRUE_FALSE"; break;
-            case "MATCH_MEANING": dbBlockType = "QUIZ_MATCH_MEANING"; break;
-            case "SCENARIO_QUIZ": dbBlockType = "QUIZ_SCENARIO"; break;
-            // Añadir más casos según sea necesario
+            case "QUIZ_TRUEFALSE": dbBlockType = "QUIZ_TRUE_FALSE"; break; 
+            case "MATCH_MEANING": dbBlockType = "QUIZ_MATCH_MEANING"; break; 
+            case "SCENARIO_QUIZ": dbBlockType = "QUIZ_SCENARIO"; break; 
+            // TODO: Mapear "GENERAL_EXERCISE" a "EXERCISE_GENERAL" si es necesario
             default:
-                logger.warn(`Tipo de bloque de ejercicio desconocido: ${currentExBlock.type}. Usando OTHER.`);
-                dbBlockType = "OTHER";
+                logger.warn(`DataConnect: Tipo de bloque de ejercicio desconocido desde LLM: ${currentExBlock.type}. Usando OTHER.`);
+                dbBlockType = "OTHER"; 
         }
         
         const blockInput: InsertContentBlockInputForService = {
@@ -708,19 +742,20 @@ export async function saveDailyContentDetailsInDB(
           blockType: dbBlockType,
           title: (currentExBlock as any).question || (currentExBlock as any).statement || `Ejercicio ${index + 1}`,
           xp: currentExBlock.xp,
-          order: index + 1,
-          quizDetails: null, // Inicializar
-          exerciseDetails: null, // Inicializar
+          order: index + 1, 
+          quizDetails: null, 
+          exerciseDetails: null, 
         };
 
         if (currentExBlock.type === 'quiz_mcq') {
-            const mcqBlock = currentExBlock as LlmQuizMCQBlock; // Cast específico
+            const mcqBlock = currentExBlock as LlmQuizMCQBlock; 
+            blockInput.title = mcqBlock.question; 
             blockInput.quizDetails = {
-                quizType: "MCQ", // O tomar de una propiedad si existe
+                quizType: "MCQ", 
                 questions: [{
                     questionText: mcqBlock.question,
                     explanation: mcqBlock.explanation,
-                    order: 1, // Asumiendo una pregunta por bloque de quiz por ahora
+                    order: 1, 
                     options: mcqBlock.options.map((opt, optIdx) => ({
                         optionText: opt,
                         isCorrect: optIdx === mcqBlock.answer,
@@ -729,8 +764,7 @@ export async function saveDailyContentDetailsInDB(
                 }]
             };
         }
-        // TODO: Añadir mapeo para otros tipos de LlmExerciseBlock (TrueFalse, MatchToMeaning, ScenarioQuiz)
-        // y para exerciseDetails si es un ejercicio general.
+        // TODO: Añadir mapeos para otros tipos de LlmExerciseBlock y exerciseDetails.
 
         const cbResponse = await executeGraphQL<{ contentBlock_insert: { id: string } }>(
           INSERT_CONTENT_BLOCK_MUTATION, { input: blockInput }
@@ -738,15 +772,11 @@ export async function saveDailyContentDetailsInDB(
         if (!cbResponse.data?.contentBlock_insert?.id) {
           logger.error(`DataConnect: Fallo al guardar ContentBlock (índice ${index}) para DayContent.id ${dayContentId}. Errors: ${JSON.stringify(cbResponse.errors)}`);
           allSuccess = false;
-          // No se puede usar 'break' en forEach, pero allSuccess controlará el flujo
         } else {
             logger.info(`DataConnect: ContentBlock (índice ${index}) guardado ID: ${cbResponse.data.contentBlock_insert.id}`);
         }
-      });
+      }
     }
-
-    // Esperar a que todas las promesas de forEach (si las hubiera asíncronas) se completen
-    // En este caso, el await dentro del forEach lo maneja secuencialmente si allSuccess no es falso.
 
     // 3. Guardar ActionTask si existe y es un día de acción
     if (llmContentData.is_action_day && llmContentData.action_task && allSuccess) {
@@ -759,8 +789,8 @@ export async function saveDailyContentDetailsInDB(
         tips: actionTaskLlm.tips,
         realWorldContext: actionTaskLlm.real_world_context,
         successCriteria: actionTaskLlm.success_criteria,
-        skiMotivation: actionTaskLlm.ski_motivation,
-        difficultyAdaptation: actionTaskLlm.difficulty_adaptation?.toUpperCase() as DbTypes.DifficultyLevel || null,
+        skiMotivation: actionTaskLlm.ski_motivation, 
+        difficultyAdaptation: (actionTaskLlm.difficulty_adaptation?.toUpperCase() as DbTypes.UserExperienceLevel) || null,
         xp: actionTaskLlm.xp,
         steps: actionTaskLlm.steps.map((s, i) => ({ instruction: s, order: i + 1 })),
       };
@@ -780,7 +810,7 @@ export async function saveDailyContentDetailsInDB(
     }
     return allSuccess;
 
-  } catch (error) {
+  } catch (error: any) { 
     logger.error(`DataConnect: Error en saveDailyContentDetailsInDB para DayContent.id ${dayContentId}:`, error);
     return false;
   }
@@ -961,5 +991,39 @@ export async function updateStreakData(streakInput: UpdateStreakDataInputForServ
         logger.error(`DataConnect: Error en updateStreakData para UserID ${streakInput.userId}:`, error);
         throw error;
     }
+}
+
+export async function updateUserEnrollmentProgress(userId: string, learningPlanId: string, currentDayNumber: number): Promise<boolean> {
+  try {
+    // Paso 1: Obtener el ID del enrollment
+    const enrollmentResponse = await executeGraphQL<{ enrollmentCollection: { edges: { node: { id: string } }[] } }>(
+      GET_ENROLLMENT_QUERY,
+      { userId, learningPlanId }
+    );
+
+    const enrollmentId = enrollmentResponse.data?.enrollmentCollection?.edges[0]?.node?.id;
+
+    if (!enrollmentId) {
+      console.error(`Enrollment not found for user ${userId} and plan ${learningPlanId}. Cannot update progress.`);
+      return false;
+    }
+
+    // Paso 2: Actualizar el enrollment con el nuevo día
+    const updateResponse = await executeGraphQL(
+      UPDATE_ENROLLMENT_PROGRESS_MUTATION,
+      { enrollmentId: enrollmentId, day: currentDayNumber }
+    );
+
+    if (updateResponse.errors || !updateResponse.data) {
+      console.error(`Failed to update enrollment progress for enrollment ${enrollmentId}:`, updateResponse.errors);
+      return false;
+    }
+
+    console.log(`Enrollment ${enrollmentId} progress updated to day ${currentDayNumber}.`);
+    return true;
+  } catch (error) {
+    console.error(`DataConnect service error in updateUserEnrollmentProgress for user ${userId}, plan ${learningPlanId}:`, error);
+    return false;
+  }
 }
 

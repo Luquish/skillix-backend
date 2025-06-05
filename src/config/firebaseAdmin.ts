@@ -20,11 +20,11 @@ if (!admin.apps.length) {
       const serviceAccount = JSON.parse(serviceAccountJsonString) as ServiceAccount;
       credential = admin.credential.cert(serviceAccount);
       logger.info('Firebase Admin SDK: Initializing with FIREBASE_SERVICE_ACCOUNT_JSON environment variable.');
-    } else if (effectiveConfig.firebaseServiceAccount) { 
+    } else if (effectiveConfig.firebaseServiceAccountPath) { 
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const serviceAccountFromFile = require(effectiveConfig.firebaseServiceAccount);
+      const serviceAccountFromFile = require(effectiveConfig.firebaseServiceAccountPath);
       credential = admin.credential.cert(serviceAccountFromFile);
-      logger.info(`Firebase Admin SDK: Initializing with service account file from path: ${effectiveConfig.firebaseServiceAccount}`);
+      logger.info(`Firebase Admin SDK: Initializing with service account file from path: ${effectiveConfig.firebaseServiceAccountPath}`);
     } else {
       credential = admin.credential.applicationDefault();
       logger.info('Firebase Admin SDK: Initializing with Application Default Credentials (ADC).');

@@ -16,7 +16,7 @@ interface AppConfig {
   openaiApiKey: string | undefined;
   openaiModel: string;
   llmModelConfig: LlmModelConfig;
-  firebaseServiceAccount: string;
+  firebaseServiceAccountPath: string;
   dataConnectServiceId: string;
   dataConnectLocation: string;
 }
@@ -33,7 +33,7 @@ const config: AppConfig = {
     frequency_penalty: parseFloat(process.env.LLM_FREQUENCY_PENALTY || '0'),
     presence_penalty: parseFloat(process.env.LLM_PRESENCE_PENALTY || '0'),
   },
-  firebaseServiceAccount: JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '{}'),
+  firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '',
   dataConnectServiceId: process.env.DATA_CONNECT_SERVICE_ID,
   dataConnectLocation: process.env.DATA_CONNECT_LOCATION,
 };

@@ -1,50 +1,16 @@
 // src/services/firebaseAdmin.service.ts
 
 import * as admin from 'firebase-admin';
-import { getConfig } from '../config'; // Para obtener la ruta al service account key si se usa
+// El config ya no es necesario aquí, la inicialización es centralizada.
 import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
 
-const config = getConfig();
 const logger = console; // O tu logger configurado
 
-let firebaseAdminInitialized = false;
-
-/**
- * Inicializa el Firebase Admin SDK.
- * Debe llamarse una sola vez al inicio de la aplicación.
- */
-export function initializeFirebaseAdmin(): void {
-  if (admin.apps.length > 0) {
-    firebaseAdminInitialized = true;
-    logger.info('Firebase Admin SDK ya está inicializado.');
-    return;
-  }
-
-  try {
-    const serviceAccountPath = config.firebaseServiceAccount; // De tu config/index.ts
-
-    if (serviceAccountPath) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const serviceAccount = require(serviceAccountPath); // Cargar el JSON
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        // databaseURL: config.firebaseDatabaseUrl, // Si usas Realtime Database
-        // storageBucket: config.firebaseStorageBucket, // Si usas Storage
-      });
-      logger.info('Firebase Admin SDK inicializado con archivo de cuenta de servicio.');
-    } else {
-      // Si no hay path, intenta usar GOOGLE_APPLICATION_CREDENTIALS o ADC
-      // Esto es lo común para entornos como Cloud Run, Cloud Functions
-      admin.initializeApp();
-      logger.info('Firebase Admin SDK inicializado con credenciales de entorno (ADC o GOOGLE_APPLICATION_CREDENTIALS).');
-    }
-    firebaseAdminInitialized = true;
-  } catch (error: any) {
-    logger.error('Error CRÍTICO al inicializar Firebase Admin SDK:', error.message);
-    // Considera si la aplicación debe fallar al iniciar si esto no funciona.
-    firebaseAdminInitialized = false;
-  }
-}
+// La inicialización de Firebase Admin ahora se maneja de forma centralizada
+// en `src/config/firebaseAdmin.ts`. Ese archivo se importa al inicio de la
+// aplicación, garantizando que `admin` esté configurado antes de que se llame
+// a cualquier función de este servicio. Por lo tanto, la función `initializeFirebaseAdmin`
+// y el flag `firebaseAdminInitialized` se eliminan.
 
 /**
  * Verifica un Firebase ID Token.
@@ -53,10 +19,8 @@ export function initializeFirebaseAdmin(): void {
  * @throws Error si el token es inválido o hay un problema con la verificación.
  */
 export async function verifyFirebaseIdToken(idToken: string): Promise<DecodedIdToken> {
-  if (!firebaseAdminInitialized) {
-    logger.error("Intento de verificar token, pero Firebase Admin SDK no está inicializado.");
-    throw new Error('Servicio de autenticación no disponible.');
-  }
+  // La comprobación `firebaseAdminInitialized` se elimina. Si el código llega aquí,
+  // el SDK ya está inicializado. Si no lo estuviera, la app habría fallado al arrancar.
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     return decodedToken;
@@ -65,6 +29,41 @@ export async function verifyFirebaseIdToken(idToken: string): Promise<DecodedIdT
     // Mapear errores específicos de Firebase a errores HTTP si esto fuera un controlador,
     // pero como es un servicio, relanzar o devolver un error específico.
     throw error; // Relanzar para que el llamador lo maneje
+  }
+}
+
+/**
+ * Crea un nuevo usuario en Firebase Authentication.
+ * @param userData Objeto con los datos del usuario a crear (email, password, displayName).
+ * @returns Una promesa que se resuelve con el UserRecord del usuario creado.
+ * @throws Error si falla la creación del usuario.
+ */
+export async function createUserInAuth(
+  userData: admin.auth.CreateRequest
+): Promise<admin.auth.UserRecord> {
+  try {
+    const userRecord = await admin.auth().createUser(userData);
+    logger.info(`Usuario creado en Firebase Auth con UID: ${userRecord.uid}`);
+    return userRecord;
+  } catch (error: any) {
+    logger.error(`Error creando usuario en Firebase Auth para email ${userData.email}: ${error.code} - ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene los datos de un usuario de Firebase Authentication por su UID.
+ * @param uid El UID del usuario a buscar.
+ * @returns Una promesa que se resuelve con el UserRecord del usuario.
+ * @throws Error si el usuario no se encuentra o hay un problema.
+ */
+export async function getUserFromAuth(uid: string): Promise<admin.auth.UserRecord> {
+  try {
+    const userRecord = await admin.auth().getUser(uid);
+    return userRecord;
+  } catch (error: any) {
+    logger.error(`Error obteniendo usuario de Firebase Auth con UID ${uid}: ${error.code} - ${error.message}`);
+    throw error;
   }
 }
 
@@ -82,10 +81,7 @@ export async function sendFcmNotification(
   body: string,
   data?: Record<string, string>
 ): Promise<boolean> {
-  if (!firebaseAdminInitialized) {
-    logger.error("Intento de enviar FCM, pero Firebase Admin SDK no está inicializado.");
-    return false;
-  }
+  // La comprobación `firebaseAdminInitialized` se elimina.
   if (!deviceToken) {
     logger.warn("No se proporcionó deviceToken para enviar FCM.");
     return false;
@@ -119,15 +115,3 @@ export async function sendFcmNotification(
     return false;
   }
 }
-
-// Podrías añadir otras funciones de Firebase Admin aquí, como:
-// - Obtener datos de usuario por UID: admin.auth().getUser(uid)
-// - Crear custom tokens: admin.auth().createCustomToken(uid)
-// - etc.
-
-// Es importante llamar a initializeFirebaseAdmin() una vez al inicio de tu aplicación,
-// por ejemplo, en tu archivo principal app.ts o server.ts.
-// Ejemplo:
-// import { initializeFirebaseAdmin } from './services/firebaseAdmin.service';
-// initializeFirebaseAdmin();
-// ... resto de tu app setup ...

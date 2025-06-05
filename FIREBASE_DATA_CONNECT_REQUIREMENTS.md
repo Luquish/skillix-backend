@@ -238,8 +238,8 @@ UserAnalytics (1) ←→ (1) OptimalLearningTime
 
 ### **Tipos de Datos con Enumeraciones**
 
-- **SkillLevel**: `"beginner" | "intermediate" | "advanced"`
-- **ContentType**: `"audio" | "read" | "quiz_mcq" | "quiz_truefalse" | "match_meaning" | "scenario_quiz"`
+- **UserExperienceLevel**: `"beginner" | "intermediate" | "advanced"`
+- **ContentBlockType**: `"audio" | "read" | "quiz_mcq" | "quiz_truefalse" | "match_meaning" | "scenario_quiz"`
 - **DifficultyAdjustment**: `"increase" | "maintain" | "decrease"`
 - **RiskLevel**: `"low" | "medium" | "high"`
 - **PatternType**: `"time_based" | "performance_based" | "engagement_based" | "content_preference" | "other"`

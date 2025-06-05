@@ -4,65 +4,15 @@
 # Se asume que el schema.gql define los tipos y relaciones correspondientes.
 
 """
-Obtiene el plan de aprendizaje activo de un usuario específico.
-El usuario debe estar autenticado y solo puede solicitar su propio plan.
-"""
-query GetUserActiveLearningPlan @auth(level: USER) {
-  # Asume que LearningPlan tiene un campo 'userId' y un campo 'isActive' (o una lógica similar para determinar actividad)
-  # Esta consulta busca el LearningPlan por el firebaseUid (mapeado a userId en LearningPlan) del token de autenticación.
-  learningPlanCollection( # Usar 'learningPlanCollection' si es el nombre generado para la colección
-    filter: {
-      userId: { eq_expr: "auth.uid" }, # Asume que 'userId' en LearningPlan es el firebaseUid
-      isActive: { eq: true } # Necesitarías este campo en tu schema.gql para LearningPlan
-    },
-    first: 1 # Si solo puede haber un plan activo
-  ) {
-    edges {
-      node {
-        id
-        skillName
-        totalDurationWeeks
-        dailyTimeMinutes
-        skillLevelTarget
-        # currentDay # Necesitarías un campo para esto, o calcularlo en el cliente/backend
-        milestones
-        progressMetrics
-        flexibilityOptions
-        sections(orderBy: { field: order, direction: ASC }) { # Asume que PlanSection tiene 'order'
-          id
-          title
-          description
-          order
-          days(orderBy: { field: dayNumber, direction: ASC }) { # Asume que DayContent tiene 'dayNumber'
-            id
-            dayNumber
-            title
-            focusArea
-            isActionDay
-            objectives
-            completionStatus
-            # Podrías querer más detalles aquí o en una query separada para el día
-          }
-        }
-      }
-    }
-  }
-}
-
-"""
 Obtiene el contenido de un día específico para un plan de aprendizaje.
 El usuario debe estar autenticado y ser propietario del plan.
 """
 query GetDayContent($learningPlanId: ID!, $dayNumber: Int!) @auth(level: USER) {
-  # Esta consulta busca un DayContent específico.
-  # La seguridad se refuerza asegurando que el LearningPlan asociado pertenezca al usuario autenticado.
   dayContentCollection(
     filter: {
-      # learningPlanId: { eq: $learningPlanId }, # Si DayContent tiene learningPlanId directamente
-      section: { learningPlanId: { eq: $learningPlanId } }, # Si DayContent está bajo Section que tiene learningPlanId
-      dayNumber: { eq: $dayNumber },
-      # Filtro de seguridad adicional: el plan del día debe pertenecer al usuario autenticado
-      section: { learningPlan: { userId: { eq_expr: "auth.uid" } } }
+      # La seguridad se refuerza asegurando que el LearningPlan asociado pertenezca al usuario autenticado.
+      section: { learningPlan: { id: { eq: $learningPlanId }, userId: { eq_expr: "auth.uid" } } },
+      dayNumber: { eq: $dayNumber }
     },
     first: 1
   ) {
@@ -70,28 +20,35 @@ query GetDayContent($learningPlanId: ID!, $dayNumber: Int!) @auth(level: USER) {
       node {
         id
         title
+        focusArea
         isActionDay
         objectives
         completionStatus
-        mainContentItem { # Asume que esta es la relación a DbMainContent
-          contentType
+        mainContentItem { # Relación a MainContentItem (tabla)
+          id
           title
+          textContent # Texto base para lectura y audio
+          audioUrl # URL del audio (si está disponible)
+          estimatedReadTimeMinutes
+          audioDurationSeconds
           funFact
           xp
-          audioDetails { audioUrl transcript durationSeconds voiceType }
-          readDetails { contentHtml estimatedReadTimeMinutes keyConcepts { term definition order } }
+          keyConcepts { # Objeto JSONB
+            term
+            definition
+            order
+          }
         }
-        contentBlocks(orderBy: { field: order, direction: ASC }) { # Asume que ContentBlock tiene 'order'
+        contentBlockItems(orderBy: { field: order, direction: ASC }) { # Relación a ContentBlockItem (tabla)
           id
           blockType
           title
           xp
           order
           estimatedMinutes
-          quizDetails {
+          quizDetails { # Objeto JSONB
             quizType
             questions(orderBy: { field: order, direction: ASC }) {
-              id
               questionText
               explanation
               order
@@ -99,68 +56,79 @@ query GetDayContent($learningPlanId: ID!, $dayNumber: Int!) @auth(level: USER) {
               matchPairsJson
               scenarioText
               options(orderBy: { field: order, direction: ASC }) {
-                id
                 optionText
                 isCorrect
                 order
               }
             }
           }
-          exerciseDetails {
+          exerciseDetails { # Objeto JSONB
             exerciseType
             instructions
             exerciseDataJson
           }
         }
-        actionTaskItem { # Asume que esta es la relación a DbActionTask
+        actionTaskItem { # Relación a ActionTaskItem (tabla)
+          id
           title
           challengeDescription
           timeEstimateString
           tips
           realWorldContext
           successCriteria
-          skiMotivation
+          toviMotivation # Renombrado de skiMotivation
           difficultyAdaptation
           xp
           steps(orderBy: { field: order, direction: ASC }) {
+            id
             instruction
             order
           }
         }
-        # totalXp y estimatedTime podrían ser campos calculados o almacenados en DayContent
       }
     }
   }
 }
 
 """
-Obtiene los analytics de un usuario específico.
+Obtiene los analytics generados por el LLM para un usuario.
 El usuario debe estar autenticado y solo puede solicitar sus propios analytics.
 """
 query GetUserAnalytics @auth(level: USER) {
-  # Asume una tabla UserAnalyticsEntry y que quieres la más reciente o un resumen.
-  # Si es una entrada única por usuario, usa userAnalytics(filter: {userId: {eq_expr: "auth.uid"}})
-  userAnalyticsEntryCollection(
+  userAnalyticsCollection(
     filter: { userId: { eq_expr: "auth.uid" } },
-    orderBy: { field: date, direction: DESC }, # O el campo de timestamp relevante
-    first: 1 # Para la entrada más reciente
+    first: 1 # Asumiendo una única entrada de analytics por usuario
   ) {
     edges {
       node {
         id
-        date
-        totalXpEarnedThisDay
-        sessionsCountThisDay
-        timeSpentLearningMinutesThisDay
-        contentBlocksCompletedThisDay
-        quizAverageScoreThisDay
-        currentStreakForDate
-        llmLearningPatternsJson
-        llmOptimalTimeJson
-        llmContentOptimizationJson
-        llmStreakMaintenanceJson
-        llmGeneratedOverallEngagementScore
-        llmGeneratedKeyInsights
+        overallEngagementScore
+        keyInsights
+        learningPatterns { # Objeto JSONB
+          patternType
+          description
+          confidence
+          recommendations
+        }
+        optimalLearningTime { # Objeto JSONB
+          bestTimeWindowStart
+          bestTimeWindowEnd
+          reason
+          notificationTime
+          engagementPrediction
+        }
+        contentOptimization { # Objeto JSONB
+          difficultyAdjustment
+          contentTypePreferences
+          idealSessionLengthMinutes
+          pacingRecommendation
+        }
+        streakMaintenanceAnalysis { # Objeto JSONB
+          riskLevel
+          riskFactors
+          interventionStrategies
+          motivationalApproach
+        }
       }
     }
   }
@@ -168,6 +136,7 @@ query GetUserAnalytics @auth(level: USER) {
 
 """
 Obtiene el progreso general de un usuario, incluyendo su inscripción activa y datos de racha.
+Esta es la query principal para que el frontend obtenga el estado actual del usuario.
 El usuario debe estar autenticado.
 """
 query GetUserProgress @auth(level: USER) {
@@ -175,9 +144,8 @@ query GetUserProgress @auth(level: USER) {
   enrollmentCollection(
     filter: {
       userId: { eq_expr: "auth.uid" },
-      status: { in: [PENDING, IN_PROGRESS] } # Asumiendo que estos son estados activos
+      status: { in: [IN_PROGRESS] } # Un usuario solo debería tener una inscripción IN_PROGRESS
     },
-    orderBy: { field: createdAt, direction: DESC}, # La más reciente si hay varias
     first: 1
   ) {
     edges {
@@ -190,8 +158,8 @@ query GetUserProgress @auth(level: USER) {
             id
             skillName
             totalDurationWeeks
+            # Se pueden añadir más campos del plan si son necesarios en la vista principal
         }
-        # Podrías añadir más campos de Enrollment o LearningPlan aquí
       }
     }
   }
@@ -210,22 +178,15 @@ query GetUserProgress @auth(level: USER) {
 
 
 """
-Obtiene mensajes de Ski personalizados para una situación dada.
+Obtiene mensajes de Tovi (antes Ski) para una situación dada.
 El usuario debe estar autenticado.
 """
-query GetSkiMessages($situation: String!) @auth(level: USER) {
-  # Asume una tabla SkiMessage o Notification con un campo 'userId' y 'situation'
-  # y que quieres los no leídos o los más recientes para esa situación.
-  notificationCollection( # O el nombre de tu tabla de mensajes de Ski
+query GetToviMessages($situation: String!) @auth(level: USER) {
+  toviMessageCollection(
     filter: {
       userId: { eq_expr: "auth.uid" },
-      type: { eq: "SKI_MESSAGE" }, # Asumiendo un campo 'type' para diferenciar notificaciones
-      # Podrías tener un campo específico como 'situation' o usar 'dataJson' para filtrar por situación.
-      # Ejemplo si 'dataJson' contiene { "situation": "..." }:
-      # dataJson_CONTAINS: $situation # La sintaxis exacta para filtrar JSON puede variar
-      # Por ahora, asumimos que 'title' o 'body' podrían contener la situación o hay un campo dedicado.
-      # Este filtro es un placeholder y necesitará ajuste según tu schema.gql:
-      # title: { contains: $situation } # Ejemplo muy simplificado
+      situation: { eq: $situation },
+      isDelivered: { eq: false } # Opcional: para obtener solo mensajes nuevos
     },
     orderBy: { field: createdAt, direction: DESC },
     first: 5 # Limitar el número de mensajes
@@ -233,14 +194,47 @@ query GetSkiMessages($situation: String!) @auth(level: USER) {
     edges {
       node {
         id
-        title # Si el mensaje de Ski está en el título
-        body  # O en el cuerpo
-        # Si tienes campos específicos en tu tabla de mensajes de Ski:
-        # message
-        # emojiStyle
-        # animationSuggestion
+        situation
+        message
+        toviEmojiStyle
+        animationSuggestion
         createdAt
-        isRead
+        isDelivered
+      }
+    }
+  }
+}
+
+# Query GetUserActiveLearningPlan eliminada para evitar redundancia.
+# El frontend debe usar GetUserProgress para obtener el learningPlanId
+# y luego, si necesita la estructura completa del plan, podría llamar a
+# una query como GetLearningPlanDetails($planId: ID!) que se podría crear.
+# Por ahora, se asume que GetUserProgress y GetDayContent son suficientes para empezar.
+
+"""
+Obtiene todas las inscripciones activas y pausadas de un usuario.
+Perfecta para poblar un "switcher" de cursos en la UI.
+El usuario debe estar autenticado.
+"""
+query GetUserEnrollments @auth(level: USER) {
+  enrollmentCollection(
+    filter: {
+      userId: { eq_expr: "auth.uid" },
+      status: { in: [IN_PROGRESS, PAUSED] }
+    },
+    orderBy: { field: updatedAt, direction: DESC } # Mostrar el más reciente primero
+  ) {
+    edges {
+      node {
+        id
+        status
+        currentDayNumber
+        totalXpEarned
+        learningPlan {
+          id
+          skillName
+          # Puedes añadir un campo como 'iconUrl' o 'colorTheme' al LearningPlan si lo necesitas para la UI
+        }
       }
     }
   }

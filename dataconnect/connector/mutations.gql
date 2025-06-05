@@ -39,7 +39,7 @@ input LearningPlanResourceInput {
 input CreateSkillComponentInput {
   name: String!
   description: String!
-  difficultyLevel: DifficultyLevel!
+  difficultyLevel: UserExperienceLevel!
   prerequisitesText: [String!]!
   estimatedLearningHours: Int!
   practicalApplications: [String!]!
@@ -115,33 +115,23 @@ input CreateFullLearningPlanInput {
 }
 
 # --- Input Types para las mutaciones granulares de DayContentDetails ---
-input CreateAudioContentForMainInput {
-    audioUrl: String!
-    transcript: String!
-    durationSeconds: Int!
-    voiceType: String
-}
 
-input CreateKeyConceptForReadInput {
+# Renombrado de CreateKeyConceptForReadInput y se usará para MainContentItem
+input CreateKeyConceptInput { 
     term: String!
     definition: String!
     order: Int!
 }
 
-input CreateReadContentForMainInput {
-    contentHtml: String!
-    estimatedReadTimeMinutes: Int!
-    keyConcepts: [CreateKeyConceptForReadInput!]
-}
-
-input CreateMainContentForItemInput { # Usado por InsertMainContent
+# Modificado para MainContentItem
+input CreateMainContentForItemInput { 
     dayContentId: ID! # Referencia al DayContent existente
-    contentType: MainContentType!
     title: String!
+    textContent: String! # Texto base unificado
     funFact: String!
     xp: Int!
-    audioDetails: CreateAudioContentForMainInput
-    readDetails: CreateReadContentForMainInput
+    keyConcepts: [CreateKeyConceptInput!]! # Array de KeyConcepts
+    # audioUrl, estimatedReadTimeMinutes, audioDurationSeconds son manejados por el backend post-creación/TTS
 }
 
 input CreateQuizOptionForQuestionInput {
@@ -196,7 +186,7 @@ input CreateActionTaskForDayInput { # Usado por InsertActionTask
     realWorldContext: String!
     successCriteria: [String!]!
     skiMotivation: String!
-    difficultyAdaptation: DifficultyLevel
+    difficultyAdaptation: UserExperienceLevel
     xp: Int!
     steps: [CreateActionStepForTaskInput!]
 }
@@ -311,14 +301,15 @@ mutation CreateFullLearningPlan($input: CreateFullLearningPlanInput!) @auth(leve
 }
 
 """
-Inserta el MainContent para un DayContent existente.
+Inserta el MainContentItem para un DayContent existente.
 Llamada por el backend (ContentGenerator.service.ts como parte de saveDailyContentDetailsInDB).
 """
-mutation InsertMainContent($input: CreateMainContentForItemInput!) @auth(level: NO_ACCESS) {
-  mainContent_insert(data: $input) {
+mutation InsertMainContentItem($input: CreateMainContentForItemInput!) @auth(level: NO_ACCESS) {
+  mainContentItem_insert(data: $input) {
     id
     dayContentId
-    contentType
+    title
+    xp
   }
 }
 
@@ -429,5 +420,43 @@ mutation UpdateStreakData($input: UpdateStreakDataInput!) @auth(level: NO_ACCESS
     currentStreak
     longestStreak
     lastContributionDate
+  }
+}
+
+"""
+Permite a un usuario cambiar su curso activo.
+Pone en PAUSED el enrollment actual IN_PROGRESS y pone en IN_PROGRESS el seleccionado.
+Se debe llamar con el token de autenticación del usuario.
+"""
+mutation SwitchActiveEnrollment($enrollmentId: ID!) @auth(level: USER) {
+  # Paso 1: Poner en PAUSED el enrollment actualmente en progreso del usuario.
+  # El filtro se asegura de que solo afecte a las inscripciones del usuario autenticado.
+  enrollment_update(
+    where: {
+      userId: { eq_expr: "auth.uid" }
+      status: { eq: IN_PROGRESS }
+    }
+    data: { status: PAUSED }
+  ) {
+    id
+    status
+  }
+  
+  # Paso 2: Poner en IN_PROGRESS el enrollment seleccionado.
+  # El filtro se asegura de que el usuario solo pueda modificar una inscripción que le pertenece.
+  enrollment_update(
+    where: {
+      id: { eq: $enrollmentId }
+      userId: { eq_expr: "auth.uid" }
+    }
+    data: { status: IN_PROGRESS }
+  ) {
+    id
+    status
+    currentDayNumber
+    learningPlan {
+      id
+      skillName
+    }
   }
 }

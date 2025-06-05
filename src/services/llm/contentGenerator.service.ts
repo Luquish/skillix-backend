@@ -8,35 +8,15 @@ import { UserSkillContext } from './skillAnalyzer.service';
 
 // Importar schemas y tipos desde el archivo centralizado
 import {
-  MainAudioContentSchema,
-  KeyConceptSchema,
-  MainReadContentSchema,
-  MainContentSchema,
-  QuizMCQBlockSchema,
-  TrueFalseBlockSchema,
-  MatchToMeaningPairSchema,
-  MatchToMeaningBlockSchema,
-  ScenarioQuizBlockSchema,
-  ExerciseBlockSchema,
   ActionTaskSchema,
   DayContentSchema,
-  SkillAnalysisSchema,
   type SkillAnalysis,
-  type MainAudioContent,
-  type KeyConcept,
-  type MainReadContent,
-  type MainContent,
-  type QuizMCQBlock,
-  type TrueFalseBlock,
-  type MatchToMeaningBlock,
-  type ScenarioQuizBlock,
-  type ExerciseBlock,
   type ActionTask,
   type DayContent
 } from './schemas';
 
 // Importar tipos de analytics.service.ts para los insights
-import { ContentOptimization, LearningPattern, StreakMaintenance } from './schemas';
+import { ContentOptimization, LearningPattern } from './schemas';
 import { SYSTEM_PROMPT_CONTENT_GENERATOR, SYSTEM_PROMPT_ACTION_DAY_CREATOR } from './prompts';
 
 const config = getConfig();
@@ -77,7 +57,7 @@ export interface ContentGenerationInput {
 export interface ActionDayInput {
   dayInfo: DayInfoForContent; 
   userData: UserDataForContent;
-  skillAnalysisContext?: SkillAnalysis; 
+  skillAnalysisContext: SkillAnalysis; 
   adaptiveInsights?: AdaptiveInsightsForContent | null; // Usar el tipo más específico
 }
 
@@ -136,7 +116,7 @@ Action Day Specifics:
 `;
   if (skillAnalysisContext) {
     userMessage += `\nOverall Skill Context (from Skill Analysis):
-- Skill Category: ${skillAnalysisContext.skill_category}
+- Skill Category: ${skillAnalysisContext.skillCategory}
 - Key Components relevant to this action day: (Focus on components related to '${dayInfo.focus_area}')
 `;
   }
