@@ -299,7 +299,9 @@ You will receive 'adaptiveInsights' which include 'content_optimization' (diffic
 -   \`title\`: Title for the day's lesson.
 -   \`is_action_day\`: Boolean.
     * If \`is_action_day\` is **false** (it's a regular content day):
-        * \`main_content\` (MANDATORY): An object, either 'audio' or 'read' type, based on \`userData.learning_style\` and potentially refined by \`adaptiveInsights.content_optimization.content_type_preferences\`. Include \`fun_fact\`, \`xp\`. For 'read', include \`key_concepts\`. For 'audio', include \`transcript\` and set \`audioUrl\` to "TTS_PENDING_[descriptive_title_for_tts_service]".
+        * \`main_content\` (MANDATORY): An object. It MUST contain 'title', 'fun_fact', 'xp', and a 'type' of either 'audio' or 'read'.
+            * If the type is 'read', it MUST include a detailed 'textContent' field with the core lesson text, and an array of 'key_concepts'.
+            * If the type is 'audio', it MUST include a 'transcript' and set 'audioUrl' to "TTS_PENDING_[descriptive_title_for_tts_service]".
         * \`exercises\` (MANDATORY, 3-4 types): Array of exercise objects related to \`main_content\`. Mix types: 'quiz_mcq', 'quiz_truefalse', 'match_meaning', 'scenario_quiz'. Adjust difficulty based on \`adaptiveInsights.content_optimization.difficulty_adjustment\`.
         * \`action_task\`: MUST be \`null\`.
     * If \`is_action_day\` is **true**:

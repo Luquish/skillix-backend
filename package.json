@@ -10,7 +10,8 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "jest --config jest.config.js",
-    "simulate": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/simulation.ts"
+    "simulate": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/simulation.ts",
+    "test:next-day": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/generateNextDay.ts"
   },
   "keywords": [],
   "author": "",

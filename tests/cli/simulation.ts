@@ -1,9 +1,10 @@
 import * as readline from 'readline';
 import * as dotenv from 'dotenv';
-import * as llm from '../../src/services/llm';
+import * as fs from 'fs';
+import * as path from 'path';
+
 import * as DataConnectService from '../../src/services/dataConnect.service';
 import { generateAndSaveContentForDay } from '../../src/services/contentOrchestrator.service';
-import { UserDataForContent, DayInfoForContent } from '../../src/services/llm/contentGenerator.service';
 import { OnboardingDataForPlanner, generateLearningPlanWithOpenAI } from '../../src/services/llm/learningPlanner.service';
 import { SkillAnalysis } from '../../src/services/llm/schemas';
 import { analyzeSkillWithOpenAI, UserSkillContext } from '../../src/services/llm/skillAnalyzer.service';
@@ -47,13 +48,32 @@ const inMemoryDB = {
 
 async function simulateOnboarding() {
   console.log('--- Iniciando Simulación de Onboarding ---');
-  
-  const skill = await askQuestion('¿Qué habilidad quieres aprender? (ej: "Aprender a programar en TypeScript"): ');
-  const experienceLevel = await askQuestion('¿Cuál es tu nivel de experiencia? (BEGINNER, INTERMEDIATE, ADVANCED): ') as UserSkillContext['experience'];
-  const motivation = await askQuestion('¿Cuál es tu motivación para aprender esto?: ');
-  const availableTimeMinutes = parseInt(await askQuestion('¿Cuántos minutos al día puedes dedicar? (ej: 30): '), 10);
-  const learningStyle = await askQuestion('¿Cuál es tu estilo de aprendizaje preferido? (VISUAL, AUDITORY, KINESTHETIC, READING_WRITING, MIXED): ') as any;
-  const goal = await askQuestion('¿Cuál es tu objetivo final?: ');
+
+  const useAutocomplete = await askQuestion("¿Usar autocompletado para 'Marketing Digital' (s/n)?: ");
+
+  let skill: string;
+  let experienceLevel: UserSkillContext['experience'];
+  let motivation: string;
+  let availableTimeMinutes: number;
+  let learningStyle: any;
+  let goal: string;
+
+  if (useAutocomplete.toLowerCase() === 's') {
+    console.log("Usando datos de autocompletado...");
+    skill = 'Marketing Digital';
+    experienceLevel = 'BEGINNER';
+    motivation = 'Crecer profesionalmente y adquirir nuevas habilidades.';
+    availableTimeMinutes = 10;
+    learningStyle = 'VISUAL';
+    goal = 'Obtener un conocimiento fundamental del marketing digital para aplicarlo en proyectos personales o futuros trabajos.';
+  } else {
+    skill = await askQuestion('¿Qué habilidad quieres aprender? (ej: "Aprender a programar en TypeScript"): ');
+    experienceLevel = await askQuestion('¿Cuál es tu nivel de experiencia? (BEGINNER, INTERMEDIATE, ADVANCED): ') as UserSkillContext['experience'];
+    motivation = await askQuestion('¿Cuál es tu motivación para aprender esto?: ');
+    availableTimeMinutes = parseInt(await askQuestion('¿Cuántos minutos al día puedes dedicar? (ej: 30): '), 10);
+    learningStyle = await askQuestion('¿Cuál es tu estilo de aprendizaje preferido? (VISUAL, AUDITORY, KINESTHETIC, READING_WRITING, MIXED): ') as any;
+    goal = await askQuestion('¿Cuál es tu objetivo final?: ');
+  }
 
   const userContext: UserSkillContext = {
     experience: experienceLevel,
@@ -93,7 +113,8 @@ async function simulateOnboarding() {
     // Guardar en la DB mock
     const userId = 'user_simulated_1';
     const planId = 'plan_simulated_1';
-    inMemoryDB.users.set(userId, { id: userId, name: 'Usuario Simulado', preferences: { skill, ...userContext, motivation, availableTimeMinutes } });
+    const userMock = { id: userId, name: 'Usuario Simulado', preferences: { skill, experienceLevel, motivation, availableTimeMinutes, learningStyle, goal } };
+    inMemoryDB.users.set(userId, userMock);
     
     const dbPlan = { 
         ...learningPlan, 
@@ -107,6 +128,15 @@ async function simulateOnboarding() {
     };
     inMemoryDB.learningPlans.set(planId, dbPlan);
     dbPlan.sections.forEach(s => s.days.forEach(d => inMemoryDB.days.set(d.id, d)));
+
+    // Guardar los mocks en archivos para otras pruebas
+    const fixturesDir = path.join(__dirname, '../fixtures');
+    if (!fs.existsSync(fixturesDir)) {
+      fs.mkdirSync(fixturesDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(fixturesDir, 'simulated-plan.json'), JSON.stringify(dbPlan, null, 2));
+    fs.writeFileSync(path.join(fixturesDir, 'simulated-user.json'), JSON.stringify(userMock, null, 2));
+    console.log(`\n[INFO] Plan y usuario de simulación guardados en ${fixturesDir}`);
     
     return { userId, planId };
   } else {

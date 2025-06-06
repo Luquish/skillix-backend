@@ -12,7 +12,6 @@ import {
     KeyConcept as LlmKeyConcept,
     ExerciseBlock as LlmExerciseBlock,
     ActionTask as LlmActionTask,
-    UnifiedMainContentSchema as LlmUnifiedMainContentSchemaZod, // Renombrar para evitar confusión con el tipo inferido
     MainContent as LlmMainContentType, // Este es el tipo inferido z.infer<typeof MainContentSchema>
     QuizMCQBlock as LlmQuizMCQBlock, // Para el ejemplo de mapeo
     // Añade otros tipos de LLM que puedas necesitar
