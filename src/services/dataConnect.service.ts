@@ -1,7 +1,7 @@
 // src/services/dataConnect.service.ts
 
 import { GraphqlOptions, DataConnect } from 'firebase-admin/data-connect'; // Asegúrate que DataConnect esté disponible o usa el tipo correcto para `dataConnect`
-import { dataConnect } from '../config/firebaseAdmin'; // Asumiendo que exportas la instancia inicializada como 'dataConnect'
+const { dataConnect } = require('../config/firebaseAdmin'); // Asumiendo que exportas la instancia inicializada como 'dataConnect'
 
 // Importar tipos de datos de la DB
 import * as DbTypes from './dataConnect.types';
