@@ -5,7 +5,7 @@ import { getTestUserAuthToken } from '../helpers/auth.helper';
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 
 // --- Helpers ---
-const generateRandomEmail = () => `test.plan.${Math.random().toString(36).substring(2, 10)}@skillix.com`;
+const generateRandomEmail = () => `test.plan.${Math.random().toString(36).substring(2, 10)}@tovi.com`;
 let testUser: { uid: string, email: string, token?: string | null, planId?: string } | null = null;
 let apiClient: AxiosInstance;
 

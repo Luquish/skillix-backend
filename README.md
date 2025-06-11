@@ -1,6 +1,6 @@
-# Skillix Backend 🦊
+# Tovi Backend 🦊
 
-Bienvenido al backend de Skillix, la plataforma de microlearning impulsada por IA. Este documento sirve como una guía completa de la arquitectura, los flujos de datos y, lo más importante, el paso a paso para configurar y probar el sistema.
+Bienvenido al backend de Tovi, la plataforma de microlearning impulsada por IA. Este documento sirve como una guía completa de la arquitectura, los flujos de datos y, lo más importante, el paso a paso para configurar y probar el sistema.
 
 ---
 
@@ -19,7 +19,7 @@ Bienvenido al backend de Skillix, la plataforma de microlearning impulsada por I
 
 ## Filosofía y Arquitectura Clave
 
-El backend de Skillix está diseñado en torno a dos principios fundamentales:
+El backend de Tovi está diseñado en torno a dos principios fundamentales:
 
 1.  **Orquestación de Agentes LLM**: En lugar de depender de un único LLM monolítico, el sistema utiliza un conjunto de **agentes de IA especializados** (ubicados en `src/services/llm/`). Cada agente tiene una única responsabilidad (analizar una habilidad, planificar, generar contenido, etc.), lo que permite un mayor control, calidad y facilidad de depuración.
 2.  **Robustez frente a la IA (Validación con Zod)**: La interacción con los LLM es inherentemente impredecible. Para proteger el sistema de respuestas malformadas, todas las salidas de los LLM pasan por una **rigurosa capa de validación y transformación** usando la librería **Zod** (`src/services/llm/schemas.ts`). Esto garantiza que solo datos limpios, validados y con el formato correcto entren en nuestra lógica de negocio y base de datos.
@@ -31,7 +31,7 @@ Para poner en marcha el proyecto, sigue estos pasos:
 1.  **Clonar el repositorio:**
     ```bash
     git clone <URL_DEL_REPOSITORIO>
-    cd skillix-backend
+    cd Tovi-backend
     ```
 
 2.  **Instalar dependencias:**

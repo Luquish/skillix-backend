@@ -65,7 +65,7 @@ export interface ActionDayInput {
 
 function buildContentGenerationUserMessage(input: ContentGenerationInput): string {
   const { dayInfo, userData, previousDayContentSummary, adaptiveInsights } = input;
-  let userMessage = `Generate engaging daily learning content for Skillix.
+  let userMessage = `Generate engaging daily learning content for Tovi.
 
 Target User Profile:
 - Name: ${userData.name || 'Learner'}
@@ -100,7 +100,7 @@ ${JSON.stringify(adaptiveInsights, null, 2)}
 
 function buildActionDayUserMessage(input: ActionDayInput): string {
   const { dayInfo, userData, skillAnalysisContext, adaptiveInsights } = input;
-   let userMessage = `Design an Action Day challenge for Skillix.
+   let userMessage = `Design an Action Day challenge for Tovi.
 
 Target User Profile:
 - Name: ${userData.name || 'Learner'}

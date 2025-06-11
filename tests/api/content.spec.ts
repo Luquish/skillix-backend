@@ -5,7 +5,7 @@ import * as crypto from 'crypto';
 
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 
-const generateRandomEmail = () => `test.content.${Math.random().toString(36).substring(2, 10)}@skillix.com`;
+const generateRandomEmail = () => `test.content.${Math.random().toString(36).substring(2, 10)}@tovi.com`;
 
 describe('Content API (/api/content)', () => {
     let testUser: { uid: string, email: string, token?: string | null } | null = null;

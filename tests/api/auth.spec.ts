@@ -7,7 +7,7 @@ const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 // Helper para generar un email aleatorio para cada ejecución de prueba
 const generateRandomEmail = () => {
     const randomString = Math.random().toString(36).substring(2, 10);
-    return `test.user.${randomString}@skillix.com`;
+    return `test.user.${randomString}@tovi.com`;
 };
 
 // Variable para guardar el UID del usuario creado y limpiarlo después
