@@ -46,7 +46,7 @@ export interface UserHistoryForAnalytics {
 export async function analyzeUserLearningPatterns(
   userHistory: UserHistoryForAnalytics
 ): Promise<UserAnalytics | null> {
-  const userMessageContent = `Analyze the learning patterns, predict optimal conditions, and suggest optimizations for a Skillix user based on the following historical data:
+  const userMessageContent = `Analyze the learning patterns, predict optimal conditions, and suggest optimizations for a Tovi user based on the following historical data:
 ${JSON.stringify(userHistory, null, 2)}
 
 Provide a comprehensive analysis in the exact 'UserAnalytics' JSON format specified in the system instructions.`;
@@ -95,7 +95,7 @@ Provide a comprehensive analysis in the exact 'UserAnalytics' JSON format specif
 export async function predictChurnAndSuggestInterventions(
   userHistory: UserHistoryForAnalytics
 ): Promise<StreakMaintenance | null> {
-  const userMessageContent = `Analyze the following user data to predict churn risk and suggest intervention strategies for Skillix:
+  const userMessageContent = `Analyze the following user data to predict churn risk and suggest intervention strategies for Tovi:
 ${JSON.stringify(userHistory, null, 2)}
 
 Focus on providing a 'StreakMaintenance' JSON object as specified in the system instructions.`;

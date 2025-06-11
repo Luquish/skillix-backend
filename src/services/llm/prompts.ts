@@ -1,3 +1,55 @@
+// --- Arquitectura de Servicios LLM y Agentes ---
+// Este archivo centraliza todos los prompts del sistema que utilizan los diferentes servicios de LLM.
+// Cada servicio actúa como un "agente" especializado con un rol distinto. Aquí tienes un resumen:
+//
+// - analytics.service.ts:
+//   El "Analista de Datos". Procesa el historial del usuario (tiempos de sesión, tasas de completado)
+//   y genera insights estructurados como los tiempos óptimos de aprendizaje, preferencias de
+//   contenido y análisis de riesgo de abandono (churn).
+//
+// - chatOrchestrator.service.ts:
+//   El "Agente Conversacional" (Ski el Chatbot). Utiliza un contexto enriquecido, que incluye
+//   los análisis y resúmenes del plan, para mantener conversaciones inteligentes y útiles
+//   con el usuario sobre su viaje de aprendizaje.
+//
+// - contentGenerator.service.ts:
+//   El "Diseñador Instruccional". Crea los materiales de aprendizaje diarios, incluyendo
+//   lecciones (main_content), varios tipos de quizzes (exercises) y desafíos prácticos
+//   (action_task). Utiliza los insights para adaptar la dificultad del contenido.
+//
+// - learningPlanner.service.ts:
+//   El "Desarrollador de Currículo". Diseña el plan de aprendizaje completo y de alto nivel,
+//   desglosando una habilidad en un cronograma estructurado de hitos y actividades
+//   diarias basadas en los objetivos del usuario y un análisis de la habilidad.
+//
+// - pedagogicalExpert.service.ts:
+//   El "Experto en Calidad Pedagógica". Revisa un plan de aprendizaje ya generado para
+//   evaluar su efectividad educativa, asegurando que esté bien estructurado y sea atractivo.
+//
+// - skillAnalyzer.service.ts:
+//   El "Experto en la Materia". Valida si una habilidad es enseñable en la plataforma y
+//   la descompone en sus componentes fundamentales, proporcionando un borrador inicial
+//   para el planificador de aprendizaje.
+//
+// - toviTheFox.service.ts:
+//   El "Agente de Personalidad de la Mascota". Es responsable de generar toda la comunicación
+//   que proviene directamente de Ski el Zorro, asegurando un tono consistente, juguetón y
+//   motivador para celebraciones, recordatorios y saludos diarios.
+//
+// - notifications.service.ts:
+//   Orquesta el envío de notificaciones push, usando los insights de otros servicios
+//   para determinar el contenido y el momento adecuado.
+//
+// - openai.service.ts:
+//   Un servicio de utilidad de bajo nivel que proporciona una interfaz genérica y reutilizable
+//   para la API de Chat Completion de OpenAI.
+//
+// - schemas.ts:
+//   No es un servicio, sino la columna vertebral de la integridad de los datos. Contiene
+//   todos los esquemas de Zod utilizados para parsear y validar las salidas JSON de cada
+//   agente LLM, evitando que datos malformados entren en el sistema.
+// -------------------------------------------------
+
 // Centralización de todos los SYSTEM_PROMPT usados en los servicios LLM
 
 // --- ToviTheFox ---

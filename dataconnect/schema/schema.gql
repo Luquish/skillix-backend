@@ -1,7 +1,7 @@
 # --- Tipos de Tabla Principales ---
 
 """
-Representa un usuario de la plataforma Skillix.
+Representa un usuario de la plataforma Tovi.
 """
 type User @table(name: "users", key: "firebaseUid") {
   firebaseUid: String! @col(name: "firebase_uid")
