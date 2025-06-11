@@ -3,29 +3,15 @@ import * as admin from 'firebase-admin';
 import { DataConnect, getDataConnect } from 'firebase-admin/data-connect';
 import { getConfig } from './index';
 import * as path from 'path';
-import * as fs from 'fs';
 
 const config = getConfig();
 let dataConnectInstance: DataConnect | null = null;
 
 // --- CONSTANTES DE CONFIGURACIÓN ---
-const IS_TEST_ENV = process.env.NODE_ENV === 'test';
-const IS_EMULATOR = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+const IS_EMULATOR = process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.NODE_ENV === 'test';
 
-// Lee el ID del servicio de firebase.json para asegurar consistencia.
-// NOTA: Esto asume que el script se corre desde la raíz del proyecto.
-let serviceIdFromConfig = 'skillix-backend'; // Fallback por si la lectura falla
-try {
-  const firebaseConfigPath = path.resolve(process.cwd(), 'firebase.json');
-  const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-  if (firebaseConfig.dataconnect && firebaseConfig.dataconnect.serviceId) {
-    serviceIdFromConfig = firebaseConfig.dataconnect.serviceId;
-  }
-} catch (error) {
-  console.warn('Could not read serviceId from firebase.json. Using fallback.', error);
-}
-
-const DATA_CONNECT_SERVICE_ID = serviceIdFromConfig;
+// El ID del servicio DEBE coincidir con el 'serviceId' en dataconnect.yaml
+const DATA_CONNECT_SERVICE_ID = 'skillix-db-service';
 const DATA_CONNECT_LOCATION = 'us-central1'; // O la región que uses
 
 function initialize() {
@@ -44,7 +30,7 @@ function initialize() {
   }
 
   // Una vez que la app de admin está garantizada, inicializamos DataConnect si no lo hemos hecho ya.
-  if (!dataConnectInstance && DATA_CONNECT_SERVICE_ID && DATA_CONNECT_LOCATION) {
+  if (!dataConnectInstance) {
     try {
       dataConnectInstance = getDataConnect({
         serviceId: DATA_CONNECT_SERVICE_ID,
@@ -52,12 +38,10 @@ function initialize() {
       });
       console.log(`Firebase Data Connect SDK initialized for service: ${DATA_CONNECT_SERVICE_ID} in ${DATA_CONNECT_LOCATION}`);
       if (IS_EMULATOR) {
-        console.log(`Firebase Data Connect: Emulator detected at ${process.env.FIRESTORE_EMULATOR_HOST}. The SDK will connect to the emulator.`);
+        console.log(`Firebase Data Connect: Emulator detected. The SDK will connect to the emulator.`);
       }
     } catch (error: any) {
       console.error('Failed to initialize Firebase Data Connect SDK:', error);
-      // No lances el error aquí para permitir que la app inicie incluso si Data Connect falla,
-      // pero las operaciones de DB fallarán.
     }
   }
 }

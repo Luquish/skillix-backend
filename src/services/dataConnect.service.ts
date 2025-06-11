@@ -11,11 +11,11 @@ import {
     GET_USER_BY_FIREBASE_UID_QUERY,
     CREATE_USER_MUTATION,
     DELETE_USER_MUTATION,
-    CREATE_LEARNING_PLAN_BASE_MUTATION,
-    CREATE_SKILL_ANALYSIS_MUTATION,
-    CREATE_SKILL_COMPONENT_DATA_MUTATION,
-    CREATE_PLAN_SECTION_MUTATION,
-    CREATE_DAY_CONTENT_MUTATION,
+    CREATE_LEARNING_PLAN_MUTATION_TRANSACTION,
+    CREATE_USER_PREFERENCE_MUTATION,
+    CREATE_ENROLLMENT_MUTATION,
+    UPDATE_DAY_COMPLETION_STATUS_MUTATION,
+    GET_LEARNING_PLAN_STRUCTURE_QUERY,
     CREATE_MAIN_CONTENT_ITEM_MUTATION,
     CREATE_KEY_CONCEPT_MUTATION,
     CREATE_ACTION_TASK_ITEM_MUTATION,
@@ -110,8 +110,8 @@ export const createUser = async (input: DbTypes.DbUser): Promise<{ firebaseUid: 
     };
     const response = await executeGraphQL<{ user_insert: { firebaseUid: string } }>(CREATE_USER_MUTATION, variables);
     if (response.data?.user_insert) {
-        logger.info(`User profile created for UID: ${response.data.user_insert.firebaseUid}`);
-        return response.data.user_insert;
+        logger.info(`User profile created for UID: ${input.firebaseUid}`);
+        return { firebaseUid: input.firebaseUid };
     }
     return null;
 };
@@ -127,17 +127,57 @@ export const deleteUserByFirebaseUid = async (firebaseUid: string): Promise<bool
     return deleted;
 };
 
+/**
+ * Crea las preferencias de usuario.
+ */
+export const createUserPreference = async (input: DbTypes.UserPreferenceInsert) => {
+    const response = await executeGraphQL(CREATE_USER_PREFERENCE_MUTATION, input);
+    return response.data;
+};
+
+/**
+ * Crea una nueva inscripción (enrollment) para un usuario en un plan.
+ */
+export const createEnrollment = async (input: DbTypes.EnrollmentInsert) => {
+    const response = await executeGraphQL(CREATE_ENROLLMENT_MUTATION, input);
+    return response.data;
+};
+
+/**
+ * Obtiene la estructura completa de un plan de aprendizaje por su ID.
+ */
+export const getLearningPlanStructureById = async (learningPlanId: string): Promise<DbTypes.DbLearningPlan | null> => {
+    const response = await executeGraphQL<{ learningPlans: DbTypes.DbLearningPlan[] }>(GET_LEARNING_PLAN_STRUCTURE_QUERY, { learningPlanId }, true);
+    // Data Connect devuelve un array, tomamos el primer elemento.
+    return response.data?.learningPlans?.[0] ?? null;
+};
+
+/**
+ * Actualiza el estado de completado de un día.
+ * NOTA: Esta función reemplaza la necesidad de 'updateUserEnrollmentProgress' ya que el progreso
+ * se puede calcular a partir del estado de los días.
+ */
+export const updateDayCompletionStatus = async (dayContentId: string, status: DbTypes.CompletionStatus): Promise<boolean> => {
+    const response = await executeGraphQL(UPDATE_DAY_COMPLETION_STATUS_MUTATION, { dayContentId, status });
+    return !!response.data?.dayContent_update;
+};
+
+/**
+ * Crea un plan de aprendizaje completo y sus entidades relacionadas en una sola transacción.
+ */
 export async function createFullLearningPlanInDB(
     userFirebaseUid: string,
     llmPlan: LlmLearningPlan,
     llmSkillAnalysis: LlmSkillAnalysis,
-    llmPedagogicalAnalysis: LlmPedagogicalAnalysis
-): Promise<DbTypes.DbLearningPlan | null> {
+    llmPedagogicalAnalysis: LlmPedagogicalAnalysis | null
+): Promise<{ data?: { learningPlan_insert: DbTypes.DbLearningPlan } } | null> {
     logger.info(`DataConnect: Creando plan de aprendizaje completo para user: ${userFirebaseUid}`);
 
-    // 1. Crear LearningPlan base
-    const planBaseVars = {
+    const planVariables = {
+        // User
         userFirebaseUid: userFirebaseUid,
+        
+        // LearningPlan
         skillName: llmPlan.skillName,
         generatedBy: llmPlan.generatedBy,
         generatedAt: new Date().toISOString(),
@@ -147,43 +187,46 @@ export async function createFullLearningPlanInDB(
         milestones: llmPlan.milestones,
         progressMetrics: llmPlan.progressMetrics,
         flexibilityOptions: llmPlan.flexibilityOptions,
+
+        // Sections and Days
+        sections: llmPlan.sections.map(section => ({
+            ...section,
+            days: section.days.map(day => ({
+                ...day,
+                completionStatus: 'PENDING'
+            }))
+        })),
+
+        // SkillAnalysis and Components
+        skillAnalysis: {
+            ...llmSkillAnalysis,
+            components: llmSkillAnalysis.components.map(c => ({...c}))
+        },
+
+        // PedagogicalAnalysis
+        pedagogicalAnalysis: llmPedagogicalAnalysis ? {
+            ...llmPedagogicalAnalysis,
+            // Asegúrate de que los campos coinciden con la mutación
+        } : null
     };
-    const planResponse = await executeGraphQL<{learningPlan_insert: { id: string }}>(CREATE_LEARNING_PLAN_BASE_MUTATION, planBaseVars);
-    const learningPlanId = planResponse.data?.learningPlan_insert.id;
-    if (!learningPlanId) {
-        logger.error("Fallo al crear la entidad base del LearningPlan.");
-        return null;
-    }
-    logger.info(`Plan de aprendizaje base ${learningPlanId} creado.`);
 
-    // 2. Crear SkillAnalysis y sus componentes
-    const skillAnalysisVars = { ...llmSkillAnalysis, learningPlanId };
-    const saResponse = await executeGraphQL<{skillAnalysis_insert: {id: string}}>(CREATE_SKILL_ANALYSIS_MUTATION, skillAnalysisVars);
-    const skillAnalysisId = saResponse.data?.skillAnalysis_insert.id;
-    if (skillAnalysisId) {
-        logger.info(`SkillAnalysis ${skillAnalysisId} creado.`);
-        for (const component of llmSkillAnalysis.components) {
-            await executeGraphQL(CREATE_SKILL_COMPONENT_DATA_MUTATION, { ...component, skillAnalysisId });
-        }
+    // Filtra el campo `pedagogicalAnalysis` si es nulo, para no enviarlo a GQL si no existe.
+    if (!planVariables.pedagogicalAnalysis) {
+        delete (planVariables as any).pedagogicalAnalysis;
     }
 
-    // 3. Crear Secciones y Días
-    for (const section of llmPlan.sections) {
-        const sectionVars = { learningPlanId, ...section };
-        const secResponse = await executeGraphQL<{planSection_insert: {id: string}}>(CREATE_PLAN_SECTION_MUTATION, sectionVars);
-        const sectionId = secResponse.data?.planSection_insert.id;
-        if (sectionId) {
-            logger.info(`Sección ${section.title} (${sectionId}) creada.`);
-            for (const day of section.days) {
-                await executeGraphQL(CREATE_DAY_CONTENT_MUTATION, { sectionId, ...day, completionStatus: 'PENDING' });
-            }
-        }
+    const response = await executeGraphQL<{ learningPlan_insert: DbTypes.DbLearningPlan }>(
+        CREATE_LEARNING_PLAN_MUTATION_TRANSACTION,
+        planVariables
+    );
+
+    if (response.data?.learningPlan_insert) {
+        logger.info(`Plan de aprendizaje completo ${response.data.learningPlan_insert.id} creado exitosamente.`);
+        return { data: response.data };
     }
-    
-    // NOTA: La creación de PedagogicalAnalysis se omite por brevedad, pero seguiría el mismo patrón.
-    
-    logger.info(`Plan de aprendizaje completo ${learningPlanId} creado exitosamente.`);
-    return { id: learningPlanId, ...planBaseVars } as DbTypes.DbLearningPlan;
+
+    logger.error("Fallo al crear la entidad base del LearningPlan y sus dependencias.", response.errors);
+    return null;
 }
 
 export async function saveDailyContentDetailsInDB(dayContentId: string, llmContent: LlmDayContent): Promise<boolean> {

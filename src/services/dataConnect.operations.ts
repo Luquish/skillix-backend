@@ -10,6 +10,49 @@ export const GET_USER_BY_FIREBASE_UID_QUERY = `
   }
 `;
 
+export const GET_LEARNING_PLAN_STRUCTURE_QUERY = `
+  query GetLearningPlanStructure($learningPlanId: UUID!) {
+    learningPlans(where: { id: { eq: $learningPlanId } }) {
+      id
+      userFirebaseUid
+      skillName
+      sections: planSections_on_learningPlan {
+        id
+        title
+        order
+        days: dayContents_on_section {
+          id
+          dayNumber
+          title
+          focusArea
+          isActionDay
+          objectives
+          completionStatus
+        }
+      }
+      skillAnalysis: skillAnalysis_on_learningPlan {
+        # ...los campos que necesites de skill analysis...
+        skillName
+        skillCategory
+        marketDemand
+        isSkillValid
+        learningPathRecommendation
+        realWorldApplications
+        complementarySkills
+        components: skillComponentDatas_on_skillAnalysis {
+            name
+            description
+            difficultyLevel
+            prerequisitesText
+            estimatedLearningHours
+            practicalApplications
+            order
+        }
+      }
+    }
+  }
+`;
+
 // --- MUTATIONS ---
 
 export const CREATE_USER_MUTATION = `
@@ -21,14 +64,73 @@ export const CREATE_USER_MUTATION = `
       firebaseUid: $firebaseUid, email: $email, name: $name, authProvider: $authProvider,
       platform: $platform, photoUrl: $photoUrl, emailVerified: $emailVerified,
       appleUserIdentifier: $appleUserIdentifier
-    }) { firebaseUid }
+    })
   }
 `;
 
 export const DELETE_USER_MUTATION = `
   mutation DeleteUser($firebaseUid: String!) {
-    user_delete(key: { firebaseUid: $firebaseUid }) { firebaseUid }
+    user_delete(key: { firebaseUid: $firebaseUid })
   }
+`;
+
+export const CREATE_USER_PREFERENCE_MUTATION = `
+  mutation CreateUserPreference(
+    $userFirebaseUid: String!, $skill: String!, $experienceLevel: String!,
+    $motivation: String!, $availableTimeMinutes: Int!, $learningStyle: String!, $goal: String!
+  ) {
+    userPreference_insert(data: {
+      userFirebaseUid: $userFirebaseUid, skill: $skill, experienceLevel: $experienceLevel,
+      motivation: $motivation, availableTimeMinutes: $availableTimeMinutes,
+      learningStyle: $learningStyle, goal: $goal
+    }) { id }
+  }
+`;
+
+export const CREATE_ENROLLMENT_MUTATION = `
+  mutation CreateEnrollment($userFirebaseUid: String!, $learningPlanId: UUID!, $status: String!) {
+    enrollment_insert(data: {
+      userFirebaseUid: $userFirebaseUid,
+      learningPlanId: $learningPlanId,
+      status: $status
+    }) { id }
+  }
+`;
+
+export const CREATE_LEARNING_PLAN_MUTATION_TRANSACTION = `
+mutation CreateFullLearningPlan(
+  $userFirebaseUid: String!, $skillName: String!, $generatedBy: String!, $generatedAt: Timestamp!,
+  $totalDurationWeeks: Int!, $dailyTimeMinutes: Int!, $skillLevelTarget: String!,
+  $milestones: [String!]!, $progressMetrics: [String!]!, $flexibilityOptions: [String!],
+  $sections: [PlanSectionInsert!]!,
+  $skillAnalysis: SkillAnalysisInsert!,
+  $pedagogicalAnalysis: PedagogicalAnalysisInsert
+) @transaction {
+  learningPlan_insert(data: {
+    userFirebaseUid: $userFirebaseUid,
+    skillName: $skillName,
+    generatedBy: $generatedBy,
+    generatedAt: $generatedAt,
+    totalDurationWeeks: $totalDurationWeeks,
+    dailyTimeMinutes: $dailyTimeMinutes,
+    skillLevelTarget: $skillLevelTarget,
+    milestones: $milestones,
+    progressMetrics: $progressMetrics,
+    flexibilityOptions: $flexibilityOptions,
+    planSections_on_learningPlan: {
+      insert: $sections
+    },
+    skillAnalysis_on_learningPlan: {
+      insert: $skillAnalysis
+    },
+    pedagogicalAnalysis_on_learningPlan: {
+      insert: $pedagogicalAnalysis
+    }
+  }) {
+    id
+    skillName
+  }
+}
 `;
 
 export const CREATE_LEARNING_PLAN_BASE_MUTATION = `
@@ -165,4 +267,13 @@ mutation CreateMatchPair($exerciseId: UUID!, $prompt: String!, $correctAnswer: S
     exerciseId: $exerciseId, prompt: $prompt, correctAnswer: $correctAnswer
   }) { id }
 }
+`;
+
+export const UPDATE_DAY_COMPLETION_STATUS_MUTATION = `
+  mutation UpdateDayCompletionStatus($dayContentId: UUID!, $status: String!) {
+    dayContent_update(key: { id: $dayContentId }, data: { completionStatus: $status }) {
+      id
+      completionStatus
+    }
+  }
 `; 

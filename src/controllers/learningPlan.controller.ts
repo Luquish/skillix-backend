@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { z } from 'zod';
-import { SkillAnalysisSchema } from '../services/llm/schemas';
+import { LearningPlan, SkillAnalysis, SkillAnalysisSchema } from '../services/llm/schemas';
 import * as DataConnectService from '../services/dataConnect.service';
 import * as llmService from '../services/llm/learningPlanner.service';
 import * as pedagogicalExpert from '../services/llm/pedagogicalExpert.service';
@@ -32,7 +32,8 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
 
     // Guardar las preferencias del usuario
     await DataConnectService.createUserPreference({
-      userId: user.id,
+      userFirebaseUid: user.firebaseUid,
+      user: user,
       skill: onboardingPrefs.skill,
       experienceLevel: onboardingPrefs.experience,
       motivation: onboardingPrefs.motivation,
@@ -40,7 +41,7 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
       learningStyle: onboardingPrefs.learningStyle,
       goal: onboardingPrefs.goal,
     });
-    console.log(`Preferencias guardadas para el usuario ${user.id}`);
+    console.log(`Preferencias guardadas para el usuario ${user.firebaseUid}`);
 
     // 2. Generar el plan de aprendizaje con el LLM
     console.log(`Generating initial learning plan for skill: "${onboardingPrefs.skill}"...`);
@@ -82,7 +83,7 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
     }
 
     // 4. NEW: Refinar el plan utilizando el análisis pedagógico
-    let finalPlan = initialPlan; // Usar el plan inicial como fallback
+    let finalPlan: LearningPlan = initialPlan; // Usar el plan inicial como fallback
     if (pedagogicalAnalysis) {
       console.log('Refining the learning plan using pedagogical analysis...');
       const refinedPlanAttempt = await llmService.generateLearningPlanWithOpenAI({
@@ -106,52 +107,38 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
     }
 
     // Mapear y guardar el plan completo en Data Connect
-    // NOTA: Con los schemas.ts corregidos para ser estrictos, este mapeo debería funcionar sin errores de tipo.
-    const planInputForDb: DataConnectService.CreateFullLearningPlanInputForService = {
-        userId: user.id,
-        skillName: finalPlan.skillName,
-        generatedBy: finalPlan.generatedBy,
-        generatedAt: new Date().toISOString(),
-        totalDurationWeeks: finalPlan.totalDurationWeeks,
-        dailyTimeMinutes: finalPlan.dailyTimeMinutes,
-        skillLevelTarget: finalPlan.skillLevelTarget,
-        milestones: finalPlan.milestones,
-        progressMetrics: finalPlan.progressMetrics,
-        flexibilityOptions: finalPlan.flexibilityOptions,
-        skillAnalysis: skillAnalysis as DataConnectService.CreateFullLearningPlanInputForService['skillAnalysis'],
-        pedagogicalAnalysis: pedagogicalAnalysis as DataConnectService.CreateFullLearningPlanInputForService['pedagogicalAnalysis'],
-        sections: finalPlan.sections as DataConnectService.CreateFullLearningPlanInputForService['sections'],
-        dailyActivityTemplates: finalPlan.dailyActivities as DataConnectService.CreateFullLearningPlanInputForService['dailyActivityTemplates'],
-        suggestedResources: finalPlan.resources as DataConnectService.CreateFullLearningPlanInputForService['suggestedResources'],
-    };
-    
-    const createdPlan = await DataConnectService.createFullLearningPlanInDB(planInputForDb);
+    const createdPlanResponse = await DataConnectService.createFullLearningPlanInDB(
+      user.firebaseUid,
+      finalPlan,
+      skillAnalysis,
+      pedagogicalAnalysis
+    );
 
-    if (!createdPlan) {
+    const createdPlan = createdPlanResponse?.data?.learningPlan_insert;
+
+    if (!createdPlan || !createdPlan.id) {
         return res.status(500).json({ message: "Failed to save the learning plan to the database." });
     }
     console.log(`Plan de aprendizaje guardado en DB con ID: ${createdPlan.id}`);
     
     // Crear la inscripción (enrollment) para el usuario en este plan
     const enrollment = await DataConnectService.createEnrollment({
-      userId: user.id,
+      userFirebaseUid: user.firebaseUid,
       learningPlanId: createdPlan.id,
-      status: 'IN_PROGRESS',
-      currentDayNumber: 1, // Empieza en el día 1
-      totalXpEarned: 0,
+      status: 'ACTIVE',
     });
 
     if (!enrollment) {
-      console.error(`Failed to create enrollment for user ${user.id} in plan ${createdPlan.id}.`);
+      console.error(`Failed to create enrollment for user ${user.firebaseUid} in plan ${createdPlan.id}.`);
       // No devolvemos un error fatal aquí, pero es una advertencia importante.
     } else {
-      console.log(`Enrollment created successfully for user ${user.id} in plan ${createdPlan.id}.`);
+      console.log(`Enrollment created successfully for user ${user.firebaseUid} in plan ${createdPlan.id}.`);
     }
 
     // Generar el contenido para el Día 1 usando el orquestador
     console.log(`Triggering content generation for Day 1 of plan ${createdPlan.id}...`);
     const day1Result = await ContentOrchestrator.generateAndSaveContentForDay({
-      userId: user.id,
+      userId: user.firebaseUid,
       learningPlanId: createdPlan.id,
       dayNumber: 1,
     });

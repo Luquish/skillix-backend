@@ -22,6 +22,8 @@ Bienvenido al backend de Tovi, la plataforma de microlearning impulsada por IA. 
 8.  [Cómo Empezar](#cómo-empezar)
 9.  [Entorno de Desarrollo Local con Emuladores](#entorno-de-desarrollo-local-con-emuladores)
 10. [Simulación y Pruebas](#simulación-y-pruebas)
+11. [Pruebas End-to-End (E2E) con Emuladores](#pruebas-end-to-end-e2e-con-emuladores)
+12. [Scripts del Proyecto](#scripts-del-proyecto)
 
 ---
 
@@ -315,18 +317,85 @@ Para facilitar el desarrollo y las pruebas sin depender de una base de datos rea
     -   Testea específicamente la lógica para generar el contenido del día siguiente (Día 2).
     -   Esto permite probar partes aisladas del sistema de forma rápida y repetible.
 
-## Pruebas de Integración de API
+## Pruebas End-to-End (E2E) con Emuladores
 
-El proyecto cuenta con un conjunto de pruebas de integración (`tests/api/*.spec.ts`) que utilizan **Jest** para ejecutar peticiones HTTP reales contra el servidor.
+El proyecto cuenta con una suite de pruebas E2E en `tests/api/*.spec.ts` que utilizan **Jest** para ejecutar peticiones HTTP reales contra la API. Estas pruebas validan los flujos completos, desde la solicitud HTTP hasta la interacción con la base de datos, asegurando que todas las capas del sistema funcionen juntas correctamente.
 
-A diferencia de las simulaciones, estas pruebas **requieren que el entorno de desarrollo completo (emuladores y servidor) esté en ejecución**, como se describe en la sección "Flujo 2: Desarrollo y Pruebas".
+A diferencia de las simulaciones CLI, estas pruebas se ejecutan contra los **Emuladores de Firebase**, proporcionando un entorno de alta fidelidad que replica el comportamiento de producción.
 
-### Cómo Ejecutar las Pruebas
+### El Flujo de `pnpm test:e2e`
 
-Con el servidor (`pnpm dev`) y los emuladores (`firebase emulators:start`) corriendo en sus respectivas terminales, simplemente ejecuta:
+El comando principal para ejecutar las pruebas es `pnpm test:e2e`. Este comando orquesta una serie de pasos para crear un entorno de prueba limpio y automatizado, ideal para integración continua (CI) o para ejecutar la suite completa localmente.
 
 ```bash
-pnpm test
+pnpm test:e2e
 ```
 
-Jest descubrirá y ejecutará todos los archivos de prueba. El flag `--runInBand` (configurado en `package.json`) asegura que los archivos de prueba se ejecuten de forma secuencial, lo cual es importante para evitar conflictos al crear y eliminar datos de prueba en un entorno compartido.
+Esto ejecuta el script `"firebase emulators:exec --project=skillix-db \"pnpm test:run\""`. Desglosemos lo que sucede:
+
+1.  **`firebase emulators:exec`**: Este es el comando clave de Firebase. Inicia los emuladores definidos en `firebase.json` (Auth y Data Connect en nuestro caso).
+2.  **`--project=skillix-db`**: Especifica el ID del proyecto a utilizar, asegurando que los emuladores se configuren correctamente.
+3.  **`"pnpm test:run"`**: Una vez que los emuladores están listos y escuchando, `emulators:exec` ejecuta el comando que se le pasa entre comillas. En nuestro caso, es `pnpm test:run`.
+
+El script `test:run` es `"start-server-and-test start:test http://localhost:8080 test"`. Aquí ocurre la magia:
+
+1.  **`start-server-and-test`**: Es una utilidad que gestiona el ciclo de vida del servidor para las pruebas.
+2.  **`start:test`**: Le dice a `start-server-and-test` que ejecute el script `pnpm start:test` para iniciar nuestro servidor Express. Este script usa `NODE_ENV=test` para asegurarse de que el servidor se inicie en modo de prueba.
+3.  **`http://localhost:8080`**: `start-server-and-test` esperará hasta que la URL `http://localhost:8080` esté activa y responda, lo que significa que nuestro servidor está listo para recibir peticiones.
+4.  **`test`**: Una vez que el servidor está listo, ejecuta el script `pnpm test`, que a su vez ejecuta Jest (`jest --runInBand`).
+
+**En resumen, el flujo completo es:**
+`emulators:exec` inicia los emuladores -> `start-server-and-test` inicia el servidor -> `start-server-and-test` espera a que el servidor esté listo -> `start-server-and-test` ejecuta las pruebas de Jest -> Jest finaliza -> `start-server-and-test` detiene el servidor -> `emulators:exec` detiene los emuladores.
+
+Todo este proceso es completamente autónomo.
+
+### Autenticación en las Pruebas
+
+Los endpoints protegidos requieren un token de autenticación válido. Dado que las pruebas se ejecutan contra el emulador de Auth, no podemos usar tokens falsos.
+
+Para solucionar esto, hemos creado un helper en `tests/helpers/auth.helper.ts`.
+
+-   **`getTestUserAuthToken(email, password)`**: Esta función se comunica directamente con la **API REST del emulador de Auth**.
+    1.  Crea un usuario de prueba en el emulador de Auth (esto se hace en el `beforeAll` de los archivos de prueba, usando el endpoint `/api/auth/signup`).
+    2.  Llama al endpoint del emulador para "iniciar sesión" con el email y la contraseña de ese usuario.
+    3.  El emulador devuelve un **ID Token real y válido**, aunque de corta duración.
+    4.  Este token se utiliza en las cabeceras `Authorization: Bearer <token>` de las peticiones de `axios` en las pruebas, permitiendo un testeo adecuado de las rutas protegidas.
+
+## Scripts del Proyecto
+
+A continuación se describen los scripts definidos en el archivo `package.json`, que sirven para automatizar las tareas comunes de desarrollo, prueba y despliegue.
+
+### Desarrollo
+-   `pnpm dev`
+    -   **Descripción**: Inicia el servidor en modo de desarrollo. Utiliza `nodemon` para vigilar cambios en los archivos `.ts` dentro del directorio `src/`. Cuando se detecta un cambio, reinicia automáticamente el servidor usando `ts-node` para ejecutar el código TypeScript directamente, sin necesidad de compilarlo previamente.
+    -   **Uso**: Es el comando principal que usarás durante el desarrollo diario.
+
+### Construcción y Producción
+-   `pnpm build`
+    -   **Descripción**: Prepara el proyecto para producción. Primero, borra el directorio `dist/` para asegurar una construcción limpia, y luego utiliza el compilador de TypeScript (`tsc`) para transpilar todo el código de `src/` a JavaScript plano en `dist/`.
+-   `pnpm start`
+    -   **Descripción**: Ejecuta la aplicación en modo producción. Llama a `node` para ejecutar el punto de entrada de la aplicación (`dist/app.js`) que fue generado por el comando `pnpm build`.
+
+### Linter
+-   `pnpm lint`
+    -   **Descripción**: Analiza todo el código TypeScript del proyecto en busca de errores de estilo y posibles bugs, según las reglas configuradas en `.eslintrc.js`.
+-   `pnpm lint:fix`
+    -   **Descripción**: Hace lo mismo que `pnpm lint`, pero además intenta corregir automáticamente todos los problemas que sean solucionables.
+
+### Pruebas y Emulación
+-   `pnpm test`
+    -   **Descripción**: Ejecuta la suite de pruebas de integración y unitarias usando Jest. El flag `--runInBand` asegura que los archivos de prueba se ejecuten de forma secuencial, lo cual es crucial para evitar que las pruebas que interactúan con la base de datos interfieran entre sí.
+-   `pnpm start:test`
+    -   **Descripción**: Un script auxiliar que inicia el servidor de Express con la variable de entorno `NODE_ENV` establecida en `test`. Esto permite que la aplicación se configure de manera diferente para las pruebas (por ejemplo, usando una configuración de base de datos específica para tests).
+-   `pnpm test:run`
+    -   **Descripción**: Otro script auxiliar, diseñado para ser usado por `test:e2e`. Utiliza la utilidad `start-server-and-test` para iniciar el servidor (`pnpm start:test`), esperar a que esté listo en `http://localhost:8080`, y luego ejecutar las pruebas (`pnpm test`). Se encarga de apagar el servidor al finalizar.
+-   `pnpm test:e2e`
+    -   **Descripción**: **El comando principal para ejecutar las pruebas End-to-End.** Utiliza `firebase emulators:exec` para iniciar los emuladores de Firebase, ejecutar todo el flujo de `pnpm test:run` en ese entorno, y finalmente apagar los emuladores. Es la forma más fiable de probar la aplicación completa.
+-   `pnpm test:migrate`
+    -   **Descripción**: Ejecuta la migración del esquema de Data Connect contra la base de datos local. Al igual que `test:e2e`, usa `firebase emulators:exec` para garantizar que la migración se realice en un entorno controlado y limpio. Se debe usar cada vez que se modifica el `schema.gql`.
+
+### Scripts de Simulación (CLI)
+-   `pnpm simulate`
+    -   **Descripción**: Ejecuta el script de simulación interactiva ubicado en `tests/cli/simulation.ts`. Permite simular el flujo completo de onboarding de un usuario desde la línea de comandos, generando un plan de aprendizaje que se guarda como `fixture` para otras pruebas.
+-   `pnpm test:next-day`
+    -   **Descripción**: Ejecuta un script no interactivo (`tests/cli/generateNextDay.ts`) que carga los datos generados por `pnpm simulate` y prueba específicamente la lógica para generar el contenido del día siguiente.

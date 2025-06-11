@@ -1,7 +1,7 @@
 import * as DataConnectService from './dataConnect.service';
 import * as ContentGenerator from './llm/contentGenerator.service';
 import { SkillAnalysis } from './llm/schemas';
-import { DbLearningPlan, DbUser } from './dataConnect.types';
+import { CompletionStatus, DbLearningPlan, DbUser } from './dataConnect.types';
 
 interface OrchestratorInput {
   userId: string;
@@ -28,21 +28,22 @@ export const generateAndSaveContentForDay = async (
 
   // 1. Obtener toda la información necesaria en paralelo
   const [plan, user] = await Promise.all([
-    DataConnectService.getLearningPlanStructureFromDB(learningPlanId),
-    DataConnectService.getUserById(userId), // Necesitamos una función para obtener usuario por ID de la DB
+    DataConnectService.getLearningPlanStructureById(learningPlanId),
+    DataConnectService.getUserByFirebaseUid(userId),
   ]);
 
   // 2. Validaciones
   if (!plan) {
     return { success: false, message: 'Learning plan not found.', statusCode: 404 };
   }
-  if (plan.userId !== userId) {
+  if (plan.userFirebaseUid !== userId) {
     return { success: false, message: 'User is not authorized to modify this plan.', statusCode: 403 };
   }
-  if (!user || !user.preferences) {
-    return { success: false, message: 'User profile or preferences not found.', statusCode: 404 };
+  if (!user) {
+    return { success: false, message: 'User profile not found.', statusCode: 404 };
   }
-  if (dayNumber > (plan.sections?.flatMap(s => s.days).length ?? 0)) {
+  const totalDays = plan.sections?.flatMap(s => s.days ?? []).length ?? 0;
+  if (dayNumber > totalDays) {
     console.log(`Plan ${learningPlanId} completado. No hay más días que generar.`);
     return { success: true, message: 'Learning plan successfully completed. No more content to generate.' };
   }
@@ -63,12 +64,12 @@ export const generateAndSaveContentForDay = async (
       objectives: dayMetadata.objectives,
     },
     userData: {
-      name: user.name,
-      skill: user.preferences.skill,
-      experience: user.preferences.experienceLevel,
-      time: `${user.preferences.availableTimeMinutes} minutes`,
-      learning_style: user.preferences.learningStyle,
-      goal: user.preferences.goal,
+      name: user.name ?? 'Learner',
+      skill: plan.skillName,
+      experience: plan.skillLevelTarget,
+      time: `${plan.dailyTimeMinutes} minutes`,
+      learning_style: "MIXED",
+      goal: `Aprender ${plan.skillName}`,
     },
     previousDayContentSummary: performanceSummary ? { title: `Day ${dayNumber - 1}`, userPerformance: performanceSummary } : undefined,
     // adaptiveInsights se puede añadir aquí cuando el servicio de analítica esté listo
@@ -101,8 +102,8 @@ export const generateAndSaveContentForDay = async (
     return { success: false, message: 'Failed to save generated content to the database.', statusCode: 500 };
   }
 
-  // 7. Actualizar el progreso del usuario en su 'enrollment'
-  await DataConnectService.updateUserEnrollmentProgress(userId, learningPlanId, dayNumber);
+  // 7. Actualizar el progreso del usuario marcando el día como 'IN_PROGRESS'
+  await DataConnectService.updateDayCompletionStatus(dayMetadata.id, CompletionStatus.IN_PROGRESS);
   
   console.log(`Contenido para el día ${dayNumber} del plan ${learningPlanId} generado y guardado exitosamente.`);
   return {

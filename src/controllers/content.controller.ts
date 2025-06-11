@@ -9,7 +9,7 @@ export const generateNextDayContentController = async (req: AuthenticatedRequest
   const { learningPlanId, completedDayNumber } = req.body;
   
   // El ID de usuario de nuestra DB se adjunta a la request por el middleware isAuthenticated
-  const userId = req.user?.id;
+  const userId = req.user?.firebaseUid;
 
   if (!userId) {
     // Esta comprobación es una salvaguarda, el middleware ya debería haberlo manejado.

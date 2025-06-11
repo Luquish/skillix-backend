@@ -1,24 +1,50 @@
 import axios, { AxiosInstance } from 'axios';
 import * as admin from 'firebase-admin';
+import { getTestUserAuthToken } from '../helpers/auth.helper';
 
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 
 const generateRandomEmail = () => `test.content.${Math.random().toString(36).substring(2, 10)}@skillix.com`;
 
 describe('Content API (/api/content)', () => {
-    let testUser: { uid: string, email: string } | null = null;
+    let testUser: { uid: string, email: string, token?: string | null } | null = null;
     let apiClient: AxiosInstance;
+    let learningPlanId: string | null = null;
 
     beforeAll(async () => {
+        if (admin.apps.length === 0) {
+            admin.initializeApp();
+        }
+
         const email = generateRandomEmail();
         const password = 'password123';
         const signupResponse = await axios.post(`${API_BASE_URL}/auth/signup`, { email, password, name: 'Content Tester' });
         testUser = { uid: signupResponse.data.user.uid, email };
-        apiClient = axios.create({ baseURL: API_BASE_URL });
-    });
+        
+        testUser.token = await getTestUserAuthToken(email, password);
+
+        apiClient = axios.create({ 
+            baseURL: API_BASE_URL,
+            headers: { 'Authorization': `Bearer ${testUser.token}` }
+        });
+
+        // Crear un plan de aprendizaje para usarlo en las pruebas de contenido
+        const onboardingPrefs = { skill: 'Testing en NodeJS', experience: 'BEGINNER', availableTimeMinutes: 15, learningStyle: 'VISUAL', motivation: 'Escribir pruebas robustas', goal: 'Testear mi API' };
+        const skillAnalysis = { skillName: 'Testing en Node.js', skillCategory: 'TECHNICAL', marketDemand: 'HIGH', components: [{ name: 'Basics', description: '...', difficultyLevel: 'BEGINNER', prerequisites: [], estimatedLearningHours: 8, practical_applications: [] }], learningPathRecommendation: 'Start with Jest', realWorldApplications: ['Backend Dev'], complementarySkills: ['TypeScript'], isSkillValid: true, viability_reason: 'Crucial for robust software' };
+        
+        try {
+            const planResponse = await apiClient.post('/learning-plan/create', { onboardingPrefs, skillAnalysis });
+            learningPlanId = planResponse.data.planId;
+            console.log(`[Test Setup] Plan de aprendizaje ${learningPlanId} creado para el usuario ${testUser.uid}`);
+        } catch (error: any) {
+            console.error("Fallo al crear el plan de aprendizaje en beforeAll:", error.response?.data || error.message);
+            throw new Error("La creación del plan de aprendizaje falló en beforeAll, las pruebas no pueden continuar.");
+        }
+    }, 60000);
 
     afterAll(async () => {
         if (testUser?.uid) {
+            // Aquí también deberíamos limpiar el plan de aprendizaje, pero por ahora solo el usuario.
             await admin.auth().deleteUser(testUser.uid);
             console.log(`[Test Cleanup] Usuario de contenido ${testUser.uid} eliminado.`);
         }
@@ -26,8 +52,9 @@ describe('Content API (/api/content)', () => {
 
     describe('POST /generate-next', () => {
         it('debería devolver 401 Unauthorized si no se provee un token', async () => {
+            const unauthedClient = axios.create({ baseURL: API_BASE_URL });
             try {
-                await apiClient.post('/content/generate-next', {
+                await unauthedClient.post('/content/generate-next', {
                     learningPlanId: 'some-plan-id',
                     completedDayNumber: 1
                 });
@@ -54,10 +81,35 @@ describe('Content API (/api/content)', () => {
             }
         });
 
-        // Al igual que con learningPlan, la prueba de éxito real requiere un token válido.
-        // El flujo completo sería: crear usuario -> obtener token -> crear plan -> obtener planId -> llamar a generate-next.
-        it.skip('debería generar contenido para el día siguiente con un token válido', async () => {
-            // Lógica de prueba para el caso de éxito
+        it('debería devolver 404 Not Found si el plan de aprendizaje no existe', async () => {
+            expect(testUser?.token).toBeDefined();
+
+            try {
+                await apiClient.post('/content/generate-next', {
+                    learningPlanId: 'non-existent-plan-id',
+                    completedDayNumber: 1
+                });
+            } catch (error: any) {
+                expect(error.response.status).toBe(404);
+                expect(error.response.data.message).toContain('Learning plan not found');
+            }
         });
+
+        it('debería generar contenido para el día siguiente exitosamente', async () => {
+            expect(learningPlanId).toBeDefined();
+            expect(learningPlanId).not.toBeNull();
+
+            const response = await apiClient.post('/content/generate-next', {
+                learningPlanId: learningPlanId,
+                completedDayNumber: 1, // Queremos contenido para el día 2
+            });
+
+            expect(response.status).toBe(200);
+            expect(response.data.success).toBe(true);
+            expect(response.data.message).toContain('Content for day 2 generated and saved successfully.');
+            expect(response.data.data).toBeDefined();
+            expect(response.data.data.title).toBeDefined();
+            expect(response.data.data.objectives).toBeInstanceOf(Array);
+        }, 60000); // Aumentar timeout porque esta prueba llama al LLM
     });
 }); 

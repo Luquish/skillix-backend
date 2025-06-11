@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import * as DataConnectService from '../services/dataConnect.service';
 import * as FirebaseAdminService from '../services/firebaseAdmin.service';
-import { AuthProvider, Platform } from '../services/dataConnect.types';
+import { AuthProvider, DbUser, Platform } from '../services/dataConnect.types';
 
 // Esquema de validación para el registro
 const SignUpSchema = z.object({
@@ -32,11 +32,11 @@ export const signUpController = async (req: Request, res: Response) => {
 
     // 3. Crear el registro del usuario en nuestra base de datos (Data Connect)
     console.log(`Creating user profile in Data Connect DB for UID: ${userRecord.uid}...`);
-    const newUserInput: DataConnectService.CreateUserInputForService = {
+    const newUserInput: DbUser = {
       firebaseUid: userRecord.uid,
       email: userRecord.email!,
       name: userRecord.displayName,
-      authProvider: 'EMAIL',
+      authProvider: AuthProvider.EMAIL,
       emailVerified: userRecord.emailVerified,
     };
     const createdUserInDb = await DataConnectService.createUser(newUserInput);
@@ -47,16 +47,15 @@ export const signUpController = async (req: Request, res: Response) => {
       console.error(`CRITICAL: User created in Auth (uid: ${userRecord.uid}) but failed to create in Data Connect DB.`);
       return res.status(500).json({ message: 'User authenticated but failed to create profile.' });
     }
-    console.log(`User profile created in Data Connect DB with ID: ${createdUserInDb.id}`);
+    console.log(`User profile created in Data Connect DB for UID: ${createdUserInDb.firebaseUid}`);
 
     // 4. Devolver la respuesta (sin incluir la contraseña)
     res.status(201).json({
       message: 'User created successfully!',
       user: {
-        id: createdUserInDb.id,
-        uid: createdUserInDb.firebaseUid,
-        email: createdUserInDb.email,
-        name: createdUserInDb.name,
+        uid: newUserInput.firebaseUid,
+        email: newUserInput.email,
+        name: newUserInput.name,
       },
     });
   } catch (error: any) {
@@ -118,16 +117,16 @@ export const socialSignInController = async (req: Request, res: Response) => {
       let authProvider: AuthProvider;
 
       if (providerId === 'google.com') {
-        authProvider = 'GOOGLE';
+        authProvider = AuthProvider.GOOGLE;
       } else if (providerId === 'apple.com') {
-        authProvider = 'APPLE';
+        authProvider = AuthProvider.APPLE;
       } else {
         // En el flujo de sign-up con email, el proveedor no viene en el token de la misma forma.
         // Pero para el social sign-in, este es el fallback. Usaremos 'EMAIL' según la definición de tipo.
-        authProvider = 'EMAIL';
+        authProvider = AuthProvider.EMAIL;
       }
 
-      const newUserInput: DataConnectService.CreateUserInputForService = {
+      const newUserInput: DbUser = {
         firebaseUid: uid,
         email: email!,
         name: name,
@@ -143,14 +142,13 @@ export const socialSignInController = async (req: Request, res: Response) => {
         return res.status(500).json({ message: 'Failed to create user profile.' });
       }
 
-      console.log(`Nuevo usuario creado en DB con ID: ${createdUserInDb.id}`);
+      console.log(`Nuevo usuario creado en DB con UID: ${createdUserInDb.firebaseUid}`);
       return res.status(201).json({
         message: 'User created successfully!',
         user: {
-          id: createdUserInDb.id,
-          uid: createdUserInDb.firebaseUid,
-          email: createdUserInDb.email,
-          name: createdUserInDb.name,
+          uid: newUserInput.firebaseUid,
+          email: newUserInput.email,
+          name: newUserInput.name,
         }
       });
     }
