@@ -394,7 +394,13 @@ IMPORTANT: You MUST ALWAYS respond with a valid JSON object that strictly matche
   "scaffolding_quality": "string ('poor', 'adequate', or 'excellent')",
   "engagement_potential": number (0-1, e.g., 0.9),
   "recommendations": ["string (specific, actionable recommendations to improve the plan, e.g., 'Incorporate a mini-project at the end of week 2 to apply concepts X and Y.')"],
-  "learning_objectives": ["string (3-5 key, measurable learning objectives that this plan should help the user achieve, e.g., 'User will be able to explain the core principles of X.', 'User can build a basic Y application.')"],
+  "learning_objectives": [
+    {
+      "objective": "string (The learning objective text, e.g., 'User will be able to explain the core principles of X.')",
+      "measurable": boolean (Is this objective concretely measurable?),
+      "timeframe": "string (Estimated timeframe to achieve this, e.g., 'End of Week 1')"
+    }
+  ],
   "assessment_strategies": ["string (suggested methods to assess learning, e.g., 'End-of-section quizzes with immediate feedback', 'Practical application exercises', 'Self-reflection prompts on challenges faced.')"],
   "improvement_areas": ["string (specific areas within the learning plan that could be improved, e.g., 'Clarity of milestones could be enhanced', 'More diverse resource types could be suggested for auditory learners.')"]
 }`;

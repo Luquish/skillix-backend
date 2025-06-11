@@ -154,10 +154,24 @@ export const QuizMCQBlockSchema = QuizMCQBlockSchemaRaw.transform((data, ctx) =>
     if (typeof rawAnswer === 'number') {
         answerIndex = rawAnswer;
     } else if (typeof rawAnswer === 'string') {
+        // Try to match the answer text first
         answerIndex = data.options.findIndex(opt => opt.trim().toLowerCase() === rawAnswer.trim().toLowerCase());
+        
+        // If not found, try to parse it as an index
         if (answerIndex === -1) {
              const parsedInt = parseInt(rawAnswer, 10);
              if (!isNaN(parsedInt)) answerIndex = parsedInt;
+        }
+
+        // NEW: If still not found, try to match it as a letter option (A, B, C...)
+        if (answerIndex === -1) {
+            const letter = rawAnswer.trim().toUpperCase().replace(/[\.\)]$/, ''); // "B." -> "B"
+            if (letter.length === 1 && letter >= 'A' && letter <= 'Z') {
+                const letterIndex = letter.charCodeAt(0) - 'A'.charCodeAt(0);
+                if (letterIndex < data.options.length) {
+                    answerIndex = letterIndex;
+                }
+            }
         }
     }
 
@@ -283,10 +297,24 @@ export const ScenarioQuizBlockSchema = ScenarioQuizBlockSchemaRaw.transform((dat
     if (typeof rawAnswer === 'number') {
         answerIndex = rawAnswer;
     } else if (typeof rawAnswer === 'string') {
+        // Try to match the answer text first
         answerIndex = data.options.findIndex(opt => opt.trim().toLowerCase() === rawAnswer.trim().toLowerCase());
+        
+        // If not found, try to parse it as an index
         if (answerIndex === -1) {
             const parsedInt = parseInt(rawAnswer, 10);
             if (!isNaN(parsedInt)) answerIndex = parsedInt;
+        }
+
+        // NEW: If still not found, try to match it as a letter option (A, B, C...)
+        if (answerIndex === -1) {
+            const letter = rawAnswer.trim().toUpperCase().replace(/[\.\)]$/, ''); // "B." -> "B"
+            if (letter.length === 1 && letter >= 'A' && letter <= 'Z') {
+                const letterIndex = letter.charCodeAt(0) - 'A'.charCodeAt(0);
+                if (letterIndex < data.options.length) {
+                    answerIndex = letterIndex;
+                }
+            }
         }
     }
     
@@ -427,17 +455,36 @@ export const LearningObjectiveSchema = z.object({
   order: z.number().int().describe("Order of this objective."),
 });
 
-export const PedagogicalAnalysisSchema = z.object({
-  effectivenessScore: z.number().min(0).max(10),
-  cognitiveLoadAssessment: z.string().min(1),
-  scaffoldingQuality: z.string().min(1),
-  engagementPotential: z.number().min(0).max(1),
+const PedagogicalAnalysisSchemaRaw = z.object({
+  effectiveness_score: z.number().min(0).max(1),
+  cognitive_load_assessment: z.string().min(1),
+  scaffolding_quality: z.string().min(1),
+  engagement_potential: z.number().min(0).max(1),
   recommendations: z.array(z.string().min(1)),
-  assessmentStrategies: z.array(z.string().min(1)),
-  improvementAreas: z.array(z.string().min(1)),
-  generatedBy: z.string().min(1),
-  objectives: z.array(LearningObjectiveSchema).min(1),
+  assessment_strategies: z.array(z.string().min(1)),
+  improvement_areas: z.array(z.string().min(1)),
+  learning_objectives: z.array(z.object({
+    objective: z.string().min(1),
+    measurable: z.boolean(),
+    timeframe: z.string().min(1),
+  })).min(1).describe("List of key learning objectives as structured objects."),
 });
+
+
+export const PedagogicalAnalysisSchema = PedagogicalAnalysisSchemaRaw.transform((data) => ({
+  effectivenessScore: data.effectiveness_score * 10,
+  cognitiveLoadAssessment: data.cognitive_load_assessment,
+  scaffoldingQuality: data.scaffolding_quality,
+  engagementPotential: data.engagement_potential,
+  recommendations: data.recommendations,
+  assessmentStrategies: data.assessment_strategies,
+  improvementAreas: data.improvement_areas,
+  generatedBy: 'llm-openai-pedagogue',
+  objectives: data.learning_objectives.map((objective, index) => ({
+    ...objective,
+    order: index + 1,
+  })),
+}));
 
 export const AdaptiveLearningRecommendationSchema = z.object({
   difficulty_adjustment: z.enum(["increase", "maintain", "decrease"])
@@ -559,7 +606,7 @@ const LearningPlanSchemaRaw = z.object({
   resources: z.array(
     z.object({
       name: z.string().min(1),
-      url: z.string().url(),
+      url: z.string().min(1), // Changed from .url() to .min(1) to be more permissive
       resourceType: z.string().optional().nullable(),
       order: z.number().int().optional(), // El orden puede no venir
     })

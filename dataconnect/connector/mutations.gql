@@ -157,6 +157,39 @@ mutation CreateSkillComponentData(
   })
 }
 
+mutation CreatePedagogicalAnalysis(
+  $learningPlanId: UUID!, $effectivenessScore: Float!, $cognitiveLoadAssessment: String!,
+  $scaffoldingQuality: String!, $engagementPotential: Float!, $recommendations: [String!]!,
+  $assessmentStrategies: [String!]!, $improvementAreas: [String!]!, $generatedBy: String!
+) @auth(level: NO_ACCESS) {
+  pedagogicalAnalysis_insert(data: {
+    learningPlanId: $learningPlanId,
+    effectivenessScore: $effectivenessScore,
+    cognitiveLoadAssessment: $cognitiveLoadAssessment,
+    scaffoldingQuality: $scaffoldingQuality,
+    engagementPotential: $engagementPotential,
+    recommendations: $recommendations,
+    assessmentStrategies: $assessmentStrategies,
+    improvementAreas: $improvementAreas,
+    generatedBy: $generatedBy
+  })
+}
+
+mutation CreateLearningObjectiveData(
+  $pedagogicalAnalysisId: UUID!, $objective: String!, $measurable: Boolean!,
+  $timeframe: String!, $order: Int!
+) @auth(level: NO_ACCESS) {
+  learningObjectiveData_insert(data: {
+    pedagogicalAnalysisId: $pedagogicalAnalysisId,
+    objective: $objective,
+    measurable: $measurable,
+    timeframe: $timeframe,
+    order: $order
+  })
+}
+
+# --- Transactional Mutations (For Backend Use) ---
+
 # --- Other Mutations ---
 mutation CreateEnrollment($learningPlanId: UUID!, $status: String!) @auth(level: USER) {
   enrollment_insert(data: {

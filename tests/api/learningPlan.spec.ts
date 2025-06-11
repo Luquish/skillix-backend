@@ -80,7 +80,24 @@ describe('Learning Plan API (/api/learning-plan)', () => {
         expect(testUser?.token).toBeDefined();
 
         const onboardingPrefs = { skill: 'TypeScript', experience: 'BEGINNER', availableTimeMinutes: 30, learningStyle: 'KINESTHETIC', motivation: 'Career Change', goal: 'Build a web app' };
-        const skillAnalysis = { skillName: 'TypeScript', skillCategory: 'TECHNICAL', marketDemand: 'HIGH', components: [{ name: 'Basics', description: '...', difficultyLevel: 'BEGINNER', prerequisites: [], estimatedLearningHours: 10, practical_applications: [] }], learningPathRecommendation: 'Start with basics', realWorldApplications: ['Web Dev'], complementarySkills: ['JavaScript'], isSkillValid: true, viability_reason: 'Highly popular and in-demand language' };
+        const skillAnalysis = {
+            skill_name: 'TypeScript',
+            skill_category: 'TECHNICAL',
+            market_demand: 'HIGH',
+            is_skill_valid: true,
+            viability_reason: 'Highly popular and in-demand language',
+            learning_path_recommendation: 'Start with basics',
+            real_world_applications: ['Web Dev'],
+            complementary_skills: ['JavaScript'],
+            components: [{
+                name: 'Basics',
+                description: '...',
+                difficulty_level: 'BEGINNER',
+                prerequisites: [],
+                estimated_learning_hours: 10,
+                practical_applications: [],
+            }],
+        };
         
         const response = await apiClient.post('/learning-plan/create', { onboardingPrefs, skillAnalysis });
         

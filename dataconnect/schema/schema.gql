@@ -130,10 +130,10 @@ type ContentBlockItem @table(name: "content_block_items") {
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-type UserAnalytics @table(name: "user_analytics") {
+type UserAnalytics @table(name: "user_analytics", key: "userFirebaseUid") {
   id: UUID! @default(expr: "uuidV4()")
   user: User!
-  userFirebaseUid: String! @unique @col(name: "user_firebase_uid")
+  userFirebaseUid: String! @col(name: "user_firebase_uid")
   optimalLearningTime: OptimalLearningTimeData
   optimalLearningTimeId: UUID @col(name: "optimal_learning_time_id")
   contentOptimization: ContentOptimizationData
@@ -191,10 +191,10 @@ type Notification @table(name: "notifications") {
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-type StreakData @table(name: "streak_data") {
+type StreakData @table(name: "streak_data", key: "userFirebaseUid") {
   id: UUID! @default(expr: "uuidV4()")
   user: User!
-  userFirebaseUid: String! @unique @col(name: "user_firebase_uid")
+  userFirebaseUid: String! @col(name: "user_firebase_uid")
   currentStreak: Int! @default(expr: "0") @col(name: "current_streak")
   longestStreak: Int! @default(expr: "0") @col(name: "longest_streak")
   lastContributionDate: Date @col(name: "last_contribution_date")
@@ -387,4 +387,3 @@ type LearningObjectiveData @table(name: "learning_objective_data") {
   timeframe: String!
   order: Int!
 }
-

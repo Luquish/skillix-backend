@@ -11,7 +11,13 @@ import {
     GET_USER_BY_FIREBASE_UID_QUERY,
     CREATE_USER_MUTATION,
     DELETE_USER_MUTATION,
-    CREATE_LEARNING_PLAN_MUTATION_TRANSACTION,
+    CREATE_LEARNING_PLAN_BASE_MUTATION,
+    CREATE_SKILL_ANALYSIS_MUTATION,
+    CREATE_SKILL_COMPONENT_DATA_MUTATION,
+    CREATE_PLAN_SECTION_MUTATION,
+    CREATE_DAY_CONTENT_MUTATION,
+    CREATE_PEDAGOGICAL_ANALYSIS_MUTATION,
+    CREATE_LEARNING_OBJECTIVE_MUTATION,
     CREATE_USER_PREFERENCE_MUTATION,
     CREATE_ENROLLMENT_MUTATION,
     UPDATE_DAY_COMPLETION_STATUS_MUTATION,
@@ -131,7 +137,16 @@ export const deleteUserByFirebaseUid = async (firebaseUid: string): Promise<bool
  * Crea las preferencias de usuario.
  */
 export const createUserPreference = async (input: DbTypes.UserPreferenceInsert) => {
-    const response = await executeGraphQL(CREATE_USER_PREFERENCE_MUTATION, input);
+    const variables = {
+        userFirebaseUid: input.userFirebaseUid,
+        skill: input.skill,
+        experienceLevel: input.experienceLevel,
+        motivation: input.motivation,
+        availableTimeMinutes: input.availableTimeMinutes,
+        learningStyle: input.learningStyle,
+        goal: input.goal
+    };
+    const response = await executeGraphQL(CREATE_USER_PREFERENCE_MUTATION, variables);
     return response.data;
 };
 
@@ -170,14 +185,12 @@ export async function createFullLearningPlanInDB(
     llmPlan: LlmLearningPlan,
     llmSkillAnalysis: LlmSkillAnalysis,
     llmPedagogicalAnalysis: LlmPedagogicalAnalysis | null
-): Promise<{ data?: { learningPlan_insert: DbTypes.DbLearningPlan } } | null> {
+): Promise<{ data?: { learningPlan: DbTypes.DbLearningPlan } } | null> {
     logger.info(`DataConnect: Creando plan de aprendizaje completo para user: ${userFirebaseUid}`);
 
-    const planVariables = {
-        // User
-        userFirebaseUid: userFirebaseUid,
-        
-        // LearningPlan
+    // --- PASO 1: Crear la entidad LearningPlan base ---
+    const planBaseVars = {
+        userFirebaseUid,
         skillName: llmPlan.skillName,
         generatedBy: llmPlan.generatedBy,
         generatedAt: new Date().toISOString(),
@@ -186,47 +199,82 @@ export async function createFullLearningPlanInDB(
         skillLevelTarget: llmPlan.skillLevelTarget,
         milestones: llmPlan.milestones,
         progressMetrics: llmPlan.progressMetrics,
-        flexibilityOptions: llmPlan.flexibilityOptions,
+        flexibilityOptions: llmPlan.flexibilityOptions || [],
+    };
+    const planResponse = await executeGraphQL<{ learningPlan_insert: { id: string } }>(CREATE_LEARNING_PLAN_BASE_MUTATION, planBaseVars);
+    const learningPlanId = planResponse.data?.learningPlan_insert.id;
 
-        // Sections and Days
-        sections: llmPlan.sections.map(section => ({
-            ...section,
-            days: section.days.map(day => ({
-                ...day,
-                completionStatus: 'PENDING'
-            }))
-        })),
+    if (!learningPlanId) {
+        logger.error("Fallo al crear la entidad base del LearningPlan.", planResponse.errors);
+        return null;
+    }
+    logger.info(`Plan de aprendizaje base ${learningPlanId} creado.`);
 
-        // SkillAnalysis and Components
-        skillAnalysis: {
-            ...llmSkillAnalysis,
-            components: llmSkillAnalysis.components.map(c => ({...c}))
-        },
+    // --- PASO 2: Crear SkillAnalysis y sus componentes ---
+    const skillAnalysisData = { ...llmSkillAnalysis };
+    const componentsToCreate = skillAnalysisData.components; // Guardar componentes
+    delete (skillAnalysisData as any).components; // Eliminar del objeto principal
 
-        // PedagogicalAnalysis
-        pedagogicalAnalysis: llmPedagogicalAnalysis ? {
-            ...llmPedagogicalAnalysis,
-            // Asegúrate de que los campos coinciden con la mutación
-        } : null
+    const skillAnalysisVars = { ...skillAnalysisData, learningPlanId };
+    const saResponse = await executeGraphQL<{ skillAnalysis_insert: { id: string } }>(CREATE_SKILL_ANALYSIS_MUTATION, skillAnalysisVars);
+    const skillAnalysisId = saResponse.data?.skillAnalysis_insert.id;
+
+    if (skillAnalysisId && componentsToCreate) {
+        for (const component of componentsToCreate) {
+            await executeGraphQL(CREATE_SKILL_COMPONENT_DATA_MUTATION, { ...component, skillAnalysisId });
+        }
+        logger.info(`SkillAnalysis ${skillAnalysisId} y sus componentes creados.`);
+    } else {
+        logger.warn(`Fallo al crear SkillAnalysis para el plan ${learningPlanId}.`);
+    }
+
+    // --- PASO 3: Crear PedagogicalAnalysis y sus objetivos (si existen) ---
+    if (llmPedagogicalAnalysis) {
+        const pedagogicalAnalysisData = { ...llmPedagogicalAnalysis };
+        const objectivesToCreate = pedagogicalAnalysisData.objectives;
+        delete (pedagogicalAnalysisData as any).objectives;
+
+        const paResponse = await executeGraphQL<{ pedagogicalAnalysis_insert: { id: string } }>(
+            CREATE_PEDAGOGICAL_ANALYSIS_MUTATION, { ...pedagogicalAnalysisData, learningPlanId }
+        );
+        const pedagogicalAnalysisId = paResponse.data?.pedagogicalAnalysis_insert.id;
+        if (pedagogicalAnalysisId && objectivesToCreate) {
+            for (const objective of objectivesToCreate) {
+                await executeGraphQL(CREATE_LEARNING_OBJECTIVE_MUTATION, { ...objective, pedagogicalAnalysisId });
+            }
+            logger.info(`PedagogicalAnalysis ${pedagogicalAnalysisId} y sus objetivos creados.`);
+        } else {
+            logger.warn(`Fallo al crear PedagogicalAnalysis para el plan ${learningPlanId}.`);
+        }
+    }
+
+    // --- PASO 4: Crear las secciones y los días del plan ---
+    for (const section of llmPlan.sections) {
+        const { days, ...sectionData } = section;
+        const sectionVars = { ...sectionData, learningPlanId };
+        const sectionResponse = await executeGraphQL<{ planSection_insert: { id: string } }>(CREATE_PLAN_SECTION_MUTATION, sectionVars);
+        const sectionId = sectionResponse.data?.planSection_insert.id;
+
+        if (sectionId) {
+            for (const day of days) {
+                const { order, ...dayData } = day;
+                await executeGraphQL(CREATE_DAY_CONTENT_MUTATION, { ...dayData, sectionId });
+            }
+        }
+    }
+    logger.info(`Secciones y días creados para el plan ${learningPlanId}.`);
+
+    // --- PASO 5: Devolver el ID del plan creado ---
+    // Aunque devolvemos solo el ID, la estructura del controlador espera un objeto anidado.
+    // Creamos un objeto parcial para satisfacer el tipo de retorno.
+    const finalPlanObject = {
+        id: learningPlanId,
+        skillName: llmPlan.skillName,
+        // ... otros campos del plan base si fueran necesarios
     };
 
-    // Filtra el campo `pedagogicalAnalysis` si es nulo, para no enviarlo a GQL si no existe.
-    if (!planVariables.pedagogicalAnalysis) {
-        delete (planVariables as any).pedagogicalAnalysis;
-    }
-
-    const response = await executeGraphQL<{ learningPlan_insert: DbTypes.DbLearningPlan }>(
-        CREATE_LEARNING_PLAN_MUTATION_TRANSACTION,
-        planVariables
-    );
-
-    if (response.data?.learningPlan_insert) {
-        logger.info(`Plan de aprendizaje completo ${response.data.learningPlan_insert.id} creado exitosamente.`);
-        return { data: response.data };
-    }
-
-    logger.error("Fallo al crear la entidad base del LearningPlan y sus dependencias.", response.errors);
-    return null;
+    logger.info(`Plan de aprendizaje completo ${learningPlanId} creado exitosamente en DB.`);
+    return { data: { learningPlan: finalPlanObject as DbTypes.DbLearningPlan } };
 }
 
 export async function saveDailyContentDetailsInDB(dayContentId: string, llmContent: LlmDayContent): Promise<boolean> {

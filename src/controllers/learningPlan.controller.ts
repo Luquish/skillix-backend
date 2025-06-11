@@ -114,7 +114,7 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
       pedagogicalAnalysis
     );
 
-    const createdPlan = createdPlanResponse?.data?.learningPlan_insert;
+    const createdPlan = createdPlanResponse?.data?.learningPlan;
 
     if (!createdPlan || !createdPlan.id) {
         return res.status(500).json({ message: "Failed to save the learning plan to the database." });

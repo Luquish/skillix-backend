@@ -83,7 +83,7 @@ export const CREATE_USER_PREFERENCE_MUTATION = `
       userFirebaseUid: $userFirebaseUid, skill: $skill, experienceLevel: $experienceLevel,
       motivation: $motivation, availableTimeMinutes: $availableTimeMinutes,
       learningStyle: $learningStyle, goal: $goal
-    }) { id }
+    })
   }
 `;
 
@@ -93,44 +93,8 @@ export const CREATE_ENROLLMENT_MUTATION = `
       userFirebaseUid: $userFirebaseUid,
       learningPlanId: $learningPlanId,
       status: $status
-    }) { id }
+    })
   }
-`;
-
-export const CREATE_LEARNING_PLAN_MUTATION_TRANSACTION = `
-mutation CreateFullLearningPlan(
-  $userFirebaseUid: String!, $skillName: String!, $generatedBy: String!, $generatedAt: Timestamp!,
-  $totalDurationWeeks: Int!, $dailyTimeMinutes: Int!, $skillLevelTarget: String!,
-  $milestones: [String!]!, $progressMetrics: [String!]!, $flexibilityOptions: [String!],
-  $sections: [PlanSectionInsert!]!,
-  $skillAnalysis: SkillAnalysisInsert!,
-  $pedagogicalAnalysis: PedagogicalAnalysisInsert
-) @transaction {
-  learningPlan_insert(data: {
-    userFirebaseUid: $userFirebaseUid,
-    skillName: $skillName,
-    generatedBy: $generatedBy,
-    generatedAt: $generatedAt,
-    totalDurationWeeks: $totalDurationWeeks,
-    dailyTimeMinutes: $dailyTimeMinutes,
-    skillLevelTarget: $skillLevelTarget,
-    milestones: $milestones,
-    progressMetrics: $progressMetrics,
-    flexibilityOptions: $flexibilityOptions,
-    planSections_on_learningPlan: {
-      insert: $sections
-    },
-    skillAnalysis_on_learningPlan: {
-      insert: $skillAnalysis
-    },
-    pedagogicalAnalysis_on_learningPlan: {
-      insert: $pedagogicalAnalysis
-    }
-  }) {
-    id
-    skillName
-  }
-}
 `;
 
 export const CREATE_LEARNING_PLAN_BASE_MUTATION = `
@@ -144,7 +108,7 @@ mutation CreateLearningPlanBase(
     totalDurationWeeks: $totalDurationWeeks, dailyTimeMinutes: $dailyTimeMinutes, 
     skillLevelTarget: $skillLevelTarget,
     milestones: $milestones, progressMetrics: $progressMetrics, flexibilityOptions: $flexibilityOptions
-  }) { id }
+  })
 }
 `;
 
@@ -158,7 +122,7 @@ mutation CreateSkillAnalysis(
     learningPlanId: $learningPlanId, skillName: $skillName, skillCategory: $skillCategory, marketDemand: $marketDemand,
     learningPathRecommendation: $learningPathRecommendation, realWorldApplications: $realWorldApplications,
     complementarySkills: $complementarySkills, isSkillValid: $isSkillValid, viabilityReason: $viabilityReason, generatedBy: $generatedBy
-  }) { id }
+  })
 }
 `;
 
@@ -171,7 +135,7 @@ mutation CreateSkillComponentData(
     skillAnalysisId: $skillAnalysisId, name: $name, description: $description, difficultyLevel: $difficultyLevel,
     prerequisitesText: $prerequisitesText, estimatedLearningHours: $estimatedLearningHours,
     practicalApplications: $practicalApplications, order: $order
-  }) { id }
+  })
 }
 `;
 
@@ -181,7 +145,7 @@ mutation CreatePlanSection(
 ) {
   planSection_insert(data: {
     learningPlanId: $learningPlanId, title: $title, description: $description, order: $order
-  }) { id }
+  })
 }
 `;
 
@@ -194,7 +158,7 @@ mutation CreateDayContent(
     sectionId: $sectionId, dayNumber: $dayNumber, title: $title, focusArea: $focusArea,
     isActionDay: $isActionDay, objectives: $objectives, 
     completionStatus: $completionStatus
-  }) { id }
+  })
 }
 `;
 
@@ -204,7 +168,7 @@ mutation CreateMainContentItem(
 ) {
   mainContentItem_insert(data: {
     dayContentId: $dayContentId, title: $title, textContent: $textContent, funFact: $funFact, xp: $xp
-  }) { id }
+  })
 }
 `;
 
@@ -214,7 +178,7 @@ mutation CreateKeyConcept(
 ) {
   keyConcept_insert(data: {
     mainContentItemId: $mainContentItemId, concept: $concept, explanation: $explanation
-  }) { id }
+  })
 }
 `;
 
@@ -229,7 +193,7 @@ mutation CreateActionTaskItem(
     timeEstimateString: $timeEstimateString, tips: $tips, realWorldContext: $realWorldContext,
     successCriteria: $successCriteria, toviMotivation: $toviMotivation,
     difficultyAdaptation: $difficultyAdaptation, xp: $xp
-  }) { id }
+  })
 }
 `;
 
@@ -243,13 +207,13 @@ mutation CreateContentBlockItem(
     blockType: $blockType, 
     title: $title, xp: $xp, order: $order,
     estimatedMinutes: $estimatedMinutes, quizDetailsId: $quizDetailsId, exerciseDetailsId: $exerciseDetailsId
-  }) { id }
+  })
 }
 `;
 
 export const CREATE_QUIZ_DETAILS_MUTATION = `
 mutation CreateQuizDetails($description: String!) {
-  quizContentDetails_insert(data: { description: $description }) { id }
+  quizContentDetails_insert(data: { description: $description })
 }
 `;
 
@@ -257,7 +221,7 @@ export const CREATE_EXERCISE_DETAILS_MUTATION = `
 mutation CreateExerciseDetails($instructions: String!, $exerciseType: String!) {
   exerciseDetailsData_insert(data: {
     instructions: $instructions, exerciseType: $exerciseType
-  }) { id }
+  })
 }
 `;
 
@@ -265,15 +229,47 @@ export const CREATE_MATCH_PAIR_MUTATION = `
 mutation CreateMatchPair($exerciseId: UUID!, $prompt: String!, $correctAnswer: String!) {
   matchPair_insert(data: {
     exerciseId: $exerciseId, prompt: $prompt, correctAnswer: $correctAnswer
-  }) { id }
+  })
 }
 `;
 
 export const UPDATE_DAY_COMPLETION_STATUS_MUTATION = `
   mutation UpdateDayCompletionStatus($dayContentId: UUID!, $status: String!) {
-    dayContent_update(key: { id: $dayContentId }, data: { completionStatus: $status }) {
-      id
-      completionStatus
-    }
+    dayContent_update(key: { id: $dayContentId }, data: { completionStatus: $status })
   }
+`;
+
+export const CREATE_PEDAGOGICAL_ANALYSIS_MUTATION = `
+mutation CreatePedagogicalAnalysis(
+  $learningPlanId: UUID!, $effectivenessScore: Float!, $cognitiveLoadAssessment: String!,
+  $scaffoldingQuality: String!, $engagementPotential: Float!, $recommendations: [String!]!,
+  $assessmentStrategies: [String!]!, $improvementAreas: [String!]!, $generatedBy: String!
+) {
+  pedagogicalAnalysis_insert(data: {
+    learningPlanId: $learningPlanId,
+    effectivenessScore: $effectivenessScore,
+    cognitiveLoadAssessment: $cognitiveLoadAssessment,
+    scaffoldingQuality: $scaffoldingQuality,
+    engagementPotential: $engagementPotential,
+    recommendations: $recommendations,
+    assessmentStrategies: $assessmentStrategies,
+    improvementAreas: $improvementAreas,
+    generatedBy: $generatedBy
+  })
+}
+`;
+
+export const CREATE_LEARNING_OBJECTIVE_MUTATION = `
+mutation CreateLearningObjectiveData(
+  $pedagogicalAnalysisId: UUID!, $objective: String!, $measurable: Boolean!,
+  $timeframe: String!, $order: Int!
+) {
+  learningObjectiveData_insert(data: {
+    pedagogicalAnalysisId: $pedagogicalAnalysisId,
+    objective: $objective,
+    measurable: $measurable,
+    timeframe: $timeframe,
+    order: $order
+  })
+}
 `; 

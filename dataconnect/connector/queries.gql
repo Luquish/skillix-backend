@@ -86,7 +86,7 @@ query GetDayContent($learningPlanId: UUID!, $dayNumber: Int!) @auth(level: USER)
 # Obtiene los analytics generados por el LLM para un usuario.
 # El usuario debe estar autenticado y solo puede solicitar sus propios analytics.
 query GetUserAnalytics @auth(level: USER) {
-  userAnalytics(key: { userFirebaseUid_expr: "auth.uid" }) {
+  userAnalytics(key: { userFirebaseUid: "auth.uid" }) {
     id
     overallEngagementScore
     keyInsights
@@ -132,7 +132,7 @@ query GetUserProgress @auth(level: USER) {
       totalDurationWeeks
     }
   }
-  streakData(key: { userFirebaseUid_expr: "auth.uid" }) {
+  streakData(key: { userFirebaseUid: "auth.uid" }) {
     currentStreak
     longestStreak
     lastContributionDate

@@ -30,7 +30,24 @@ describe('Content API (/api/content)', () => {
 
         // Crear un plan de aprendizaje para usarlo en las pruebas de contenido
         const onboardingPrefs = { skill: 'Testing en NodeJS', experience: 'BEGINNER', availableTimeMinutes: 15, learningStyle: 'VISUAL', motivation: 'Escribir pruebas robustas', goal: 'Testear mi API' };
-        const skillAnalysis = { skillName: 'Testing en Node.js', skillCategory: 'TECHNICAL', marketDemand: 'HIGH', components: [{ name: 'Basics', description: '...', difficultyLevel: 'BEGINNER', prerequisites: [], estimatedLearningHours: 8, practical_applications: [] }], learningPathRecommendation: 'Start with Jest', realWorldApplications: ['Backend Dev'], complementarySkills: ['TypeScript'], isSkillValid: true, viability_reason: 'Crucial for robust software' };
+        const skillAnalysis = {
+            skill_name: 'Testing en Node.js',
+            skill_category: 'TECHNICAL',
+            market_demand: 'HIGH',
+            is_skill_valid: true,
+            viability_reason: 'Crucial for robust software',
+            learning_path_recommendation: 'Start with Jest',
+            real_world_applications: ['Backend Dev'],
+            complementary_skills: ['TypeScript'],
+            components: [{
+                name: 'Basics',
+                description: '...',
+                difficulty_level: 'BEGINNER',
+                prerequisites: [],
+                estimated_learning_hours: 8,
+                practical_applications: [],
+            }],
+        };
         
         try {
             const planResponse = await apiClient.post('/learning-plan/create', { onboardingPrefs, skillAnalysis });
