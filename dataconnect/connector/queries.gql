@@ -1,86 +1,5 @@
-# # Example queries for a simple movie app.
-
-# # @auth() directives control who can call each operation.
-# # Anyone should be able to list all movies, so the auth level is set to PUBLIC
-# query ListMovies @auth(level: PUBLIC) {
-#   movies {
-#     id
-#     title
-#     imageUrl
-#     genre
-#   }
-# }
-
-# # List all users, only admins should be able to list all users, so we use NO_ACCESS
-# query ListUsers @auth(level: NO_ACCESS) {
-#   users {
-#     id
-#     username
-#   }
-# }
-
-# # Logged in users can list all their reviews and movie titles associated with the review
-# # Since the query uses the uid of the current authenticated user, we set auth level to USER
-# query ListUserReviews @auth(level: USER) {
-#   user(key: { id_expr: "auth.uid" }) {
-#     id
-#     username
-#     # <field>_on_<foreign_key_field> makes it easy to grab info from another table
-#     # Here, we use it to grab all the reviews written by the user.
-#     reviews: reviews_on_user {
-#       rating
-#       reviewDate
-#       reviewText
-#       movie {
-#         id
-#         title
-#       }
-#     }
-#   }
-# }
-
-# # Get movie by id
-# query GetMovieById($id: UUID!) @auth(level: PUBLIC) {
-#   movie(id: $id) {
-#     id
-#     title
-#     imageUrl
-#     genre
-#     metadata: movieMetadata_on_movie {
-#       rating
-#       releaseYear
-#       description
-#     }
-#     reviews: reviews_on_movie {
-#       reviewText
-#       reviewDate
-#       rating
-#       user {
-#         id
-#         username
-#       }
-#     }
-#   }
-# }
-
-# # Search for movies, actors, and reviews
-# query SearchMovie($titleInput: String, $genre: String) @auth(level: PUBLIC) {
-#   movies(
-#     where: {
-#       _and: [{ genre: { eq: $genre } }, { title: { contains: $titleInput } }]
-#     }
-#   ) {
-#     id
-#     title
-#     genre
-#     imageUrl
-#   }
-# }
-
-# Estas consultas están diseñadas para ser llamadas por el SDK del cliente (React Native).
-# Se asume que el schema.gql define los tipos y relaciones correspondientes.
-
 # Consultas para la aplicación Skillix.
+# Diseñadas para ser llamadas por el SDK del cliente.
 
 # Obtiene el contenido de un día específico para un plan de aprendizaje.
 # El usuario debe estar autenticado y ser propietario del plan.
@@ -195,13 +114,12 @@ query GetUserAnalytics @auth(level: USER) {
 }
 
 # Obtiene el progreso general de un usuario, incluyendo su inscripción activa y datos de racha.
-# Esta es la query principal para que el frontend obtenga el estado actual del usuario.
-# El usuario debe estar autenticado.
+# Es la query principal para obtener el estado actual del usuario.
 query GetUserProgress @auth(level: USER) {
   enrollments(
     where: {
       userFirebaseUid: { eq_expr: "auth.uid" },
-      status: { eq: ACTIVE }
+      status: { eq: "ACTIVE" }
     },
     limit: 1
   ) {
@@ -221,17 +139,16 @@ query GetUserProgress @auth(level: USER) {
   }
 }
 
-# Obtiene mensajes de Tovi (antes Ski) para una situación dada.
-# El usuario debe estar autenticado.
+# Obtiene mensajes de Tovi para una situación dada.
 query GetToviMessages($situation: String!) @auth(level: USER) {
   toviMessages(
     where: {
       userFirebaseUid: { eq_expr: "auth.uid" },
       situation: { eq: $situation },
-      isDelivered: { eq: false } # Opcional: para obtener solo mensajes nuevos
+      isDelivered: { eq: false }
     },
     orderBy: { createdAt: DESC },
-    limit: 5 # Limitar el número de mensajes
+    limit: 5
   ) {
     id
     situation
@@ -243,18 +160,11 @@ query GetToviMessages($situation: String!) @auth(level: USER) {
   }
 }
 
-# Query GetUserActiveLearningPlan eliminada para evitar redundancia.
-# El frontend debe usar GetUserProgress para obtener el learningPlanId
-# y luego, si necesita la estructura completa del plan, podría llamar a
-# una query como GetLearningPlanDetails($planId: ID!) que se podría crear.
-# Por ahora, se asume que GetUserProgress y GetDayContent son suficientes para empezar.
-
-# Obtiene todas las inscripciones activas y pausadas de un usuario.
-# Perfecta para poblar un "switcher" de cursos en la UI.
-# El usuario debe estar autenticado.
+# Obtiene todas las inscripciones (activas y pausadas) de un usuario.
+# Perfecta para un "switcher" de cursos en la UI.
 query GetUserEnrollments @auth(level: USER) {
   enrollments(
-    filter: { userFirebaseUid: { eq_expr: "auth.uid" } }
+    where: { userFirebaseUid: { eq_expr: "auth.uid" } }
   ) {
     id
     status
@@ -265,10 +175,10 @@ query GetUserEnrollments @auth(level: USER) {
   }
 }
 
-# Obtiene todos los planes de aprendizaje para un usuario
+# Obtiene todos los planes de aprendizaje de un usuario.
 query GetUserLearningPlans @auth(level: USER) {
   learningPlans(
-    filter: { userFirebaseUid: { eq_expr: "auth.uid" } }
+    where: { userFirebaseUid: { eq_expr: "auth.uid" } }
   ) {
     id
     skillName

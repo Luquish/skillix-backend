@@ -7,8 +7,9 @@ type User @table(name: "users", key: "firebaseUid") {
   firebaseUid: String! @col(name: "firebase_uid")
   email: String! @unique
   name: String
-  authProvider: AuthProvider! @col(name: "auth_provider")
-  platform: Platform
+  # CORRECCIÓN: Se reemplazan los Enums personalizados por String.
+  authProvider: String! @col(name: "auth_provider")
+  platform: String @col(name: "platform")
   photoUrl: String @col(name: "photo_url")
   emailVerified: Boolean @col(name: "email_verified")
   llmKeyInsights: [String!] @col(name: "llm_key_insights")
@@ -27,10 +28,10 @@ type UserPreference @table(name: "user_preferences") {
   user: User!
   userFirebaseUid: String! @unique @col(name: "user_firebase_uid")
   skill: String!
-  experienceLevel: UserExperienceLevel! @col(name: "experience_level")
+  experienceLevel: String! @col(name: "experience_level")
   motivation: String!
   availableTimeMinutes: Int! @col(name: "available_time_minutes")
-  learningStyle: LearningStyle! @col(name: "learning_style")
+  learningStyle: String! @col(name: "learning_style")
   goal: String!
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
@@ -45,8 +46,8 @@ type LearningPlan @table(name: "learning_plans") {
   generatedAt: Timestamp! @col(name: "generated_at")
   totalDurationWeeks: Int! @col(name: "total_duration_weeks")
   dailyTimeMinutes: Int! @col(name: "daily_time_minutes")
-  skillLevelTarget: UserExperienceLevel! @col(name: "skill_level_target")
-  milestones: [String!]! @col(name: "milestones")
+  skillLevelTarget: String! @col(name: "skill_level_target")
+  milestones: [String!]!
   progressMetrics: [String!]! @col(name: "progress_metrics")
   flexibilityOptions: [String!] @col(name: "flexibility_options")
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
@@ -72,10 +73,10 @@ type DayContent @table(name: "day_contents") {
   title: String!
   focusArea: String! @col(name: "focus_area")
   isActionDay: Boolean! @col(name: "is_action_day")
-  objectives: [String!]! @col(name: "objectives")
+  objectives: [String!]!
   generatedBy: String @col(name: "generated_by")
   generatedAt: Timestamp @col(name: "generated_at")
-  completionStatus: CompletionStatus @default(expr: "'PENDING'") @col(name: "completion_status")
+  completionStatus: String @default(expr: "'PENDING'") @col(name: "completion_status")
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
@@ -89,7 +90,7 @@ type MainContentItem @table(name: "main_content_items") {
   audioUrl: String @col(name: "audio_url")
   estimatedReadTimeMinutes: Int @col(name: "estimated_read_time_minutes")
   audioDurationSeconds: Int @col(name: "audio_duration_seconds")
-  funFact: String!
+  funFact: String! @col(name: "fun_fact")
   xp: Int!
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
@@ -105,8 +106,8 @@ type ActionTaskItem @table(name: "action_task_items") {
   tips: [String!]!
   realWorldContext: String! @col(name: "real_world_context")
   successCriteria: [String!]! @col(name: "success_criteria")
-  toviMotivation: String!
-  difficultyAdaptation: DifficultyAdaptationLevel @col(name: "difficulty_adaptation")
+  toviMotivation: String! @col(name: "tovi_motivation")
+  difficultyAdaptation: String @col(name: "difficulty_adaptation")
   xp: Int!
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
@@ -116,7 +117,7 @@ type ContentBlockItem @table(name: "content_block_items") {
   id: UUID! @default(expr: "uuidV4()")
   dayContent: DayContent!
   dayContentId: UUID! @col(name: "day_content_id")
-  blockType: ContentBlockType! @col(name: "block_type")
+  blockType: String! @col(name: "block_type")
   title: String!
   xp: Int!
   order: Int!
@@ -150,8 +151,8 @@ type SkillAnalysis @table(name: "skill_analyses") {
   learningPlan: LearningPlan!
   learningPlanId: UUID! @unique @col(name: "learning_plan_id")
   skillName: String! @col(name: "skill_name")
-  skillCategory: SkillCategory! @col(name: "skill_category")
-  marketDemand: MarketDemand! @col(name: "market_demand")
+  skillCategory: String! @col(name: "skill_category")
+  marketDemand: String! @col(name: "market_demand")
   learningPathRecommendation: String! @col(name: "learning_path_recommendation")
   realWorldApplications: [String!]! @col(name: "real_world_applications")
   complementarySkills: [String!]! @col(name: "complementary_skills")
@@ -223,7 +224,7 @@ type ToviMessage @table(name: "tovi_messages") {
   isFirstMessage: Boolean! @col(name: "is_first_message")
   isDelivered: Boolean! @default(expr: "false") @col(name: "is_delivered")
   isRead: Boolean! @default(expr: "false") @col(name: "is_read")
-  toviEmojiStyle: ToviEmojiStyle! @col(name: "tovi_emoji_style")
+  toviEmojiStyle: String! @col(name: "tovi_emoji_style")
   animationSuggestion: String! @col(name: "animation_suggestion")
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
@@ -242,7 +243,7 @@ type ChatMessage @table(name: "chat_messages") {
   chatSession: ChatSession!
   chatSessionId: UUID! @col(name: "chat_session_id")
   userFirebaseUid: String! @col(name: "user_firebase_uid")
-  role: MessageRole!
+  role: String! @col(name: "role")
   content: String!
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
@@ -255,7 +256,7 @@ type Enrollment @table(name: "enrollments") {
   learningPlan: LearningPlan!
   learningPlanId: UUID! @col(name: "learning_plan_id")
   enrollmentDate: Timestamp @col(name: "enrollment_date")
-  status: EnrollmentStatus!
+  status: String! @col(name: "status")
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
@@ -308,7 +309,7 @@ type QuizQuestionData @table(name: "quiz_question_data") {
   quizDetails: QuizContentDetails!
   quizDetailsId: UUID! @col(name: "quiz_details_id")
   question: String!
-  questionType: QuizQuestionType! @col(name: "question_type")
+  questionType: String! @col(name: "question_type")
   explanation: String
 }
 
@@ -323,7 +324,7 @@ type QuizOptionData @table(name: "quiz_option_data") {
 type ExerciseDetailsData @table(name: "exercise_details_data") {
   id: UUID! @default(expr: "uuidV4()")
   instructions: String!
-  exerciseType: ExerciseType! @col(name: "exercise_type")
+  exerciseType: String! @col(name: "exercise_type")
 }
 
 type MatchPair @table(name: "match_pairs") {
@@ -370,7 +371,7 @@ type SkillComponentData @table(name: "skill_component_data") {
   skillAnalysisId: UUID! @col(name: "skill_analysis_id")
   name: String!
   description: String!
-  difficultyLevel: UserExperienceLevel! @col(name: "difficulty_level")
+  difficultyLevel: String! @col(name: "difficulty_level")
   prerequisitesText: [String!]! @col(name: "prerequisites_text")
   estimatedLearningHours: Int! @col(name: "estimated_learning_hours")
   practicalApplications: [String!]! @col(name: "practical_applications")
@@ -387,118 +388,3 @@ type LearningObjectiveData @table(name: "learning_objective_data") {
   order: Int!
 }
 
-# --- Enums y Tipos Escalares ---
-
-enum AuthProvider {
-  GOOGLE
-  APPLE
-  EMAIL
-  ANONYMOUS
-}
-
-enum Platform {
-  IOS
-  ANDROID
-  WEB
-}
-
-enum UserExperienceLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  EXPERT
-}
-
-enum DifficultyAdaptationLevel {
-  EASIER
-  STANDARD
-  HARDER
-}
-
-enum LearningStyle {
-  VISUAL
-  AUDITORY
-  READING_WRITING
-  KINESTHETIC
-  MIXED
-}
-
-enum CompletionStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  SKIPPED
-  FAILED
-}
-
-enum ContentBlockType {
-  READ
-  AUDIO
-  MAIN_CONTENT_AUDIO
-  MAIN_CONTENT_READ
-  QUIZ_MCQ
-  QUIZ_TRUE_FALSE
-  QUIZ_MATCH_MEANING
-  QUIZ_SCENARIO
-  ACTION_TASK
-  EXERCISE_GENERAL
-  VIDEO
-  INFO_BLOCK
-  OTHER
-}
-
-enum QuizQuestionType {
-  MULTIPLE_CHOICE
-  TRUE_FALSE
-  FILL_IN_THE_BLANK
-}
-
-enum ExerciseType {
-  MATCHING
-  FILL_IN_THE_BLANK
-  CODE_COMPLETION
-}
-
-enum SkillCategory {
-  TECHNICAL
-  CREATIVE
-  BUSINESS
-  SOFT_SKILL
-  ACADEMIC
-  LANGUAGE
-  HEALTH_WELLNESS
-  HOBBY
-  OTHER
-}
-
-enum MarketDemand {
-  HIGH
-  MEDIUM
-  LOW
-  NICHE
-  EMERGING
-  UNKNOWN
-}
-
-enum MessageRole {
-  USER
-  ASSISTANT
-}
-
-enum ToviEmojiStyle {
-  PLAYFUL
-  CELEBRATORY
-  ENCOURAGING
-  WISE
-  GENTLE
-  CALM
-  ENERGETIC
-  SUPPORTIVE
-}
-
-enum EnrollmentStatus {
-  ACTIVE
-  COMPLETED
-  CANCELLED
-  PAUSED
-}

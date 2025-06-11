@@ -1,9 +1,11 @@
 # --- User & Profile Mutations ---
 
 mutation CreateUser(
-  $firebaseUid: String!, $email: String!, $name: String, $authProvider: AuthProvider!,
-  $platform: Platform, $photoUrl: String, $emailVerified: Boolean, $appleUserIdentifier: String
+  $firebaseUid: String!, $email: String!, $name: String, $authProvider: String!,
+  $platform: String, $photoUrl: String, $emailVerified: Boolean, $appleUserIdentifier: String
 ) @auth(level: NO_ACCESS) {
+  # CORRECCIÓN: Se revierte a los nombres de campo en camelCase, ya que el generador del SDK
+  # espera los nombres de campo del esquema GQL, no los nombres de columna de la BD.
   user_insert(data: {
     firebaseUid: $firebaseUid, 
     email: $email,
@@ -20,12 +22,13 @@ mutation CreateUser(
 
 mutation CreateLearningPlanBase(
   $userFirebaseUid: String!, $skillName: String!, $generatedBy: String!, $generatedAt: Timestamp!,
-  $totalDurationWeeks: Int!, $dailyTimeMinutes: Int!, $skillLevelTarget: UserExperienceLevel!,
+  $totalDurationWeeks: Int!, $dailyTimeMinutes: Int!, $skillLevelTarget: String!,
   $milestones: [String!]!, $progressMetrics: [String!]!, $flexibilityOptions: [String!]
 ) @auth(level: NO_ACCESS) {
   learningPlan_insert(data: {
     userFirebaseUid: $userFirebaseUid, skillName: $skillName, generatedBy: $generatedBy, generatedAt: $generatedAt,
-    totalDurationWeeks: $totalDurationWeeks, dailyTimeMinutes: $dailyTimeMinutes, skillLevelTarget: $skillLevelTarget,
+    totalDurationWeeks: $totalDurationWeeks, dailyTimeMinutes: $dailyTimeMinutes, 
+    skillLevelTarget: $skillLevelTarget,
     milestones: $milestones, progressMetrics: $progressMetrics, flexibilityOptions: $flexibilityOptions
   })
 }
@@ -40,11 +43,12 @@ mutation CreatePlanSection(
 
 mutation CreateDayContent(
   $sectionId: UUID!, $dayNumber: Int!, $title: String!, $focusArea: String!,
-  $isActionDay: Boolean!, $objectives: [String!]!, $completionStatus: CompletionStatus
+  $isActionDay: Boolean!, $objectives: [String!]!, $completionStatus: String
 ) @auth(level: NO_ACCESS) {
   dayContent_insert(data: {
     sectionId: $sectionId, dayNumber: $dayNumber, title: $title, focusArea: $focusArea,
-    isActionDay: $isActionDay, objectives: $objectives, completionStatus: $completionStatus
+    isActionDay: $isActionDay, objectives: $objectives, 
+    completionStatus: $completionStatus
   })
 }
 
@@ -67,7 +71,7 @@ mutation CreateKeyConcept(
 mutation CreateActionTaskItem(
   $dayContentId: UUID!, $title: String!, $challengeDescription: String!, $timeEstimateString: String!,
   $tips: [String!]!, $realWorldContext: String!, $successCriteria: [String!]!, $toviMotivation: String!,
-  $difficultyAdaptation: DifficultyAdaptationLevel, $xp: Int!
+  $difficultyAdaptation: String, $xp: Int!
 ) @auth(level: NO_ACCESS) {
   actionTaskItem_insert(data: {
     dayContentId: $dayContentId, title: $title, challengeDescription: $challengeDescription,
@@ -87,11 +91,13 @@ mutation CreateActionStepItem(
 }
 
 mutation CreateContentBlockItem(
-  $dayContentId: UUID!, $blockType: ContentBlockType!, $title: String!, $xp: Int!, $order: Int!,
+  $dayContentId: UUID!, $blockType: String!, $title: String!, $xp: Int!, $order: Int!,
   $estimatedMinutes: Int, $quizDetailsId: UUID, $exerciseDetailsId: UUID
 ) @auth(level: NO_ACCESS) {
   contentBlockItem_insert(data: {
-    dayContentId: $dayContentId, blockType: $blockType, title: $title, xp: $xp, order: $order,
+    dayContentId: $dayContentId, 
+    blockType: $blockType, 
+    title: $title, xp: $xp, order: $order,
     estimatedMinutes: $estimatedMinutes, quizDetailsId: $quizDetailsId, exerciseDetailsId: $exerciseDetailsId
   })
 }
@@ -101,11 +107,12 @@ mutation CreateQuizDetails($description: String!) @auth(level: NO_ACCESS) {
 }
 
 mutation CreateQuizQuestion(
-  $quizDetailsId: UUID!, $question: String!, $questionType: QuizQuestionType!, $explanation: String
+  $quizDetailsId: UUID!, $question: String!, $questionType: String!, $explanation: String
 ) @auth(level: NO_ACCESS) {
   quizQuestionData_insert(data: {
     quizDetailsId: $quizDetailsId, question: $question,
-    questionType: $questionType, explanation: $explanation
+    questionType: $questionType, 
+    explanation: $explanation
   })
 }
 
@@ -116,7 +123,7 @@ mutation CreateQuizOption($questionId: UUID!, $optionText: String!, $isCorrect: 
 }
 
 # --- Other Mutations ---
-mutation CreateEnrollment($learningPlanId: UUID!, $status: EnrollmentStatus!) @auth(level: USER) {
+mutation CreateEnrollment($learningPlanId: UUID!, $status: String!) @auth(level: USER) {
   enrollment_insert(data: {
       userFirebaseUid_expr: "auth.uid",
       learningPlanId: $learningPlanId,
@@ -124,9 +131,9 @@ mutation CreateEnrollment($learningPlanId: UUID!, $status: EnrollmentStatus!) @a
   })
 }
 
-mutation UpdateDayCompletionStatus($dayContentId: UUID!, $status: CompletionStatus!) @auth(level: USER) {
+mutation UpdateDayCompletionStatus($dayContentId: UUID!, $status: String!) @auth(level: USER) {
   dayContent_update(
     key: { id: $dayContentId },
     data: { completionStatus: $status }
   )
-} 
+}
