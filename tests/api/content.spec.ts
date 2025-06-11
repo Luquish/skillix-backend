@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import * as admin from 'firebase-admin';
 import { getTestUserAuthToken } from '../helpers/auth.helper';
+import * as crypto from 'crypto';
 
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 
@@ -103,7 +104,7 @@ describe('Content API (/api/content)', () => {
 
             try {
                 await apiClient.post('/content/generate-next', {
-                    learningPlanId: 'non-existent-plan-id',
+                    learningPlanId: crypto.randomUUID(),
                     completedDayNumber: 1
                 });
             } catch (error: any) {
@@ -121,12 +122,12 @@ describe('Content API (/api/content)', () => {
                 completedDayNumber: 1, // Queremos contenido para el día 2
             });
 
-            expect(response.status).toBe(200);
+            expect(response.status).toBe(201);
             expect(response.data.success).toBe(true);
             expect(response.data.message).toContain('Content for day 2 generated and saved successfully.');
             expect(response.data.data).toBeDefined();
             expect(response.data.data.title).toBeDefined();
             expect(response.data.data.objectives).toBeInstanceOf(Array);
-        }, 60000); // Aumentar timeout porque esta prueba llama al LLM
+        });
     });
 }); 

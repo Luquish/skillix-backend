@@ -518,14 +518,14 @@ export const SkillComponentSchema = SkillComponentSchemaRaw.transform((data, ctx
 
 const SkillAnalysisSchemaRaw = z.object({
   skill_name: z.string().min(1),
-  skill_category: z.string(), // Aceptamos cualquier string para flexibilidad
-  market_demand: z.string(), // Aceptamos cualquier string
+  skill_category: z.string(), 
+  market_demand: z.string(), 
   is_skill_valid: z.boolean(),
   viability_reason: z.string().nullable().optional(),
-  learning_path_recommendation: z.string().min(1),
-  real_world_applications: z.array(z.string().min(1)),
-  complementary_skills: z.array(z.string().min(1)),
-  components: z.array(SkillComponentSchemaRaw), // Usamos el schema raw aquí
+  learning_path_recommendation: z.string().min(1).nullable().optional(),
+  real_world_applications: z.array(z.string().min(1)).nullable().optional(),
+  complementary_skills: z.array(z.string().min(1)).nullable().optional(),
+  components: z.array(SkillComponentSchemaRaw).nullable().optional(),
 });
 
 export const SkillAnalysisSchema = SkillAnalysisSchemaRaw.transform((data) => {

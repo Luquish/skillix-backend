@@ -104,6 +104,6 @@ describe('Learning Plan API (/api/learning-plan)', () => {
         expect(response.status).toBe(201);
         expect(response.data.message).toBe('Learning plan created successfully!');
         expect(response.data.planId).toBeDefined();
-    }, 30000); // Aumentar el timeout para esta prueba por si la llamada al LLM tarda
+    });
   });
 }); 

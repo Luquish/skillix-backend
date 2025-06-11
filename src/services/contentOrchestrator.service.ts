@@ -108,7 +108,7 @@ export const generateAndSaveContentForDay = async (
   console.log(`Contenido para el día ${dayNumber} del plan ${learningPlanId} generado y guardado exitosamente.`);
   return {
     success: true,
-    message: `Content for day ${dayNumber} generated successfully.`,
+    message: `Content for day ${dayNumber} generated and saved successfully.`,
     data: generatedDayContent,
   };
 }; 

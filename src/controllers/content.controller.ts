@@ -39,8 +39,9 @@ export const generateNextDayContentController = async (req: AuthenticatedRequest
     
     // Si todo va bien, devolvemos un 201 Created con el contenido generado.
     res.status(201).json({
+      success: true,
       message: result.message,
-      generatedContent: result.data,
+      data: result.data,
     });
 
   } catch (error: any) {
