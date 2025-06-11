@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as admin from 'firebase-admin';
+import { deleteUserByFirebaseUid } from '../../src/services/dataConnect.service';
 
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 
@@ -13,12 +14,18 @@ const generateRandomEmail = () => {
 let createdUserUid: string | null = null;
 
 describe('Auth API (/api/auth)', () => {
-  // Después de todas las pruebas en este archivo, limpia el usuario creado en el Emulador de Auth
+  // Después de todas las pruebas en este archivo, limpia el usuario creado en los Emuladores
   afterAll(async () => {
     if (createdUserUid) {
       try {
+        // Limpieza del Emulador de Auth
         await admin.auth().deleteUser(createdUserUid);
-        console.log(`[Test Cleanup] Usuario de prueba ${createdUserUid} eliminado.`);
+        console.log(`[Test Cleanup] Usuario de Auth ${createdUserUid} eliminado.`);
+        
+        // Limpieza de la base de datos de Data Connect
+        await deleteUserByFirebaseUid(createdUserUid);
+        console.log(`[Test Cleanup] Usuario de DB para ${createdUserUid} eliminado.`);
+
       } catch (error) {
         console.error(`[Test Cleanup] Fallo al eliminar el usuario de prueba ${createdUserUid}:`, error);
       }

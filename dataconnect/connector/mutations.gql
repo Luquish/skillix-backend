@@ -122,6 +122,41 @@ mutation CreateQuizOption($questionId: UUID!, $optionText: String!, $isCorrect: 
   })
 }
 
+mutation CreateExerciseDetails($instructions: String!, $exerciseType: String!) @auth(level: NO_ACCESS) {
+  exerciseDetailsData_insert(data: {
+    instructions: $instructions, exerciseType: $exerciseType
+  })
+}
+
+mutation CreateMatchPair($exerciseId: UUID!, $prompt: String!, $correctAnswer: String!) @auth(level: NO_ACCESS) {
+  matchPair_insert(data: {
+    exerciseId: $exerciseId, prompt: $prompt, correctAnswer: $correctAnswer
+  })
+}
+
+mutation CreateSkillAnalysis(
+  $learningPlanId: UUID!, $skillName: String!, $skillCategory: String!, $marketDemand: String!,
+  $learningPathRecommendation: String!, $realWorldApplications: [String!]!,
+  $complementarySkills: [String!]!, $isSkillValid: Boolean!, $viabilityReason: String, $generatedBy: String!
+) @auth(level: NO_ACCESS) {
+  skillAnalysis_insert(data: {
+    learningPlanId: $learningPlanId, skillName: $skillName, skillCategory: $skillCategory, marketDemand: $marketDemand,
+    learningPathRecommendation: $learningPathRecommendation, realWorldApplications: $realWorldApplications,
+    complementarySkills: $complementarySkills, isSkillValid: $isSkillValid, viabilityReason: $viabilityReason, generatedBy: $generatedBy
+  })
+}
+
+mutation CreateSkillComponentData(
+  $skillAnalysisId: UUID!, $name: String!, $description: String!, $difficultyLevel: String!,
+  $prerequisitesText: [String!]!, $estimatedLearningHours: Int!, $practicalApplications: [String!]!, $order: Int!
+) @auth(level: NO_ACCESS) {
+  skillComponentData_insert(data: {
+    skillAnalysisId: $skillAnalysisId, name: $name, description: $description, difficultyLevel: $difficultyLevel,
+    prerequisitesText: $prerequisitesText, estimatedLearningHours: $estimatedLearningHours,
+    practicalApplications: $practicalApplications, order: $order
+  })
+}
+
 # --- Other Mutations ---
 mutation CreateEnrollment($learningPlanId: UUID!, $status: String!) @auth(level: USER) {
   enrollment_insert(data: {
@@ -136,4 +171,8 @@ mutation UpdateDayCompletionStatus($dayContentId: UUID!, $status: String!) @auth
     key: { id: $dayContentId },
     data: { completionStatus: $status }
   )
+}
+
+mutation DeleteUser($firebaseUid: String!) @auth(level: NO_ACCESS) {
+    user_delete(key: { firebaseUid: $firebaseUid })
 }

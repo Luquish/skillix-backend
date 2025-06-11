@@ -184,3 +184,17 @@ query GetUserLearningPlans @auth(level: USER) {
     skillName
   }
 }
+
+# Obtiene un usuario específico por su firebaseUid.
+# Se usa internamente por el backend, por eso no tiene @auth.
+query GetUserByFirebaseUid($firebaseUid: String!) {
+  user(key: { firebaseUid: $firebaseUid }) {
+    firebaseUid
+    email
+    name
+    authProvider
+    platform
+    photoUrl
+    emailVerified
+  }
+}
