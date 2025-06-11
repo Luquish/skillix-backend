@@ -17,14 +17,11 @@ const SignUpSchema = z.object({
  * Crea el usuario en Firebase Auth y luego en la base de datos de Data Connect.
  */
 export const signUpController = async (req: Request, res: Response) => {
-  const { email, password, name } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' });
-  }
-
   try {
-    // 1. Crear el usuario en Firebase Authentication usando el servicio centralizado
+    // 1. Validar la entrada usando el esquema Zod
+    const { email, password, name } = SignUpSchema.parse(req.body);
+
+    // 2. Crear el usuario en Firebase Authentication usando el servicio centralizado
     console.log(`Creating user in Firebase Auth for email: ${email}...`);
     const userRecord = await FirebaseAdminService.createUserInAuth({
       email,
@@ -33,7 +30,7 @@ export const signUpController = async (req: Request, res: Response) => {
     });
     console.log(`User created in Firebase Auth with UID: ${userRecord.uid}.`);
 
-    // 2. Crear el registro del usuario en nuestra base de datos (Data Connect)
+    // 3. Crear el registro del usuario en nuestra base de datos (Data Connect)
     console.log(`Creating user profile in Data Connect DB for UID: ${userRecord.uid}...`);
     const newUserInput: DataConnectService.CreateUserInputForService = {
       firebaseUid: userRecord.uid,
@@ -52,22 +49,31 @@ export const signUpController = async (req: Request, res: Response) => {
     }
     console.log(`User profile created in Data Connect DB with ID: ${createdUserInDb.id}`);
 
-    // 3. Devolver la respuesta (sin incluir la contraseña)
+    // 4. Devolver la respuesta (sin incluir la contraseña)
     res.status(201).json({
       message: 'User created successfully!',
       user: {
         id: createdUserInDb.id,
-        uid: userRecord.uid,
-        email: userRecord.email,
-        name: userRecord.displayName,
+        uid: createdUserInDb.firebaseUid,
+        email: createdUserInDb.email,
+        name: createdUserInDb.name,
       },
     });
   } catch (error: any) {
-    // Manejar errores, como 'auth/email-already-exists'
+    // Manejar errores de validación de Zod
+    if (error instanceof z.ZodError) {
+      const errorMessage = error.errors.map(e => e.message).join(', ');
+      return res.status(400).json({ message: errorMessage, errors: error.errors });
+    }
+    // Manejar errores de Firebase Auth
     if (error.code === 'auth/email-already-exists') {
       return res.status(409).json({ message: 'The email address is already in use by another account.' });
     }
-    console.error('Error in signUpController:', error);
+    if (error.code && error.code.startsWith('auth/')) {
+        return res.status(400).json({ message: error.message || 'An authentication error occurred.' });
+    }
+    // Loguear el error completo para facilitar la depuración
+    console.error('Error in signUpController:', error.message, { code: error.code, stack: error.stack });
     res.status(500).json({ message: 'Internal server error during sign-up.' });
   }
 };
@@ -140,12 +146,21 @@ export const socialSignInController = async (req: Request, res: Response) => {
       console.log(`Nuevo usuario creado en DB con ID: ${createdUserInDb.id}`);
       return res.status(201).json({
         message: 'User created successfully!',
-        user: createdUserInDb,
+        user: {
+          id: createdUserInDb.id,
+          uid: createdUserInDb.firebaseUid,
+          email: createdUserInDb.email,
+          name: createdUserInDb.name,
+        }
       });
     }
   } catch (error: any) {
     console.error('Error in socialSignInController:', error);
-    // El error puede ser por un token inválido/expirado
-    return res.status(403).json({ message: 'Forbidden: Invalid authentication token.' });
+    // Si el error es por un token inválido, devolver 403
+    if (error.code && error.code.startsWith('auth/')) {
+      return res.status(403).json({ message: 'Forbidden: Invalid authentication token.' });
+    }
+    // Cualquier otro error (ej. fallo de conexión con la DB) es un 500
+    return res.status(500).json({ message: 'An internal server error occurred.' });
   }
 };

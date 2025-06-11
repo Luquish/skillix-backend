@@ -1,86 +1,74 @@
 // src/config/firebaseAdmin.ts
 import * as admin from 'firebase-admin';
-import { ServiceAccount } from 'firebase-admin';
-import { getDataConnect, DataConnect } from 'firebase-admin/data-connect';
-import { getConfig } from './index'; 
+import { DataConnect, getDataConnect } from 'firebase-admin/data-connect';
+import { getConfig } from './index';
+import * as path from 'path';
+import * as fs from 'fs';
 
-// --- AÑADIDO PARA EVITAR INICIALIZACIÓN EN ENTORNO DE PRUEBAS ---
-if (process.env.NODE_ENV === 'test') {
-  console.log('TEST environment detected. Skipping Firebase Admin/DataConnect initialization.');
-  // Exportar un objeto mock para que las importaciones no fallen
-  module.exports = {
-    firebaseAdminApp: {},
-    dataConnect: {},
-  };
-} else {
-  // --- TODO EL CÓDIGO DE INICIALIZACIÓN EXISTENTE VA AQUÍ ---
-  const logger = console; 
-  const effectiveConfig = getConfig(); 
+const config = getConfig();
+let dataConnectInstance: DataConnect | null = null;
 
-  let app: admin.app.App;
-  let dataConnectInstance: DataConnect;
+// --- CONSTANTES DE CONFIGURACIÓN ---
+const IS_TEST_ENV = process.env.NODE_ENV === 'test';
+const IS_EMULATOR = process.env.FIREBASE_AUTH_EMULATOR_HOST;
 
-  // Initialize Firebase Admin App (ensures default app is available)
-  if (!admin.apps.length) {
-    try {
-      const serviceAccountJsonString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-      let credential;
-
-      if (serviceAccountJsonString) {
-        const serviceAccount = JSON.parse(serviceAccountJsonString) as ServiceAccount;
-        credential = admin.credential.cert(serviceAccount);
-        logger.info('Firebase Admin SDK: Initializing with FIREBASE_SERVICE_ACCOUNT_JSON environment variable.');
-      } else if (effectiveConfig.firebaseServiceAccountPath) { 
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const serviceAccountFromFile = require(effectiveConfig.firebaseServiceAccountPath);
-        credential = admin.credential.cert(serviceAccountFromFile);
-        logger.info(`Firebase Admin SDK: Initializing with service account file from path: ${effectiveConfig.firebaseServiceAccountPath}`);
-      } else {
-        credential = admin.credential.applicationDefault();
-        logger.info('Firebase Admin SDK: Initializing with Application Default Credentials (ADC).');
-      }
-      
-      // Initialize the default Firebase app
-      app = admin.initializeApp({
-        credential,
-        // databaseURL: effectiveConfig.firebaseDatabaseUrl, 
-        // storageBucket: effectiveConfig.firebaseStorageBucket, 
-      });
-      logger.info('Firebase Admin App initialized successfully (default app).');
-
-    } catch (error: any) {
-      logger.error('Firebase Admin SDK: CRITICAL - Failed to initialize app:', error.message, error.stack);
-      throw new Error(`Failed to initialize Firebase Admin SDK: ${error.message}`); 
-    }
-  } else {
-    app = admin.app(); // Get default app if already initialized
-    logger.info('Firebase Admin SDK: Using existing default app.');
+// Lee el ID del servicio de firebase.json para asegurar consistencia.
+// NOTA: Esto asume que el script se corre desde la raíz del proyecto.
+let serviceIdFromConfig = 'skillix-backend'; // Fallback por si la lectura falla
+try {
+  const firebaseConfigPath = path.resolve(process.cwd(), 'firebase.json');
+  const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
+  if (firebaseConfig.dataconnect && firebaseConfig.dataconnect.serviceId) {
+    serviceIdFromConfig = firebaseConfig.dataconnect.serviceId;
   }
-
-  // Initialize DataConnect - now uses the default app implicitly
-  try {
-    if (!effectiveConfig.dataConnectServiceId) {
-      throw new Error('DATA_CONNECT_SERVICE_ID is not configured in config/index.ts (leído de variables de entorno).');
-    }
-    if (!effectiveConfig.dataConnectLocation) {
-      throw new Error('DATA_CONNECT_LOCATION is not configured in config/index.ts (leído de variables de entorno).');
-    }
-
-    // This form of getDataConnect uses the default initialized Firebase App
-    dataConnectInstance = getDataConnect({ 
-      serviceId: effectiveConfig.dataConnectServiceId,
-      location: effectiveConfig.dataConnectLocation,
-    });
-    logger.info(`Firebase Data Connect SDK initialized for service: ${effectiveConfig.dataConnectServiceId} in ${effectiveConfig.dataConnectLocation}`);
-    
-    if (process.env.DATA_CONNECT_EMULATOR_HOST) {
-      logger.info(`Firebase Data Connect: Emulator detected at ${process.env.DATA_CONNECT_EMULATOR_HOST}. The SDK will connect to the emulator.`);
-    }
-
-  } catch (error: any) {
-    logger.error('Firebase Data Connect SDK: CRITICAL - Failed to initialize:', error.message, error.stack);
-    throw new Error(`Failed to initialize Firebase Data Connect SDK: ${error.message}`);
-  }
-
-  module.exports = { firebaseAdminApp: app, dataConnect: dataConnectInstance };
+} catch (error) {
+  console.warn('Could not read serviceId from firebase.json. Using fallback.', error);
 }
+
+const DATA_CONNECT_SERVICE_ID = serviceIdFromConfig;
+const DATA_CONNECT_LOCATION = 'us-central1'; // O la región que uses
+
+function initialize() {
+  if (admin.apps.length === 0) {
+    // Si no hay app, la inicializamos
+    try {
+      const serviceAccountPath = path.resolve(process.cwd(), config.firebaseServiceAccountPath);
+      console.log(`Firebase Admin SDK: Initializing with service account file from path: ${serviceAccountPath}`);
+      const credential = admin.credential.cert(serviceAccountPath);
+      admin.initializeApp({ credential });
+      console.log('Firebase Admin App initialized successfully (default app).');
+    } catch (error: any) {
+      console.error(`CRITICAL: Failed to initialize Firebase Admin SDK. Error: ${error.message}`);
+      return; // No continuar si falla la inicialización de admin
+    }
+  }
+
+  // Una vez que la app de admin está garantizada, inicializamos DataConnect si no lo hemos hecho ya.
+  if (!dataConnectInstance && DATA_CONNECT_SERVICE_ID && DATA_CONNECT_LOCATION) {
+    try {
+      dataConnectInstance = getDataConnect({
+        serviceId: DATA_CONNECT_SERVICE_ID,
+        location: DATA_CONNECT_LOCATION,
+      });
+      console.log(`Firebase Data Connect SDK initialized for service: ${DATA_CONNECT_SERVICE_ID} in ${DATA_CONNECT_LOCATION}`);
+      if (IS_EMULATOR) {
+        console.log(`Firebase Data Connect: Emulator detected at ${process.env.FIRESTORE_EMULATOR_HOST}. The SDK will connect to the emulator.`);
+      }
+    } catch (error: any) {
+      console.error('Failed to initialize Firebase Data Connect SDK:', error);
+      // No lances el error aquí para permitir que la app inicie incluso si Data Connect falla,
+      // pero las operaciones de DB fallarán.
+    }
+  }
+}
+
+initialize();
+
+export function getDb(): DataConnect {
+  if (!dataConnectInstance) {
+    throw new Error('DataConnect instance has not been initialized. Check Firebase Admin SDK setup.');
+  }
+  return dataConnectInstance;
+}
+
+export { admin };

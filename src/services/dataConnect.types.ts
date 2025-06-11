@@ -1,15 +1,20 @@
 // src/services/dataConnect.types.ts
 
 // ==================== ENUMS ====================
-// Estos tipos se basan en tu enums.gql y deben coincidir.
+// Estos tipos se basan en tu schema.gql y deben coincidir.
 
-export type AuthProvider = "EMAIL" | "GOOGLE" | "APPLE" | "ANONYMOUS";
-export type Platform = "IOS" | "ANDROID" | "WEB" | "UNKNOWN";
-export type UserExperienceLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EASIER" | "HARDER" | "STANDARD";
-export type LearningStyle = "VISUAL" | "AUDITORY" | "KINESTHETIC" | "READING_WRITING" | "MIXED" | "UNDEFINED";
+export type AuthProvider = "GOOGLE" | "APPLE" | "EMAIL" | "ANONYMOUS";
+export type Platform = "IOS" | "ANDROID" | "WEB";
+export type UserExperienceLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
+export type DifficultyAdaptationLevel = "EASIER" | "STANDARD" | "HARDER";
+export type LearningStyle = "VISUAL" | "AUDITORY" | "READING_WRITING" | "KINESTHETIC" | "MIXED";
+
+export type CompletionStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "FAILED";
+export type EnrollmentStatus = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PAUSED";
+
 export type ContentBlockType =
-  | "AUDIO"
   | "READ"
+  | "AUDIO"
   | "MAIN_CONTENT_AUDIO"
   | "MAIN_CONTENT_READ"
   | "QUIZ_MCQ"
@@ -22,160 +27,172 @@ export type ContentBlockType =
   | "INFO_BLOCK"
   | "OTHER";
 
-export type CompletionStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "FAILED";
+export type QuizQuestionType = "MULTIPLE_CHOICE" | "TRUE_FALSE" | "FILL_IN_THE_BLANK";
+export type ExerciseType = "MATCHING" | "FILL_IN_THE_BLANK" | "CODE_COMPLETION";
+
 export type SkillCategory =
   | "TECHNICAL"
-  | "SOFT_SKILL"
   | "CREATIVE"
   | "BUSINESS"
+  | "SOFT_SKILL"
   | "ACADEMIC"
   | "LANGUAGE"
   | "HEALTH_WELLNESS"
   | "HOBBY"
   | "OTHER";
 export type MarketDemand = "HIGH" | "MEDIUM" | "LOW" | "NICHE" | "EMERGING" | "UNKNOWN";
-export type RiskLevel = "LOW" | "MEDIUM" | "HIGH";
-export type PatternType = "TIME_BASED" | "PERFORMANCE_BASED" | "ENGAGEMENT_BASED" | "CONTENT_PREFERENCE" | "PACING_STYLE" | "OTHER";
-export type DifficultyAdjustment = "INCREASE" | "MAINTAIN" | "DECREASE";
-export type MessageRole = "USER" | "ASSISTANT" | "SYSTEM";
+
+export type MessageRole = "USER" | "ASSISTANT";
 export type ToviEmojiStyle = "PLAYFUL" | "CELEBRATORY" | "ENCOURAGING" | "WISE" | "GENTLE" | "CALM" | "ENERGETIC" | "SUPPORTIVE";
 
 // ==================== USER RELATED TABLE INTERFACES ====================
 export interface DbUser {
-  id: string;
+  firebaseUid: string;
   email: string;
   name?: string | null;
-  isActive: boolean;
   authProvider: AuthProvider;
   platform?: Platform | null;
-  firebaseUid: string;
   photoUrl?: string | null;
-  emailVerified: boolean;
-  appleUserIdentifier?: string | null;
-  lastSignInAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
+  emailVerified?: boolean | null;
   llmKeyInsights?: string[] | null;
   llmOverallEngagementScore?: number | null;
   fcmTokens?: string[] | null;
-
-  preferences?: DbUserPreference | null;
-  enrollments?: DbEnrollment[];
-  chatSessions?: DbChatSession[];
-  streakData?: DbStreakData | null;
-  notifications?: DbNotification[];
-  analyticsEntries?: DbUserAnalyticsEntry[];
-  toviMessages?: DbToviMessage[];
+  lastSignInAt?: string | null; // Timestamp
+  isActive?: boolean | null;
+  appleUserIdentifier?: string | null;
+  isDeleted?: boolean | null;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
 }
 
 export interface DbUserPreference {
   id: string;
-  userId: string;
-  user?: DbUser;
+  user: DbUser;
+  userFirebaseUid: string;
   skill: string;
   experienceLevel: UserExperienceLevel;
   motivation: string;
   availableTimeMinutes: number;
   learningStyle: LearningStyle;
   goal: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
 }
 
 export interface DbStreakData {
-    id: string;
-    userId: string;
-    user?: DbUser;
-    currentStreak: number;
-    longestStreak: number;
-    lastContributionDate?: string | null;
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  user: DbUser;
+  userFirebaseUid: string;
+  currentStreak: number;
+  longestStreak: number;
+  lastContributionDate?: string | null; // Date
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
 }
 
 export interface DbNotification {
+  id: string;
+  user: DbUser;
+  userFirebaseUid: string;
+  message: string;
+  type?: string | null;
+  isRead: boolean;
+  scheduledTime?: string | null; // Timestamp
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
+}
+
+export interface DbTovi {
     id: string;
-    userId: string;
-    user?: DbUser;
-    message: string;
-    type?: string | null;
-    isRead: boolean;
-    scheduledTime?: string | null;
-    createdAt: string;
-    updatedAt: string;
+    user: DbUser;
+    userFirebaseUid: string;
+    name: string;
+    personality: string;
+    createdAt?: string | null; // Timestamp
+    updatedAt?: string | null; // Timestamp
 }
 
 export interface DbToviMessage {
     id: string;
-    userId: string;
-    user?: DbUser;
+    tovi: DbTovi;
+    toviId: string;
+    user: DbUser;
+    userFirebaseUid: string;
     situation?: string | null;
     message: string;
+    isFromTovi: boolean;
+    isFirstMessage: boolean;
+    isDelivered: boolean;
+    isRead: boolean;
     toviEmojiStyle: ToviEmojiStyle;
     animationSuggestion: string;
-    isDelivered: boolean;
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string | null; // Timestamp
+    updatedAt?: string | null; // Timestamp
 }
 
 // ==================== LEARNING PLAN TABLE INTERFACES ====================
 export interface DbLearningPlan {
   id: string;
-  userId: string;
-  user?: DbUser;
+  user: DbUser;
+  userFirebaseUid: string;
   skillName: string;
   generatedBy: string;
-  generatedAt: string;
+  generatedAt: string; // Timestamp
   totalDurationWeeks: number;
   dailyTimeMinutes: number;
   skillLevelTarget: UserExperienceLevel;
   milestones: string[];
   progressMetrics: string[];
   flexibilityOptions?: string[] | null;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
 
   skillAnalysis?: DbSkillAnalysis | null;
   pedagogicalAnalysis?: DbPedagogicalAnalysis | null;
   sections?: DbPlanSection[];
-  dailyActivityTemplates?: DbDailyActivityTemplate[];
-  suggestedResources?: DbLearningPlanResource[];
-  enrollments?: DbEnrollment[];
+  dailyActivityTemplates?: DbLearningPlanDailyActivityTemplate[];
+  resources?: DbLearningPlanResource[];
 }
 
-export interface DbDailyActivityTemplate {
-  type: string;
-  durationMinutes: number;
+export interface DbLearningPlanDailyActivityTemplate {
+  id: string;
+  learningPlan: DbLearningPlan;
+  learningPlanId: string;
+  activityType: string;
   description: string;
-  order?: number | null;
 }
 
 export interface DbLearningPlanResource {
-  name: string;
-  urlOrDescription: string;
-  resourceType?: string | null;
-  order?: number | null;
+  id: string;
+  learningPlan: DbLearningPlan;
+  learningPlanId: string;
+  title: string;
+  url: string;
+  resourceType: string;
 }
 
 export interface DbSkillAnalysis {
   id: string;
+  learningPlan: DbLearningPlan;
   learningPlanId: string;
-  learningPlan?: DbLearningPlan;
   skillName: string;
   skillCategory: SkillCategory;
   marketDemand: MarketDemand;
-  isSkillValid: boolean;
-  viabilityReason?: string | null;
   learningPathRecommendation: string;
   realWorldApplications: string[];
   complementarySkills: string[];
+  isSkillValid: boolean;
+  viabilityReason?: string | null;
   generatedBy: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
   components?: DbSkillComponentData[];
 }
 
 export interface DbSkillComponentData {
+  id: string;
+  skillAnalysis: DbSkillAnalysis;
+  skillAnalysisId: string;
   name: string;
   description: string;
   difficultyLevel: UserExperienceLevel;
@@ -187,8 +204,8 @@ export interface DbSkillComponentData {
 
 export interface DbPedagogicalAnalysis {
   id: string;
+  learningPlan: DbLearningPlan;
   learningPlanId: string;
-  learningPlan?: DbLearningPlan;
   effectivenessScore: number;
   cognitiveLoadAssessment: string;
   scaffoldingQuality: string;
@@ -197,12 +214,15 @@ export interface DbPedagogicalAnalysis {
   assessmentStrategies: string[];
   improvementAreas: string[];
   generatedBy: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
   objectives?: DbLearningObjectiveData[];
 }
 
 export interface DbLearningObjectiveData {
+  id: string;
+  pedagogicalAnalysis: DbPedagogicalAnalysis;
+  pedagogicalAnalysisId: string;
   objective: string;
   measurable: boolean;
   timeframe: string;
@@ -211,49 +231,41 @@ export interface DbLearningObjectiveData {
 
 export interface DbPlanSection {
   id: string;
+  learningPlan: DbLearningPlan;
   learningPlanId: string;
-  learningPlan?: DbLearningPlan;
   title: string;
   description?: string | null;
   order: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
   days?: DbDayContent[];
 }
 
 // ==================== CONTENT (DAILY) TABLE INTERFACES ====================
 export interface DbDayContent {
   id: string;
+  section: DbPlanSection;
   sectionId: string;
-  section?: DbPlanSection;
   dayNumber: number;
   title: string;
   focusArea: string;
   isActionDay: boolean;
   objectives: string[];
   generatedBy?: string | null;
-  generatedAt?: string | null;
-  completionStatus: CompletionStatus;
-  completedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
+  generatedAt?: string | null; // Timestamp
+  completionStatus?: CompletionStatus | null;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
 
   mainContentItem?: DbMainContentItem | null;
   contentBlocks?: DbContentBlockItem[];
   actionTaskItem?: DbActionTaskItem | null;
-  enrollmentProgress?: DbContentProgress[];
-}
-
-export interface DbKeyConcept {
-  term: string;
-  definition: string;
-  order: number;
 }
 
 export interface DbMainContentItem {
   id: string;
+  dayContent: DbDayContent;
   dayContentId: string;
-  dayContent?: DbDayContent;
   title: string;
   textContent: string;
   audioUrl?: string | null;
@@ -261,202 +273,183 @@ export interface DbMainContentItem {
   audioDurationSeconds?: number | null;
   funFact: string;
   xp: number;
-  keyConcepts: DbKeyConcept[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
+  keyConcepts?: DbKeyConcept[];
 }
 
-export interface DbContentBlockItem {
+export interface DbKeyConcept {
   id: string;
-  dayContentId: string;
-  dayContent?: DbDayContent;
-  blockType: ContentBlockType;
-  title: string;
-  xp: number;
-  order: number;
-  estimatedMinutes?: number | null;
-  createdAt: string;
-  updatedAt: string;
-  quizDetails?: DbQuizContentDetails | null;
-  exerciseDetails?: DbExerciseDetailsData | null;
-}
-
-export interface DbQuizContentDetails {
-  quizType: string;
-  questions: DbQuizQuestionData[];
-}
-
-export interface DbQuizQuestionData {
-  questionText: string;
+  mainContentItem: DbMainContentItem;
+  mainContentItemId: string;
+  concept: string;
   explanation: string;
-  order: number;
-  trueFalseAnswer?: boolean | null;
-  matchPairsJson?: string | null;
-  scenarioText?: string | null;
-  options?: DbQuizOptionData[] | null;
-}
-
-export interface DbQuizOptionData {
-  optionText: string;
-  isCorrect: boolean;
-  order: number;
-}
-
-export interface DbExerciseDetailsData {
-  exerciseType: string;
-  instructions: string;
-  exerciseDataJson: string;
+  emoji?: string | null;
 }
 
 export interface DbActionTaskItem {
   id: string;
+  dayContent: DbDayContent;
   dayContentId: string;
-  dayContent?: DbDayContent;
   title: string;
   challengeDescription: string;
   timeEstimateString: string;
   tips: string[];
   realWorldContext: string;
   successCriteria: string[];
-  skiMotivation: string;
-  difficultyAdaptation?: UserExperienceLevel | null;
+  toviMotivation: string;
+  difficultyAdaptation?: DifficultyAdaptationLevel | null;
   xp: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
   steps?: DbActionStepItem[];
 }
 
 export interface DbActionStepItem {
   id: string;
-  actionTaskId: string;
-  actionTask?: DbActionTaskItem;
-  instruction: string;
-  order: number;
-  createdAt: string;
-  updatedAt: string;
+  actionTaskItem: DbActionTaskItem;
+  actionTaskItemId: string;
+  stepNumber: number;
+  description: string;
+  estimatedTimeSeconds: number;
+  isCompleted: boolean;
 }
 
-export interface DbContentProgress {
+export interface DbContentBlockItem {
   id: string;
-  enrollmentId: string;
-  enrollment?: DbEnrollment;
+  dayContent: DbDayContent;
   dayContentId: string;
-  dayContent?: DbDayContent;
-  contentBlockId: string;
-  contentBlock?: DbContentBlockItem;
-  completed: boolean;
-  xpEarned: number;
-  attempts: number;
-  timeSpentSeconds: number;
-  scorePercent?: number | null;
-  completedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  quizResponses?: DbQuizResponse[];
+  blockType: ContentBlockType;
+  title: string;
+  xp: number;
+  order: number;
+  estimatedMinutes?: number | null;
+  quizDetails?: DbQuizContentDetails | null;
+  quizDetailsId?: string | null;
+  exerciseDetails?: DbExerciseDetailsData | null;
+  exerciseDetailsId?: string | null;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
 }
 
-export interface DbQuizResponse {
+export interface DbQuizContentDetails {
   id: string;
-  contentProgressId: string;
-  contentProgress?: DbContentProgress;
-  quizQuestionId: string;
-  quizQuestion?: DbQuizQuestionData;
-  selectedOptionId?: string | null;
-  responseTextAnswer?: string | null;
+  description: string;
+  questions?: DbQuizQuestionData[];
+}
+
+export interface DbQuizQuestionData {
+  id:string;
+  quizDetails: DbQuizContentDetails;
+  quizDetailsId: string;
+  question: string;
+  questionType: QuizQuestionType;
+  explanation?: string | null;
+  options?: DbQuizOptionData[];
+}
+
+export interface DbQuizOptionData {
+  id: string;
+  question: DbQuizQuestionData;
+  questionId: string;
+  optionText: string;
   isCorrect: boolean;
-  answeredAt: string;
-  createdAt: string;
-  updatedAt: string;
+}
+
+export interface DbExerciseDetailsData {
+  id: string;
+  instructions: string;
+  exerciseType: ExerciseType;
+  matchPairs?: DbMatchPair[];
+}
+
+export interface DbMatchPair {
+  id: string;
+  exercise: DbExerciseDetailsData;
+  exerciseId: string;
+  prompt: string;
+  correctAnswer: string;
 }
 
 // ==================== ENROLLMENT & PROGRESS TABLE INTERFACES ====================
 export interface DbEnrollment {
   id: string;
-  userId: string;
-  user?: DbUser;
+  user: DbUser;
+  userFirebaseUid: string;
+  learningPlan: DbLearningPlan;
   learningPlanId: string;
-  learningPlan?: DbLearningPlan;
-  status: CompletionStatus;
-  startedAt?: string | null;
-  completedAt?: string | null;
-  lastActivityAt?: string | null;
-  currentDayNumber: number;
-  totalXpEarned: number;
-  createdAt: string;
-  updatedAt: string;
-  progressEntries?: DbContentProgress[];
+  enrollmentDate?: string | null; // Timestamp
+  status: EnrollmentStatus;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
 }
 
 // ==================== ANALYTICS TABLE INTERFACES ====================
-export interface DbUserAnalyticsEntry {
+export interface DbUserAnalytics {
   id: string;
-  userId: string;
-  user?: DbUser;
-  date?: string;
-  totalXpEarnedThisDay?: number;
-  sessionsCountThisDay?: number;
-  timeSpentLearningMinutesThisDay?: number;
-  contentBlocksCompletedThisDay?: number;
-  quizAverageScoreThisDay?: number | null;
-  currentStreakForDate?: number;
-  
-  llmLearningPatternsJson?: DbLearningPatternData[] | null;
-  llmOptimalTimeJson?: DbOptimalLearningTimeData | null;
-  llmContentOptimizationJson?: DbContentOptimizationData | null;
-  llmStreakMaintenanceJson?: DbStreakMaintenanceData | null;
-  llmGeneratedOverallEngagementScore?: number | null;
-  llmGeneratedKeyInsights?: string[] | null;
-  lastActivityAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
+  user: DbUser;
+  userFirebaseUid: string;
+  optimalLearningTime?: DbOptimalLearningTimeData | null;
+  optimalLearningTimeId?: string | null;
+  contentOptimization?: DbContentOptimizationData | null;
+  contentOptimizationId?: string | null;
+  streakMaintenanceAnalysis?: DbStreakMaintenanceData | null;
+  streakMaintenanceAnalysisId?: string | null;
+  overallEngagementScore?: number | null;
+  keyInsights?: string[] | null;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
+  learningPatterns?: DbLearningPatternData[];
 }
 
 export interface DbLearningPatternData {
-    patternType: PatternType;
-    description: string;
-    confidence: number;
-    recommendations: string[];
+  id: string;
+  userAnalytics: DbUserAnalytics;
+  userAnalyticsId: string;
+  patternType: string;
+  details: string;
+  confidenceScore: number;
 }
 
 export interface DbOptimalLearningTimeData {
-    bestTimeWindowStart: string;
-    bestTimeWindowEnd: string;
-    reason: string;
-    notificationTime: string;
-    engagementPrediction: number;
+  id: string;
+  timeOfDay: string;
+  confidence: number;
+  reasoning: string;
 }
 
 export interface DbContentOptimizationData {
-    difficultyAdjustment: DifficultyAdjustment;
-    contentTypePreferences: string[];
-    idealSessionLengthMinutes: number;
-    pacingRecommendation: string;
+  id: string;
+  suggestionType: string;
+  details: string;
+  expectedImpact: string;
 }
 
 export interface DbStreakMaintenanceData {
-    riskLevel: RiskLevel;
-    riskFactors: string[];
-    interventionStrategies: string[];
-    motivationalApproach: string;
+  id: string;
+  recommendation: string;
+  timing: string;
+  confidence: number;
 }
+
 
 // ==================== CHAT SESSION TABLE INTERFACES ====================
 export interface DbChatSession {
   id: string;
-  userId: string;
-  user?: DbUser;
-  createdAt: string;
-  updatedAt: string;
+  user: DbUser;
+  userFirebaseUid: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
   messages?: DbChatMessage[];
 }
 
 export interface DbChatMessage {
   id: string;
+  chatSession: DbChatSession;
   chatSessionId: string;
-  chatSession?: DbChatSession;
-  userId: string;
-  user?: DbUser;
-  role: MessageRole | string;
+  userFirebaseUid: string;
+  role: MessageRole;
   content: string;
-  createdAt: string;
+  createdAt?: string | null; // Timestamp
+  updatedAt?: string | null; // Timestamp
 }

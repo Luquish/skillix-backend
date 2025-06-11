@@ -1,460 +1,504 @@
-# dataconnect/schema/schema.gql
-
-# --- Enums (referencia a enums.gql) ---
-# Se asume que los enums como AuthProvider, Platform, UserExperienceLevel, etc.,
-# están definidos en dataconnect/schema/enums.gql e importados.
-
-# --- Tipos de Tabla ---
+# --- Tipos de Tabla Principales ---
 
 """
 Representa un usuario de la plataforma Skillix.
-El firebaseUid es la clave primaria, vinculada a Firebase Authentication.
 """
-type User @table(name: "users") {
-  firebaseUid: String! @primaryKey @col(name: "firebase_uid")
-  email: String! @unique # Cambiado a no nulo para coincidir con CreateUserInput
-  name: String # Cambiado de displayName para consistencia
-  authProvider: AuthProvider! @col(name: "auth_provider") # Añadido
-  platform: Platform @col(name: "platform") # Añadido
-  photoUrl: String @col(name: "photo_url") # Añadido para consistencia con CreateUserInput
-  emailVerified: Boolean @col(name: "email_verified") # Añadido
-  llmKeyInsights: [String!] @col(name: "llm_key_insights") # Añadido de UpdateUserProfileInput
-  llmOverallEngagementScore: Float @col(name: "llm_overall_engagement_score") # Añadido
-  fcmTokens: [String!] @col(name: "fcm_tokens") # Añadido
-  lastSignInAt: Timestamp @col(name: "last_sign_in_at") # Podría ser útil
-  isActive: Boolean @default(expr: "true") @col(name: "is_active") # Añadido de CreateUser
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
-
-  # Relaciones
-  learningPlans: [LearningPlan!]! @relation(field: "user", references: "firebaseUid")
-  userPreferences: UserPreference @relation(field: "user", references: "firebaseUid") # 1-a-1 UserPreference
-  userAnalytics: UserAnalytics @relation(field: "user", references: "firebaseUid") # 1-a-1
-  streakData: StreakData @relation(field: "user", references: "firebaseUid") # 1-a-1
-  notifications: [Notification!]! @relation(field: "user", references: "firebaseUid")
-  toviMessages: [ToviMessage!]! @relation(field: "user", references: "firebaseUid") # Renombrado de skiMessages
-  chatSessions: [ChatSession!]! @relation(field: "user", references: "firebaseUid") # Añadido
-  enrollments: [Enrollment!]! @relation(field: "user", references: "firebaseUid") # Añadido
+type User @table(name: "users", key: "firebaseUid") {
+  firebaseUid: String! @col(name: "firebase_uid")
+  email: String! @unique
+  name: String
+  authProvider: AuthProvider! @col(name: "auth_provider")
+  platform: Platform
+  photoUrl: String @col(name: "photo_url")
+  emailVerified: Boolean @col(name: "email_verified")
+  llmKeyInsights: [String!] @col(name: "llm_key_insights")
+  llmOverallEngagementScore: Float @col(name: "llm_overall_engagement_score")
+  fcmTokens: [String!] @col(name: "fcm_tokens")
+  lastSignInAt: Timestamp @col(name: "last_sign_in_at")
+  isActive: Boolean @default(expr: "true") @col(name: "is_active")
+  appleUserIdentifier: String @col(name: "apple_user_identifier")
+  isDeleted: Boolean @default(expr: "false") @col(name: "is_deleted")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""
-Preferencias iniciales de aprendizaje del usuario.
-"""
 type UserPreference @table(name: "user_preferences") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  userId: String! @unique @col(name: "user_firebase_uid") # FK a User.firebaseUid
-  user: User! @foreignKey(field: "userId", references: "firebaseUid")
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  userFirebaseUid: String! @unique @col(name: "user_firebase_uid")
   skill: String!
   experienceLevel: UserExperienceLevel! @col(name: "experience_level")
   motivation: String!
   availableTimeMinutes: Int! @col(name: "available_time_minutes")
   learningStyle: LearningStyle! @col(name: "learning_style")
   goal: String!
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-
-"""
-Plan de aprendizaje personalizado para un usuario.
-"""
 type LearningPlan @table(name: "learning_plans") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  userId: String! @col(name: "user_firebase_uid") # Clave foránea a User.firebaseUid
-  user: User! @foreignKey(field: "userId", references: "firebaseUid")
-  skillName: String! @col(name: "skill_name") # Añadido
-  generatedBy: String! @col(name: "generated_by") # Añadido
-  generatedAt: Timestamp! @col(name: "generated_at") # Añadido
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  userFirebaseUid: String! @col(name: "user_firebase_uid")
+  skillName: String! @col(name: "skill_name")
+  generatedBy: String! @col(name: "generated_by")
+  generatedAt: Timestamp! @col(name: "generated_at")
   totalDurationWeeks: Int! @col(name: "total_duration_weeks")
   dailyTimeMinutes: Int! @col(name: "daily_time_minutes")
-  skillLevelTarget: UserExperienceLevel! @col(name: "skill_level_target") # Enum corregido
-  milestones: [String!]! @col(name: "milestones") # JSONB
-  progressMetrics: [String!]! @col(name: "progress_metrics") # JSONB
-  flexibilityOptions: [String!] @col(name: "flexibility_options") # JSONB
-  dailyActivityTemplates: [LearningPlanDailyActivityTemplate!]! @col(name: "daily_activity_templates") # JSONB
-  suggestedResources: [LearningPlanResource!] @col(name: "suggested_resources") # JSONB
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
-
-  # Relaciones
-  skillAnalysis: SkillAnalysis @relation(field: "learningPlan", references: "id") # 1-a-1
-  pedagogicalAnalysis: PedagogicalAnalysis @relation(field: "learningPlan", references: "id") # 1-a-1, Nuevo
-  sections: [PlanSection!]! @relation(field: "learningPlan", references: "id") # Reemplaza dayContents
-  enrollments: [Enrollment!]! @relation(field: "learningPlan", references: "id") # Añadido
+  skillLevelTarget: UserExperienceLevel! @col(name: "skill_level_target")
+  milestones: [String!]! @col(name: "milestones")
+  progressMetrics: [String!]! @col(name: "progress_metrics")
+  flexibilityOptions: [String!] @col(name: "flexibility_options")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""Plantilla para una actividad diaria dentro de un plan de aprendizaje (JSONB)."""
-type LearningPlanDailyActivityTemplate {
-  type: String! # Podría ser un ContentBlockType si se alinea
-  durationMinutes: Int!
-  description: String!
-  order: Int
-}
-
-"""Recurso de aprendizaje sugerido (JSONB)."""
-type LearningPlanResource {
-  name: String!
-  urlOrDescription: String!
-  resourceType: String
-  order: Int
-}
-
-"""Sección de un plan de aprendizaje, contiene días."""
 type PlanSection @table(name: "plan_sections") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  learningPlanId: ID! @col(name: "learning_plan_id")
-  learningPlan: LearningPlan! @foreignKey(field: "learningPlanId", references: "id")
+  id: UUID! @default(expr: "uuidV4()")
+  learningPlan: LearningPlan!
+  learningPlanId: UUID! @col(name: "learning_plan_id")
   title: String!
   description: String
   order: Int!
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
-  # Relación a los días de esta sección
-  days: [DayContent!]! @relation(field: "section", references: "id")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""
-Contenido específico para un día dentro de una sección de un plan de aprendizaje.
-"""
 type DayContent @table(name: "day_contents") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  sectionId: ID! @col(name: "section_id")
-  section: PlanSection! @foreignKey(field: "sectionId", references: "id")
-  dayNumber: Int! @col(name: "day_number") # Para identificar el día dentro del plan/sección
+  id: UUID! @default(expr: "uuidV4()")
+  section: PlanSection!
+  sectionId: UUID! @col(name: "section_id")
+  dayNumber: Int! @col(name: "day_number")
   title: String!
-  focusArea: String! @col(name: "focus_area") # Añadido
+  focusArea: String! @col(name: "focus_area")
   isActionDay: Boolean! @col(name: "is_action_day")
-  objectives: [String!]! @col(name: "objectives") # JSONB
-  generatedBy: String @col(name: "generated_by") # Añadido
-  generatedAt: Timestamp @col(name: "generated_at") # Añadido
-  completionStatus: CompletionStatus @default(expr: "PENDING") @col(name: "completion_status") # Añadido
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
-
-  # Relaciones (Ahora como tablas separadas, vinculadas 1-a-1 o 1-a-Muchos)
-  mainContentItem: MainContentItem @relation(field: "dayContent", references: "id") # Uno a Uno (opcional, si no es action day)
-  actionTaskItem: ActionTaskItem @relation(field: "dayContent", references: "id") # Uno a Uno (opcional, si es action day)
-  contentBlockItems: [ContentBlockItem!]! @relation(field: "dayContent", references: "id") # Uno a Muchos
+  objectives: [String!]! @col(name: "objectives")
+  generatedBy: String @col(name: "generated_by")
+  generatedAt: Timestamp @col(name: "generated_at")
+  completionStatus: CompletionStatus @default(expr: "'PENDING'") @col(name: "completion_status")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""
-Contenido principal unificado (lectura y audio) para un DayContent (Tabla).
-El texto base se usa para la lectura y para generar el audio.
-"""
 type MainContentItem @table(name: "main_content_items") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  dayContentId: ID! @unique @col(name: "day_content_id") # 1-a-1 con DayContent
-  dayContent: DayContent! @foreignKey(field: "dayContentId", references: "id")
-
+  id: UUID! @default(expr: "uuidV4()")
+  dayContent: DayContent!
+  dayContentId: UUID! @unique @col(name: "day_content_id")
   title: String!
-  # textContent es la fuente para la lectura y la generación de audio.
   textContent: String! @col(name: "text_content")
-  # audioUrl se poblará después de la generación TTS.
   audioUrl: String @col(name: "audio_url")
   estimatedReadTimeMinutes: Int @col(name: "estimated_read_time_minutes")
   audioDurationSeconds: Int @col(name: "audio_duration_seconds")
   funFact: String!
-  # XP otorgado por completar este contenido principal (leer/escuchar).
-  # El XP total del día se calcularía sumando esto + XP de ContentBlockItems.
   xp: Int!
-  keyConcepts: [KeyConcept!]! @col(name: "key_concepts") # JSONB, derivado de textContent
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-# KeyConcept sigue siendo un tipo no-tabla para JSONB
-type KeyConcept {
-  term: String!
-  definition: String!
-  order: Int!
-}
-
-"""Tarea de acción para un DayContent (Tabla)."""
 type ActionTaskItem @table(name: "action_task_items") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  dayContentId: ID! @unique @col(name: "day_content_id") # 1-a-1 con DayContent
-  dayContent: DayContent! @foreignKey(field: "dayContentId", references: "id")
+  id: UUID! @default(expr: "uuidV4()")
+  dayContent: DayContent!
+  dayContentId: UUID! @unique @col(name: "day_content_id")
   title: String!
   challengeDescription: String! @col(name: "challenge_description")
   timeEstimateString: String! @col(name: "time_estimate_string")
-  tips: [String!]! # JSONB
+  tips: [String!]!
   realWorldContext: String! @col(name: "real_world_context")
-  successCriteria: [String!]! @col(name: "success_criteria") # JSONB
-  toviMotivation: String! @col(name: "tovi_motivation")
-  difficultyAdaptation: UserExperienceLevel @col(name: "difficulty_adaptation")
+  successCriteria: [String!]! @col(name: "success_criteria")
+  toviMotivation: String!
+  difficultyAdaptation: DifficultyAdaptationLevel @col(name: "difficulty_adaptation")
   xp: Int!
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
-
-  # Relación
-  steps: [ActionStepItem!]! @relation(field: "actionTaskItem", references: "id") # Uno a Muchos
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""Paso de una tarea de acción (Tabla)."""
-type ActionStepItem @table(name: "action_step_items") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  actionTaskItemId: ID! @col(name: "action_task_item_id")
-  actionTaskItem: ActionTaskItem! @foreignKey(field: "actionTaskItemId", references: "id")
-  instruction: String!
-  order: Int!
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
-}
-
-"""Bloque de contenido (ejercicio/quiz) para un DayContent (Tabla)."""
 type ContentBlockItem @table(name: "content_block_items") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  dayContentId: ID! @col(name: "day_content_id")
-  dayContent: DayContent! @foreignKey(field: "dayContentId", references: "id")
+  id: UUID! @default(expr: "uuidV4()")
+  dayContent: DayContent!
+  dayContentId: UUID! @col(name: "day_content_id")
   blockType: ContentBlockType! @col(name: "block_type")
   title: String!
   xp: Int!
   order: Int!
   estimatedMinutes: Int @col(name: "estimated_minutes")
-  # Campos JSONB para detalles específicos del tipo de bloque
-  quizDetails: QuizContentDetails @col(name: "quiz_details") # JSONB
-  exerciseDetails: ExerciseDetailsData @col(name: "exercise_details") # JSONB
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  quizDetails: QuizContentDetails
+  quizDetailsId: UUID @col(name: "quiz_details_id")
+  exerciseDetails: ExerciseDetailsData
+  exerciseDetailsId: UUID @col(name: "exercise_details_id")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""Detalles para contenido de tipo Quiz (JSONB anidado en ContentBlockItem)."""
-type QuizContentDetails {
-  quizType: String! # Ej: "MCQ", "TRUE_FALSE", "MATCH_MEANING", "SCENARIO"
-  questions: [QuizQuestionData!]!
-}
-
-"""Pregunta de un quiz (JSONB anidado en QuizContentDetails)."""
-type QuizQuestionData {
-  questionText: String!
-  explanation: String!
-  order: Int!
-  trueFalseAnswer: Boolean # Para TRUE_FALSE
-  matchPairsJson: String # Para MATCH_MEANING, JSON string de pares [{term: "", meaning: ""}, ...]
-  scenarioText: String # Para SCENARIO
-  options: [QuizOptionData!] # Para MCQ, SCENARIO
-}
-
-"""Opción de una pregunta de quiz (JSONB anidado en QuizQuestionData)."""
-type QuizOptionData {
-  optionText: String!
-  isCorrect: Boolean!
-  order: Int!
-}
-
-"""Detalles para contenido de tipo Ejercicio general (JSONB anidado en ContentBlockItem)."""
-type ExerciseDetailsData {
-  exerciseType: String! # Ej: "CODE_COMPLETION", "FREE_TEXT"
-  instructions: String!
-  exerciseDataJson: String! # JSON string con datos específicos del ejercicio
-}
-
-"""Par para ejercicios de tipo MatchToMeaning (JSONB). Usado si matchPairsJson en QuizQuestionData se estructura."""
-type MatchPair {
-  term: String!
-  meaning: String!
-}
-
-"""
-Análisis de usuario y patrones de aprendizaje.
-"""
 type UserAnalytics @table(name: "user_analytics") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  userId: String! @unique @col(name: "user_firebase_uid") # FK a User.firebaseUid
-  user: User! @foreignKey(field: "userId", references: "firebaseUid")
-  learningPatterns: [LearningPatternData!] @col(name: "learning_patterns") # JSONB
-  optimalLearningTime: OptimalLearningTimeData @col(name: "optimal_learning_time") # JSONB
-  contentOptimization: ContentOptimizationData @col(name: "content_optimization") # JSONB
-  streakMaintenanceAnalysis: StreakMaintenanceData @col(name: "streak_maintenance_analysis") # JSONB
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  userFirebaseUid: String! @unique @col(name: "user_firebase_uid")
+  optimalLearningTime: OptimalLearningTimeData
+  optimalLearningTimeId: UUID @col(name: "optimal_learning_time_id")
+  contentOptimization: ContentOptimizationData
+  contentOptimizationId: UUID @col(name: "content_optimization_id")
+  streakMaintenanceAnalysis: StreakMaintenanceData
+  streakMaintenanceAnalysisId: UUID @col(name: "streak_maintenance_analysis_id")
   overallEngagementScore: Float @col(name: "overall_engagement_score")
-  keyInsights: [String!] @col(name: "key_insights") # JSONB
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  keyInsights: [String!] @col(name: "key_insights")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""Datos de un patrón de aprendizaje específico (JSONB)."""
-type LearningPatternData {
-  patternType: PatternType! # Enum: TIME_BASED, PERFORMANCE_BASED, etc.
-  description: String!
-  confidence: Float! # 0-1
-  recommendations: [String!]!
-}
-
-"""Datos del tiempo óptimo de aprendizaje (JSONB)."""
-type OptimalLearningTimeData {
-  bestTimeWindowStart: String! # HH:MM
-  bestTimeWindowEnd: String! # HH:MM
-  reason: String!
-  notificationTime: String! # HH:MM
-  engagementPrediction: Float! # 0-1
-}
-
-"""Datos de optimización de contenido (JSONB)."""
-type ContentOptimizationData {
-  difficultyAdjustment: DifficultyAdjustment! # Enum: INCREASE, MAINTAIN, DECREASE
-  contentTypePreferences: [String!]! # Ej: "QUIZ_MCQ", "AUDIO"
-  idealSessionLengthMinutes: Int!
-  pacingRecommendation: String!
-}
-
-"""Datos del análisis de mantenimiento de rachas (JSONB)."""
-type StreakMaintenanceData {
-  riskLevel: RiskLevel! # Enum: LOW, MEDIUM, HIGH
-  riskFactors: [String!]!
-  interventionStrategies: [String!]!
-  motivationalApproach: String!
-}
-
-"""Análisis de una habilidad específica."""
 type SkillAnalysis @table(name: "skill_analyses") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  learningPlanId: ID! @unique @col(name: "learning_plan_id") # FK a LearningPlan.id
-  learningPlan: LearningPlan! @foreignKey(field: "learningPlanId", references: "id")
+  id: UUID! @default(expr: "uuidV4()")
+  learningPlan: LearningPlan!
+  learningPlanId: UUID! @unique @col(name: "learning_plan_id")
   skillName: String! @col(name: "skill_name")
-  skillCategory: SkillCategory! @col(name: "skill_category") # Enum corregido
-  marketDemand: MarketDemand! @col(name: "market_demand") # Enum corregido
-  components: [SkillComponentData!]! @col(name: "components") # JSONB
+  skillCategory: SkillCategory! @col(name: "skill_category")
+  marketDemand: MarketDemand! @col(name: "market_demand")
   learningPathRecommendation: String! @col(name: "learning_path_recommendation")
-  realWorldApplications: [String!]! @col(name: "real_world_applications") # JSONB
-  complementarySkills: [String!]! @col(name: "complementary_skills") # JSONB
+  realWorldApplications: [String!]! @col(name: "real_world_applications")
+  complementarySkills: [String!]! @col(name: "complementary_skills")
   isSkillValid: Boolean! @col(name: "is_skill_valid")
   viabilityReason: String @col(name: "viability_reason")
-  generatedBy: String! @col(name: "generated_by") # Añadido
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
-}
-
-"""Componente de una habilidad (JSONB)."""
-type SkillComponentData {
-  name: String!
-  description: String!
-  difficultyLevel: UserExperienceLevel! @col(name: "difficulty_level") # Enum corregido
-  prerequisitesText: [String!]! @col(name: "prerequisites_text") # Renombrado
-  estimatedLearningHours: Int!
-  practicalApplications: [String!]!
-  order: Int! # Añadido
-}
-
-"""Análisis pedagógico de un plan de aprendizaje."""
-type PedagogicalAnalysis @table(name: "pedagogical_analyses") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  learningPlanId: ID! @unique @col(name: "learning_plan_id") # FK a LearningPlan.id
-  learningPlan: LearningPlan! @foreignKey(field: "learningPlanId", references: "id")
-  effectivenessScore: Float! @col(name: "effectiveness_score")
-  cognitiveLoadAssessment: String! @col(name: "cognitive_load_assessment") # Podría ser un enum
-  scaffoldingQuality: String! @col(name: "scaffolding_quality") # Podría ser un enum
-  engagementPotential: Float! @col(name: "engagement_potential")
-  recommendations: [String!]! # JSONB
-  assessmentStrategies: [String!]! @col(name: "assessment_strategies") # JSONB
-  improvementAreas: [String!]! @col(name: "improvement_areas") # JSONB
   generatedBy: String! @col(name: "generated_by")
-  objectives: [LearningObjectiveData!]! @col(name: "objectives") # JSONB
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""Objetivo de aprendizaje (JSONB)."""
-type LearningObjectiveData {
-  objective: String!
-  measurable: Boolean!
-  timeframe: String! # Ej: "End of Week 1"
-  order: Int!
+type PedagogicalAnalysis @table(name: "pedagogical_analyses") {
+  id: UUID! @default(expr: "uuidV4()")
+  learningPlan: LearningPlan!
+  learningPlanId: UUID! @unique @col(name: "learning_plan_id")
+  effectivenessScore: Float! @col(name: "effectiveness_score")
+  cognitiveLoadAssessment: String! @col(name: "cognitive_load_assessment")
+  scaffoldingQuality: String! @col(name: "scaffolding_quality")
+  engagementPotential: Float! @col(name: "engagement_potential")
+  recommendations: [String!]!
+  assessmentStrategies: [String!]! @col(name: "assessment_strategies")
+  improvementAreas: [String!]! @col(name: "improvement_areas")
+  generatedBy: String! @col(name: "generated_by")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""Notificaciones para el usuario."""
 type Notification @table(name: "notifications") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  userId: String! @col(name: "user_firebase_uid") # FK a User.firebaseUid
-  user: User! @foreignKey(field: "userId", references: "firebaseUid")
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  userFirebaseUid: String! @col(name: "user_firebase_uid")
   message: String!
-  type: String # Ej: "STREAK_REMINDER", "NEW_CONTENT"
-  isRead: Boolean @default(expr: "false") @col(name: "is_read")
+  type: String
+  isRead: Boolean! @default(expr: "false") @col(name: "is_read")
   scheduledTime: Timestamp @col(name: "scheduled_time")
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""
-Datos de rachas de aprendizaje del usuario.
-"""
 type StreakData @table(name: "streak_data") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  userId: String! @unique @col(name: "user_firebase_uid") # FK a User.firebaseUid
-  user: User! @foreignKey(field: "userId", references: "firebaseUid")
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  userFirebaseUid: String! @unique @col(name: "user_firebase_uid")
   currentStreak: Int! @default(expr: "0") @col(name: "current_streak")
   longestStreak: Int! @default(expr: "0") @col(name: "longest_streak")
   lastContributionDate: Date @col(name: "last_contribution_date")
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""
-Mensajes de la mascota AI, Tovi (antes Ski).
-"""
-type ToviMessage @table(name: "tovi_messages") { # Renombrado de SkiMessage
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  userId: String! @col(name: "user_firebase_uid")
-  user: User! @foreignKey(field: "userId", references: "firebaseUid")
-  situation: String # Ej: "COMPLETED_DAY", "STREAK_MILESTONE"
+type Tovi @table(name: "tovis") {
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  userFirebaseUid: String! @unique @col(name: "user_firebase_uid")
+  name: String!
+  personality: String!
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
+}
+
+type ToviMessage @table(name: "tovi_messages") {
+  id: UUID! @default(expr: "uuidV4()")
+  tovi: Tovi!
+  toviId: UUID! @col(name: "tovi_id")
+  user: User!
+  userFirebaseUid: String! @col(name: "user_firebase_uid")
+  situation: String
   message: String!
-  toviEmojiStyle: ToviEmojiStyle! @col(name: "tovi_emoji_style") # Enum corregido y campo renombrado
+  isFromTovi: Boolean! @col(name: "is_from_tovi")
+  isFirstMessage: Boolean! @col(name: "is_first_message")
+  isDelivered: Boolean! @default(expr: "false") @col(name: "is_delivered")
+  isRead: Boolean! @default(expr: "false") @col(name: "is_read")
+  toviEmojiStyle: ToviEmojiStyle! @col(name: "tovi_emoji_style")
   animationSuggestion: String! @col(name: "animation_suggestion")
-  isDelivered: Boolean @default(expr: "false") @col(name: "is_delivered")
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""
-Sesión de chat entre un usuario y el asistente.
-"""
 type ChatSession @table(name: "chat_sessions") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  userId: String! @col(name: "user_firebase_uid")
-  user: User! @foreignKey(field: "userId", references: "firebaseUid")
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
-
-  messages: [ChatMessage!]! @relation(field: "chatSession", references: "id")
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  userFirebaseUid: String! @col(name: "user_firebase_uid")
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""
-Mensaje dentro de una sesión de chat.
-"""
 type ChatMessage @table(name: "chat_messages") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  chatSessionId: ID! @col(name: "chat_session_id")
-  chatSession: ChatSession! @foreignKey(field: "chatSessionId", references: "id")
-  userId: String! @col(name: "user_firebase_uid") # Quién envió el mensaje (puede ser el 'user' o 'assistant')
-  # user: User! @foreignKey(field: "userId", references: "firebaseUid") # Puede ser útil, pero revisar si es siempre un User de la tabla
-  role: MessageRole! # USER, ASSISTANT, SYSTEM
+  id: UUID! @default(expr: "uuidV4()")
+  chatSession: ChatSession!
+  chatSessionId: UUID! @col(name: "chat_session_id")
+  userFirebaseUid: String! @col(name: "user_firebase_uid")
+  role: MessageRole!
   content: String!
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at") # Generalmente no se actualizan mensajes
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-"""
-Inscripción de un usuario a un plan de aprendizaje.
-"""
 type Enrollment @table(name: "enrollments") {
-  id: ID! @primaryKey @default(expr: "uuidV4()")
-  userId: String! @col(name: "user_firebase_uid")
-  user: User! @foreignKey(field: "userId", references: "firebaseUid")
-  learningPlanId: ID! @col(name: "learning_plan_id")
-  learningPlan: LearningPlan! @foreignKey(field: "learningPlanId", references: "id")
-  status: CompletionStatus! @col(name: "status")
-  currentDayNumber: Int! @default(expr: "1") @col(name: "current_day_number")
-  totalXpEarned: Int! @default(expr: "0") @col(name: "total_xp_earned")
-  startedAt: Timestamp @default(expr: "now()") @col(name: "started_at")
-  completedAt: Timestamp @col(name: "completed_at")
-  createdAt: Timestamp @default(expr: "now()") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "now()") @col(name: "updated_at")
+  id: UUID! @default(expr: "uuidV4()")
+  user: User!
+  userFirebaseUid: String! @col(name: "user_firebase_uid")
+  learningPlan: LearningPlan!
+  learningPlanId: UUID! @col(name: "learning_plan_id")
+  enrollmentDate: Timestamp @col(name: "enrollment_date")
+  status: EnrollmentStatus!
+  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
+  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-# El tipo UserProgress anterior podría ser redundante o fusionarse con Enrollment/StreakData
-# Por ahora, lo comento para evitar duplicidad, a menos que tenga un propósito distinto.
-# type UserProgress @table(name: "user_progress") {
-#   id: ID! @primaryKey @default(expr: "uuidV4()")
-#   userId: String! @col(name: "user_firebase_uid")
-#   user: User @foreignKey(field: "userId", references: "firebaseUid")
-#   # ... campos de progreso general
-# }
+# --- Tipos de Tabla (Anidados / Relacionados) ---
+
+type LearningPlanDailyActivityTemplate @table(name: "learning_plan_daily_activity_templates") {
+  id: UUID! @default(expr: "uuidV4()")
+  learningPlan: LearningPlan!
+  learningPlanId: UUID! @col(name: "learning_plan_id")
+  activityType: String! @col(name: "activity_type")
+  description: String!
+}
+
+type LearningPlanResource @table(name: "learning_plan_resources") {
+  id: UUID! @default(expr: "uuidV4()")
+  learningPlan: LearningPlan!
+  learningPlanId: UUID! @col(name: "learning_plan_id")
+  title: String!
+  url: String!
+  resourceType: String! @col(name: "resource_type")
+}
+
+type KeyConcept @table(name: "key_concepts") {
+  id: UUID! @default(expr: "uuidV4()")
+  mainContentItem: MainContentItem!
+  mainContentItemId: UUID! @col(name: "main_content_item_id")
+  concept: String!
+  explanation: String!
+  emoji: String
+}
+
+type ActionStepItem @table(name: "action_step_items") {
+  id: UUID! @default(expr: "uuidV4()")
+  actionTaskItem: ActionTaskItem!
+  actionTaskItemId: UUID! @col(name: "action_task_item_id")
+  stepNumber: Int! @col(name: "step_number")
+  description: String!
+  estimatedTimeSeconds: Int! @col(name: "estimated_time_seconds")
+  isCompleted: Boolean! @default(expr: "false") @col(name: "is_completed")
+}
+
+type QuizContentDetails @table(name: "quiz_content_details") {
+  id: UUID! @default(expr: "uuidV4()")
+  description: String!
+}
+
+type QuizQuestionData @table(name: "quiz_question_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  quizDetails: QuizContentDetails!
+  quizDetailsId: UUID! @col(name: "quiz_details_id")
+  question: String!
+  questionType: QuizQuestionType! @col(name: "question_type")
+  explanation: String
+}
+
+type QuizOptionData @table(name: "quiz_option_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  question: QuizQuestionData!
+  questionId: UUID! @col(name: "question_id")
+  optionText: String! @col(name: "option_text")
+  isCorrect: Boolean! @col(name: "is_correct")
+}
+
+type ExerciseDetailsData @table(name: "exercise_details_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  instructions: String!
+  exerciseType: ExerciseType! @col(name: "exercise_type")
+}
+
+type MatchPair @table(name: "match_pairs") {
+  id: UUID! @default(expr: "uuidV4()")
+  exercise: ExerciseDetailsData!
+  exerciseId: UUID! @col(name: "exercise_id")
+  prompt: String!
+  correctAnswer: String! @col(name: "correct_answer")
+}
+
+type LearningPatternData @table(name: "learning_pattern_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  userAnalytics: UserAnalytics!
+  userAnalyticsId: UUID! @col(name: "user_analytics_id")
+  patternType: String! @col(name: "pattern_type")
+  details: String!
+  confidenceScore: Float! @col(name: "confidence_score")
+}
+
+type OptimalLearningTimeData @table(name: "optimal_learning_time_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  timeOfDay: String! @col(name: "time_of_day")
+  confidence: Float!
+  reasoning: String!
+}
+
+type ContentOptimizationData @table(name: "content_optimization_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  suggestionType: String! @col(name: "suggestion_type")
+  details: String!
+  expectedImpact: String! @col(name: "expected_impact")
+}
+
+type StreakMaintenanceData @table(name: "streak_maintenance_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  recommendation: String!
+  timing: String!
+  confidence: Float!
+}
+
+type SkillComponentData @table(name: "skill_component_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  skillAnalysis: SkillAnalysis!
+  skillAnalysisId: UUID! @col(name: "skill_analysis_id")
+  name: String!
+  description: String!
+  difficultyLevel: UserExperienceLevel! @col(name: "difficulty_level")
+  prerequisitesText: [String!]! @col(name: "prerequisites_text")
+  estimatedLearningHours: Int! @col(name: "estimated_learning_hours")
+  practicalApplications: [String!]! @col(name: "practical_applications")
+  order: Int!
+}
+
+type LearningObjectiveData @table(name: "learning_objective_data") {
+  id: UUID! @default(expr: "uuidV4()")
+  pedagogicalAnalysis: PedagogicalAnalysis!
+  pedagogicalAnalysisId: UUID! @col(name: "pedagogical_analysis_id")
+  objective: String!
+  measurable: Boolean!
+  timeframe: String!
+  order: Int!
+}
+
+# --- Enums y Tipos Escalares ---
+
+enum AuthProvider {
+  GOOGLE
+  APPLE
+  EMAIL
+  ANONYMOUS
+}
+
+enum Platform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum UserExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum DifficultyAdaptationLevel {
+  EASIER
+  STANDARD
+  HARDER
+}
+
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  READING_WRITING
+  KINESTHETIC
+  MIXED
+}
+
+enum CompletionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+  FAILED
+}
+
+enum ContentBlockType {
+  READ
+  AUDIO
+  MAIN_CONTENT_AUDIO
+  MAIN_CONTENT_READ
+  QUIZ_MCQ
+  QUIZ_TRUE_FALSE
+  QUIZ_MATCH_MEANING
+  QUIZ_SCENARIO
+  ACTION_TASK
+  EXERCISE_GENERAL
+  VIDEO
+  INFO_BLOCK
+  OTHER
+}
+
+enum QuizQuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  FILL_IN_THE_BLANK
+}
+
+enum ExerciseType {
+  MATCHING
+  FILL_IN_THE_BLANK
+  CODE_COMPLETION
+}
+
+enum SkillCategory {
+  TECHNICAL
+  CREATIVE
+  BUSINESS
+  SOFT_SKILL
+  ACADEMIC
+  LANGUAGE
+  HEALTH_WELLNESS
+  HOBBY
+  OTHER
+}
+
+enum MarketDemand {
+  HIGH
+  MEDIUM
+  LOW
+  NICHE
+  EMERGING
+  UNKNOWN
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+enum ToviEmojiStyle {
+  PLAYFUL
+  CELEBRATORY
+  ENCOURAGING
+  WISE
+  GENTLE
+  CALM
+  ENERGETIC
+  SUPPORTIVE
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  PAUSED
+}

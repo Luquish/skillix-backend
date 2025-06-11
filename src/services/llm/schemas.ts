@@ -439,6 +439,17 @@ export const PedagogicalAnalysisSchema = z.object({
   objectives: z.array(LearningObjectiveSchema).min(1),
 });
 
+export const AdaptiveLearningRecommendationSchema = z.object({
+  difficulty_adjustment: z.enum(["increase", "maintain", "decrease"])
+    .describe("Recommendation for adjusting content difficulty based on user performance."),
+  pacing_recommendation: z.string().min(1)
+    .describe("Suggestions for learning pace, e.g., 'Recommend reviewing prerequisite X before proceeding'."),
+  content_modifications: z.array(z.string().min(1))
+    .describe("Specific suggestions for content adaptation, e.g., 'Offer an alternative explanation for concept Y.'."),
+  motivational_elements: z.array(z.string().min(1))
+    .describe("Ideas for motivational messages or actions, e.g., 'Acknowledge their consistent effort on difficult topics.'."),
+});
+
 const SkillComponentSchemaRaw = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
@@ -656,6 +667,8 @@ export type LearningPlan = z.infer<typeof LearningPlanSchema>;
 
 export type LearningObjective = z.infer<typeof LearningObjectiveSchema>;
 export type PedagogicalAnalysis = z.infer<typeof PedagogicalAnalysisSchema>;
+
+export type AdaptiveLearningRecommendation = z.infer<typeof AdaptiveLearningRecommendationSchema>;
 
 export type SkillComponent = z.infer<typeof SkillComponentSchema>;
 export type SkillAnalysis = z.infer<typeof SkillAnalysisSchema>;

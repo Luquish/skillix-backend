@@ -51,3 +51,9 @@ ENV/
 node_modules
 
 pnpm-lock.yaml
+tests/fixtures/
+# Firebase service account key
+config/
+
+dataconnect/.dataconnect
+dataconnect-generated/

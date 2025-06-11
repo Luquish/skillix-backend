@@ -1,0 +1,13 @@
+specVersion: "v1"
+serviceId: "skillix-db-service"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "skillix-db-database"
+      cloudSql:
+        instanceId: "skillix-backend-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]
+connectorId: ""

@@ -9,7 +9,10 @@
   
       // ... otras opciones ...
       "outDir": "./dist", // Directorio de salida para los archivos .js compilados
-      "rootDir": "./src"  // Especifica el directorio raíz de los archivos fuente .ts
+      "rootDir": "./src",  // Especifica el directorio raíz de los archivos fuente .ts
+      "target": "es2016",
+      "esModuleInterop": true,
+      "module": "commonjs"
     },
     "include": [
       "src/**/*.ts" // Asegúrate de que TypeScript incluya todos tus archivos .ts en src

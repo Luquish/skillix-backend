@@ -1,0 +1,13 @@
+I0610 14:47:46.747673   44421 load.go:37] Reloading schema and connectors...
+E0610 14:47:46.752527   44421 load.go:69] Could not generate extensions: rpc error: code = NotFound desc = no schema found for service "skillix-db-service". No service has a schema.
+E0610 14:47:46.752639   44421 load.go:79] Could not load sources: 
+Errors: schema/schema.gql:539: Cannot redeclare type Query.
+I0610 14:47:46.753719   44421 collector.go:107] schema extensions wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema"
+Generated sources: prelude.gql [71531B] 
+I0610 14:47:46.753767   44421 load.go:80] Finished reloading
+I0610 14:47:46.755881   44421 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:9399
+I0610 14:47:46.756808   44421 dev.go:95] Listening on address (HTTP + gRPC): [::1]:9399
+I0610 14:47:48.861015   44421 control.go:73] [/emulator/skillix-db-service 8f04] UpdateResources(): done
+Schema: sources: 
+I0610 14:47:48.868644   44421 service.go:151] [/emulator/skillix-db-service 8f04] while configuring to server.Settings{ConnectionString:"dbname='skillix-db-database' host='127.0.0.1' port='5432' sslmode='disable' dbname='skillix-db-database'", MaxOpenConnection:1, UseDummy:false, EnableGoogleMLIntegration:false, SchemaValidationMode:""}, failed to reload latest sources: 
+Errors: schema/schema.gql:539: Cannot redeclare type Query.
