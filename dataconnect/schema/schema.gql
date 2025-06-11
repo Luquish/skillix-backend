@@ -7,7 +7,6 @@ type User @table(name: "users", key: "firebaseUid") {
   firebaseUid: String! @col(name: "firebase_uid")
   email: String! @unique
   name: String
-  # CORRECCIÓN: Se reemplazan los Enums personalizados por String.
   authProvider: String! @col(name: "auth_provider")
   platform: String @col(name: "platform")
   photoUrl: String @col(name: "photo_url")

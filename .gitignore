@@ -53,7 +53,7 @@ node_modules
 pnpm-lock.yaml
 tests/fixtures/
 # Firebase service account key
-config/
+src/config/serviceAccountKey.json
 
 dataconnect/.dataconnect
 dataconnect-generated/

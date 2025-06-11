@@ -17,8 +17,13 @@ interface AppConfig {
   openaiModel: string;
   llmModelConfig: LlmModelConfig;
   firebaseServiceAccountPath: string;
+  firebaseProjectId: string | undefined;
+  googleApplicationCredentials: string | undefined;
   dataConnectServiceId: string;
   dataConnectLocation: string;
+  dataConnectEmulatorHost: string | undefined;
+  firebaseWebApiKey: string;
+  firebaseAuthEmulatorHost: string | undefined;
 }
 
 const config: AppConfig = {
@@ -34,8 +39,13 @@ const config: AppConfig = {
     presence_penalty: parseFloat(process.env.LLM_PRESENCE_PENALTY || '0'),
   },
   firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '',
-  dataConnectServiceId: process.env.DATA_CONNECT_SERVICE_ID,
-  dataConnectLocation: process.env.DATA_CONNECT_LOCATION,
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
+  googleApplicationCredentials: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+  dataConnectServiceId: process.env.DATA_CONNECT_SERVICE_ID || '',
+  dataConnectLocation: process.env.DATA_CONNECT_LOCATION || 'us-central1',
+  dataConnectEmulatorHost: process.env.DATA_CONNECT_EMULATOR_HOST,
+  firebaseWebApiKey: process.env.FIREBASE_WEB_API_KEY || 'test-api-key',
+  firebaseAuthEmulatorHost: process.env.FIREBASE_AUTH_EMULATOR_HOST,
 };
 
 export function getConfig(): AppConfig {

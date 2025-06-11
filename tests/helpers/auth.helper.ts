@@ -1,14 +1,14 @@
+import { getConfig } from '../../src/config';
 import axios from 'axios';
-import * as dotenv from 'dotenv';
 
-dotenv.config();
 
+const config = getConfig();
 // Clave de API web de Firebase. Para el emulador, puede ser cualquier string no vacío.
 // En un entorno real, la obtendrías de la configuración de tu proyecto de Firebase.
 const FIREBASE_WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY || 'test-api-key';
 
 // La URL de la API REST del emulador de Auth
-const AUTH_EMULATOR_URL = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword`;
+const AUTH_EMULATOR_URL = `http://${config.firebaseAuthEmulatorHost}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword`;
 
 /**
  * Inicia sesión como un usuario de prueba en el emulador de Auth y devuelve su ID Token.
@@ -24,7 +24,7 @@ export const getTestUserAuthToken = async (email: string, password = 'password12
             returnSecureToken: true,
         }, {
             params: {
-                key: FIREBASE_WEB_API_KEY,
+                key: config.firebaseWebApiKey,
             },
         });
         return response.data.idToken;

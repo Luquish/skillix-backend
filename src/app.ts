@@ -1,15 +1,13 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import { getConfig } from './config';
 
 // Importar el router principal de la API (asumiendo que hay un index.ts en api/)
-import apiRouter from './api'; 
+import apiRouter from './api';
 
-// Cargar variables de entorno
-dotenv.config();
+const config = getConfig();
 
 const app: Application = express();
-const PORT = process.env.PORT || 3000;
 
 // Middlewares globales
 app.use(cors()); // Habilita CORS para todas las rutas
@@ -24,10 +22,10 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api', apiRouter);
 
 // Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`🦊 Tovi Backend listening on port ${PORT}`);
+app.listen(config.port, () => {
+  console.log(`🦊 Tovi Backend listening on port ${config.port}`);
   if (process.env.NODE_ENV === 'development') {
-    console.log(`Local endpoint: http://localhost:${PORT}`);
+    console.log(`Local endpoint: http://localhost:${config.port}`);
   }
 });
 
