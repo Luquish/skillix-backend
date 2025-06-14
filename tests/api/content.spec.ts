@@ -58,7 +58,7 @@ describe('Content API (/api/content)', () => {
             console.error("Fallo al crear el plan de aprendizaje en beforeAll:", error.response?.data || error.message);
             throw new Error("La creación del plan de aprendizaje falló en beforeAll, las pruebas no pueden continuar.");
         }
-    }, 60000);
+    });
 
     afterAll(async () => {
         if (testUser?.uid) {

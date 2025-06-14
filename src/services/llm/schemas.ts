@@ -522,7 +522,7 @@ const SkillAnalysisSchemaRaw = z.object({
   market_demand: z.string(), 
   is_skill_valid: z.boolean(),
   viability_reason: z.string().nullable().optional(),
-  learning_path_recommendation: z.string().min(1).nullable().optional(),
+  learning_path_recommendation: z.string().nullable().optional(),
   real_world_applications: z.array(z.string().min(1)).nullable().optional(),
   complementary_skills: z.array(z.string().min(1)).nullable().optional(),
   components: z.array(SkillComponentSchemaRaw).nullable().optional(),
