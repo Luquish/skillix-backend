@@ -12,8 +12,6 @@ type User @table(name: "users", key: "firebaseUid") {
   platform: String @col(name: "platform")
   photoUrl: String @col(name: "photo_url")
   emailVerified: Boolean @col(name: "email_verified")
-  llmKeyInsights: [String!] @col(name: "llm_key_insights")
-  llmOverallEngagementScore: Float @col(name: "llm_overall_engagement_score")
   fcmTokens: [String!] @col(name: "fcm_tokens")
   lastSignInAt: Timestamp @col(name: "last_sign_in_at")
   isActive: Boolean @default(expr: "true") @col(name: "is_active")
@@ -92,8 +90,6 @@ type MainContentItem @table(name: "main_content_items") {
   audioDurationSeconds: Int @col(name: "audio_duration_seconds")
   funFact: String! @col(name: "fun_fact")
   xp: Int!
-  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
 type ActionTaskItem @table(name: "action_task_items") {
@@ -109,8 +105,6 @@ type ActionTaskItem @table(name: "action_task_items") {
   toviMotivation: String! @col(name: "tovi_motivation")
   difficultyAdaptation: String @col(name: "difficulty_adaptation")
   xp: Int!
-  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
 type ContentBlockItem @table(name: "content_block_items") {
@@ -126,20 +120,19 @@ type ContentBlockItem @table(name: "content_block_items") {
   quizDetailsId: UUID @col(name: "quiz_details_id")
   exerciseDetails: ExerciseDetailsData
   exerciseDetailsId: UUID @col(name: "exercise_details_id")
-  createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
-  updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }
 
-type UserAnalytics @table(name: "user_analytics", key: "userFirebaseUid") {
+type UserAnalytics @table(name: "user_analytics") {
   id: UUID! @default(expr: "uuidV4()")
   user: User!
-  userFirebaseUid: String! @col(name: "user_firebase_uid")
-  optimalLearningTime: OptimalLearningTimeData
-  optimalLearningTimeId: UUID @col(name: "optimal_learning_time_id")
-  contentOptimization: ContentOptimizationData
-  contentOptimizationId: UUID @col(name: "content_optimization_id")
-  streakMaintenanceAnalysis: StreakMaintenanceData
-  streakMaintenanceAnalysisId: UUID @col(name: "streak_maintenance_analysis_id")
+  userFirebaseUid: String! @unique @col(name: "user_firebase_uid")
+  optimalLearningTimeStart: String @col(name: "optimal_learning_time_start")
+  optimalLearningTimeEnd: String @col(name: "optimal_learning_time_end")
+  optimalLearningTimeReasoning: String @col(name: "optimal_learning_time_reasoning")
+  contentDifficultyRecommendation: String @col(name: "content_difficulty_recommendation")
+  idealSessionLengthMinutes: Int @col(name: "ideal_session_length_minutes")
+  streakRiskLevel: String @col(name: "streak_risk_level")
+  streakInterventionStrategies: [String!] @col(name: "streak_intervention_strategies")
   overallEngagementScore: Float @col(name: "overall_engagement_score")
   keyInsights: [String!] @col(name: "key_insights")
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
@@ -150,7 +143,6 @@ type SkillAnalysis @table(name: "skill_analyses") {
   id: UUID! @default(expr: "uuidV4()")
   learningPlan: LearningPlan!
   learningPlanId: UUID! @unique @col(name: "learning_plan_id")
-  skillName: String! @col(name: "skill_name")
   skillCategory: String! @col(name: "skill_category")
   marketDemand: String! @col(name: "market_demand")
   learningPathRecommendation: String! @col(name: "learning_path_recommendation")
@@ -333,36 +325,6 @@ type MatchPair @table(name: "match_pairs") {
   exerciseId: UUID! @col(name: "exercise_id")
   prompt: String!
   correctAnswer: String! @col(name: "correct_answer")
-}
-
-type LearningPatternData @table(name: "learning_pattern_data") {
-  id: UUID! @default(expr: "uuidV4()")
-  userAnalytics: UserAnalytics!
-  userAnalyticsId: UUID! @col(name: "user_analytics_id")
-  patternType: String! @col(name: "pattern_type")
-  details: String!
-  confidenceScore: Float! @col(name: "confidence_score")
-}
-
-type OptimalLearningTimeData @table(name: "optimal_learning_time_data") {
-  id: UUID! @default(expr: "uuidV4()")
-  timeOfDay: String! @col(name: "time_of_day")
-  confidence: Float!
-  reasoning: String!
-}
-
-type ContentOptimizationData @table(name: "content_optimization_data") {
-  id: UUID! @default(expr: "uuidV4()")
-  suggestionType: String! @col(name: "suggestion_type")
-  details: String!
-  expectedImpact: String! @col(name: "expected_impact")
-}
-
-type StreakMaintenanceData @table(name: "streak_maintenance_data") {
-  id: UUID! @default(expr: "uuidV4()")
-  recommendation: String!
-  timing: String!
-  confidence: Float!
 }
 
 type SkillComponentData @table(name: "skill_component_data") {

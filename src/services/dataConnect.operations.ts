@@ -31,8 +31,6 @@ export const GET_LEARNING_PLAN_STRUCTURE_QUERY = `
         }
       }
       skillAnalysis: skillAnalysis_on_learningPlan {
-        # ...los campos que necesites de skill analysis...
-        skillName
         skillCategory
         marketDemand
         isSkillValid
@@ -122,12 +120,12 @@ mutation CreateLearningPlanBase(
 
 export const CREATE_SKILL_ANALYSIS_MUTATION = `
 mutation CreateSkillAnalysis(
-  $learningPlanId: UUID!, $skillName: String!, $skillCategory: String!, $marketDemand: String!,
+  $learningPlanId: UUID!, $skillCategory: String!, $marketDemand: String!,
   $learningPathRecommendation: String!, $realWorldApplications: [String!]!,
   $complementarySkills: [String!]!, $isSkillValid: Boolean!, $viabilityReason: String, $generatedBy: String!
 ) {
   skillAnalysis_insert(data: {
-    learningPlanId: $learningPlanId, skillName: $skillName, skillCategory: $skillCategory, marketDemand: $marketDemand,
+    learningPlanId: $learningPlanId, skillCategory: $skillCategory, marketDemand: $marketDemand,
     learningPathRecommendation: $learningPathRecommendation, realWorldApplications: $realWorldApplications,
     complementarySkills: $complementarySkills, isSkillValid: $isSkillValid, viabilityReason: $viabilityReason, generatedBy: $generatedBy
   })

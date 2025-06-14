@@ -83,33 +83,23 @@ query GetDayContent($learningPlanId: UUID!, $dayNumber: Int!) @auth(level: USER)
   }
 }
 
-# Obtiene los analytics generados por el LLM para un usuario.
-# El usuario debe estar autenticado y solo puede solicitar sus propios analytics.
+# ACTUALIZADO: Query corregida después de la migración exitosa
+# Usa la nueva estructura consolidada de UserAnalytics
 query GetUserAnalytics @auth(level: USER) {
-  userAnalytics(key: { userFirebaseUid: "auth.uid" }) {
+  userAnalyticss(
+    where: { userFirebaseUid: { eq_expr: "auth.uid" } },
+    limit: 1
+  ) {
     id
+    optimalLearningTimeStart
+    optimalLearningTimeEnd
+    optimalLearningTimeReasoning
+    contentDifficultyRecommendation
+    idealSessionLengthMinutes
+    streakRiskLevel
+    streakInterventionStrategies
     overallEngagementScore
     keyInsights
-    learningPatternDatas_on_userAnalytics {
-      patternType
-      details
-      confidenceScore
-    }
-    optimalLearningTime {
-      timeOfDay
-      confidence
-      reasoning
-    }
-    contentOptimization {
-      suggestionType
-      details
-      expectedImpact
-    }
-    streakMaintenanceAnalysis {
-      recommendation
-      timing
-      confidence
-    }
   }
 }
 

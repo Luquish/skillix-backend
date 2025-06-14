@@ -216,7 +216,9 @@ export async function createFullLearningPlanInDB(
     const componentsToCreate = skillAnalysisData.components; // Guardar componentes
     delete (skillAnalysisData as any).components; // Eliminar del objeto principal
 
-    const skillAnalysisVars = { ...skillAnalysisData, learningPlanId };
+    // ACTUALIZADO: Eliminar skillName redundante
+    const { skillName, ...skillAnalysisWithoutSkillName } = skillAnalysisData;
+    const skillAnalysisVars = { ...skillAnalysisWithoutSkillName, learningPlanId };
     const saResponse = await executeGraphQL<{ skillAnalysis_insert: { id: string } }>(CREATE_SKILL_ANALYSIS_MUTATION, skillAnalysisVars);
     const skillAnalysisId = saResponse.data?.skillAnalysis_insert.id;
 

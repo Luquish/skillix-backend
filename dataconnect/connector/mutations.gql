@@ -134,15 +134,22 @@ mutation CreateMatchPair($exerciseId: UUID!, $prompt: String!, $correctAnswer: S
   })
 }
 
+# CORREGIDO: SkillAnalysis sin skillName - completamente alineado con el esquema
 mutation CreateSkillAnalysis(
-  $learningPlanId: UUID!, $skillName: String!, $skillCategory: String!, $marketDemand: String!,
+  $learningPlanId: UUID!, $skillCategory: String!, $marketDemand: String!,
   $learningPathRecommendation: String!, $realWorldApplications: [String!]!,
   $complementarySkills: [String!]!, $isSkillValid: Boolean!, $viabilityReason: String, $generatedBy: String!
 ) @auth(level: NO_ACCESS) {
   skillAnalysis_insert(data: {
-    learningPlanId: $learningPlanId, skillName: $skillName, skillCategory: $skillCategory, marketDemand: $marketDemand,
-    learningPathRecommendation: $learningPathRecommendation, realWorldApplications: $realWorldApplications,
-    complementarySkills: $complementarySkills, isSkillValid: $isSkillValid, viabilityReason: $viabilityReason, generatedBy: $generatedBy
+    learningPlanId: $learningPlanId, 
+    skillCategory: $skillCategory, 
+    marketDemand: $marketDemand,
+    learningPathRecommendation: $learningPathRecommendation, 
+    realWorldApplications: $realWorldApplications,
+    complementarySkills: $complementarySkills, 
+    isSkillValid: $isSkillValid, 
+    viabilityReason: $viabilityReason, 
+    generatedBy: $generatedBy
   })
 }
 

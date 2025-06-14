@@ -49,16 +49,15 @@ export const StreakMaintenanceSchema = z.object({
 });
 
 export const UserAnalyticsSchema = z.object({
-  learning_patterns: z.array(LearningPatternSchema)
-    .describe("Identified learning patterns for the user."),
-  optimal_learning_time: OptimalLearningTimeSchema
-    .describe("Analysis of the user's optimal learning time."),
-  content_optimization: ContentOptimizationSchema
-    .describe("Recommendations for optimizing content for this user."),
-  streak_maintenance_analysis: StreakMaintenanceSchema
-    .describe("Analysis and strategies for maintaining the user's learning streak."),
+  optimal_learning_time_start: z.string().optional(),
+  optimal_learning_time_end: z.string().optional(),
+  optimal_learning_time_reasoning: z.string().optional(),
+  content_difficulty_recommendation: z.string().optional(),
+  ideal_session_length_minutes: z.number().int().positive().optional(),
+  streak_risk_level: z.enum(["low", "medium", "high"]).optional(),
+  streak_intervention_strategies: z.array(z.string().min(1)).optional(),
   overall_engagement_score: z.number().min(0).max(1)
-    .describe("A calculated overall engagement score (0-1). This might be calculated by the system post-LLM call or be an LLM estimate."),
+    .describe("A calculated overall engagement score (0-1)."),
   key_insights: z.array(z.string().min(1))
     .describe("Key actionable insights derived from the overall analysis."),
 });
@@ -542,7 +541,7 @@ export const SkillAnalysisSchema = SkillAnalysisSchemaRaw.transform((data) => {
   else if (demand.includes('LOW')) marketDemand = 'LOW';
   
   // Transformar los componentes
-  const transformedComponents = data.components.map((c, index) => ({
+  const transformedComponents = data.components?.map((c, index) => ({
     name: c.name,
     description: c.description,
     difficultyLevel: c.difficulty_level.toUpperCase() as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED',
@@ -553,6 +552,7 @@ export const SkillAnalysisSchema = SkillAnalysisSchemaRaw.transform((data) => {
   }));
 
   return {
+    // NOTA: Mantenemos skillName para el LLM pero será filtrado en dataConnect.service
     skillName: data.skill_name,
     skillCategory: skillCategory,
     marketDemand: marketDemand,
@@ -562,7 +562,7 @@ export const SkillAnalysisSchema = SkillAnalysisSchemaRaw.transform((data) => {
     realWorldApplications: data.real_world_applications,
     complementarySkills: data.complementary_skills,
     generatedBy: 'llm-openai', // Añadir valor por defecto
-    components: transformedComponents,
+    components: transformedComponents || [],
   };
 });
 
