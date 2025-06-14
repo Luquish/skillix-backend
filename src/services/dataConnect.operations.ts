@@ -53,6 +53,14 @@ export const GET_LEARNING_PLAN_STRUCTURE_QUERY = `
   }
 `;
 
+export const GET_USER_FCM_TOKENS_QUERY = `
+  query GetUserFcmTokens($firebaseUid: String!) {
+    user(key: { firebaseUid: $firebaseUid }) {
+      fcmTokens
+    }
+  }
+`;
+
 // --- MUTATIONS ---
 
 export const CREATE_USER_MUTATION = `

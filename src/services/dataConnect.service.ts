@@ -1,7 +1,7 @@
 // src/services/dataConnect.service.ts
 
 import { GraphqlOptions, DataConnect, ExecuteGraphqlResponse } from 'firebase-admin/data-connect';
-import { getDb } from '../config/firebaseAdmin';
+import { getDb } from './firebase.service';
 
 // Importar tipos de datos de la DB
 import * as DbTypes from './dataConnect.types';
@@ -22,6 +22,7 @@ import {
     CREATE_ENROLLMENT_MUTATION,
     UPDATE_DAY_COMPLETION_STATUS_MUTATION,
     GET_LEARNING_PLAN_STRUCTURE_QUERY,
+    GET_USER_FCM_TOKENS_QUERY,
     CREATE_MAIN_CONTENT_ITEM_MUTATION,
     CREATE_KEY_CONCEPT_MUTATION,
     CREATE_ACTION_TASK_ITEM_MUTATION,
@@ -374,4 +375,15 @@ export async function saveDailyContentDetailsInDB(dayContentId: string, llmConte
 
     return allOperationsSucceeded;
 }
+
+/**
+ * Obtiene los tokens FCM de un usuario por su Firebase UID.
+ * @param firebaseUid El UID de Firebase del usuario.
+ * @returns Una promesa que se resuelve con un array de tokens FCM, o null si el usuario no se encuentra.
+ */
+export const getUserDeviceTokens = async (firebaseUid: string): Promise<string[] | null> => {
+    const response = await executeGraphQL<{ user: { fcmTokens: string[] } }>(GET_USER_FCM_TOKENS_QUERY, { firebaseUid }, true);
+    // El schema indica que fcmTokens puede ser null, y si el usuario no existe, response.data.user también lo será.
+    return response.data?.user?.fcmTokens ?? null; 
+};
 

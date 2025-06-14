@@ -87,10 +87,13 @@ El código fuente se encuentra en el directorio `src/`.
 -   `middleware/`: Contiene middlewares de Express, como `auth.middleware.ts`, que verifica los tokens de autenticación de Firebase antes de permitir el acceso a rutas protegidas.
 
 -   `services/`: Contiene la lógica de negocio principal.
-    -   `llm/`: Subdirectorio crucial que contiene todos los "agentes" de IA.
-    -   `dataConnect.service.ts`: La única puerta de enlace a la base de datos (ver sección dedicada).
-    -   `contentOrchestrator.service.ts`: Un servicio de alto nivel que orquesta la generación de contenido para un día específico, obteniendo datos del plan, llamando al generador de LLM y guardando el resultado.
-    -   `firebaseAdmin.service.ts`: Gestiona la inicialización de Firebase Admin y servicios de Auth/FCM.
+    -   `firebase.service.ts`: Gestiona la inicialización de Firebase Admin y provee servicios unificados para Auth, DataConnect y FCM.
+    -   `dataConnect.service.ts`: Provee una capa de abstracción para interactuar con la base de datos de Firebase Data Connect, manejando las operaciones GraphQL.
+    -   `dataConnect.operations.ts`: Contiene todas las queries y mutations de GraphQL como constantes.
+    -   `dataConnect.types.ts`: Define los tipos de datos y enums que se corresponden con el schema de Data Connect.
+    -   `llm/`: Contiene todos los servicios relacionados con el LLM.
+        -   `contentGenerator.service.ts`: Orquesta la generación de contenido (planes de estudio, contenido diario).
+    -   `contentOrchestrator.service.ts`: Un servicio de alto nivel que orquesta la generación de contenido para un día específico.
 
 -   `config/`: Carga y exporta variables de entorno y otras configuraciones.
 

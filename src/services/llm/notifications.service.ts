@@ -2,11 +2,10 @@
 
 import { getConfig } from '@/config';
 import { UserAnalytics } from './schemas';
-import { getSkiMotivationalMessage } from './toviTheFox.service'; // Para mensajes de Ski
-import { UserDataForContent } from './contentGenerator.service'; // Para contexto de usuario
-// ASUNCIÓN: Tienes un firebaseAdmin.service.ts que maneja la inicialización y el envío de FCM
-import { sendFcmNotification } from '@/services/firebaseAdmin.service'; // Esta función necesitarías implementarla
-import { getUserDeviceTokens } from '@/services/dataConnect.service'; // Función para obtener tokens FCM de DataConnect
+import { getSkiMotivationalMessage } from './toviTheFox.service';
+import { UserDataForContent } from './contentGenerator.service';
+import { sendFcmNotification } from '@/services/firebase.service';
+import { getUserDeviceTokens } from '@/services/dataConnect.service';
 
 const config = getConfig();
 const logger = console; // O tu logger configurado

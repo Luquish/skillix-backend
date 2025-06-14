@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import * as FirebaseService from '../services/firebase.service';
 import * as DataConnectService from '../services/dataConnect.service';
-import * as FirebaseAdminService from '../services/firebaseAdmin.service';
 import { DbUser } from '../services/dataConnect.types';
 
 // Exportamos la interfaz para que pueda ser utilizada en los controladores
@@ -22,8 +22,8 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
   const token = authorization.split('Bearer ')[1];
 
   try {
-    // Usar el servicio centralizado para verificar el token
-    const decodedToken = await FirebaseAdminService.verifyFirebaseIdToken(token);
+    // Verificar el token usando el servicio de Firebase Admin
+    const decodedToken = await FirebaseService.verifyFirebaseIdToken(token);
     const { uid } = decodedToken;
 
     // Buscar al usuario en nuestra base de datos usando el UID de Firebase

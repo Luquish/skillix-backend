@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import * as DataConnectService from '../services/dataConnect.service';
-import * as FirebaseAdminService from '../services/firebaseAdmin.service';
+import * as FirebaseService from '../services/firebase.service';
 import { AuthProvider, DbUser, Platform } from '../services/dataConnect.types';
 
 // Esquema de validación para el registro
@@ -23,7 +23,7 @@ export const signUpController = async (req: Request, res: Response) => {
 
     // 2. Crear el usuario en Firebase Authentication usando el servicio centralizado
     console.log(`Creating user in Firebase Auth for email: ${email}...`);
-    const userRecord = await FirebaseAdminService.createUserInAuth({
+    const userRecord = await FirebaseService.createUserInAuth({
       email,
       password,
       displayName: name,
@@ -96,7 +96,7 @@ export const socialSignInController = async (req: Request, res: Response) => {
 
   try {
     // 1. Verificar el token de Firebase. Si es inválido, esto lanzará un error.
-    const decodedToken = await FirebaseAdminService.verifyFirebaseIdToken(token);
+    const decodedToken = await FirebaseService.verifyFirebaseIdToken(token);
     const { uid, email, name, picture, email_verified } = decodedToken;
 
     // 2. Intentar obtener el usuario de nuestra base de datos.
@@ -161,4 +161,24 @@ export const socialSignInController = async (req: Request, res: Response) => {
     // Cualquier otro error (ej. fallo de conexión con la DB) es un 500
     return res.status(500).json({ message: 'An internal server error occurred.' });
   }
+};
+
+/**
+ * Controlador para verificar un token de Firebase y lo adjunta a la solicitud para su uso posterior.
+ */
+export const verifyToken = async (req: Request, res: Response) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.status(400).json({ message: 'El token es requerido.' });
+    }
+
+    try {
+        const decodedToken = await FirebaseService.verifyFirebaseIdToken(token);
+        // Opcional: Podrías querer devolver algún dato del perfil del usuario aquí
+        res.status(200).json({ message: 'Token verificado con éxito.', data: { uid: decodedToken.uid } });
+    } catch (error: any) {
+        // El servicio ya loguea el error, aquí solo respondemos al cliente
+        res.status(401).json({ message: 'Token inválido o expirado.', error: error.code });
+    }
 };
