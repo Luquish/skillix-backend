@@ -1,0 +1,141 @@
+[debug] [2025-06-14T21:48:42.923Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-06-14T21:48:44.157Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-06-14T21:48:44.158Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-14T21:48:44.158Z] > authorizing via signed-in user (lucamazza02@gmail.com)
+[debug] [2025-06-14T21:48:44.159Z] Checked if tokens are valid: true, expires at: 1749940161497
+[debug] [2025-06-14T21:48:44.159Z] Checked if tokens are valid: true, expires at: 1749940161497
+[debug] [2025-06-14T21:48:44.159Z] [Firebase Plugin] User found:  lucamazza02@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-06-14T21:48:44.159Z] Checked if tokens are valid: true, expires at: 1749940161497
+[debug] [2025-06-14T21:48:44.160Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-06-14T21:48:44.163Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.6.3) on port 50001
+[debug] [2025-06-14T21:48:45.011Z] I0614 18:48:44.960163   52037 control.go:73] [/emulator/skillix-db-service d18b] UpdateResources(): done
+Schema: sources: schema/schema.gql [14315B] 
+Connector "tovi-connector": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:44.960163   52037 control.go:73] [/emulator/skillix-db-service d18b] UpdateResources(): done\nSchema: sources: schema/schema.gql [14315B] \nConnector \"tovi-connector\": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] \n"}}
+[debug] [2025-06-14T21:48:45.011Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-06-14T21:48:45.011Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-06-14T21:48:45.012Z] Starting Data Connect Emulator with command {"binary":"/Users/lucamazzarello_/.cache/firebase/emulators/dataconnect-emulator-2.6.3","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"/Users/lucamazzarello_/.cache/firebase/emulators/dataconnect-emulator-2.6.3\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to dataconnect-debug.log"}}
+[debug] [2025-06-14T21:48:45.140Z] I0614 18:48:45.139119   52038 load.go:37] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:45.139119   52038 load.go:37] Reloading schema and connectors...\n"}}
+[debug] [2025-06-14T21:48:45.275Z] I0614 18:48:45.275653   52038 control.go:73] [/emulator/skillix-db-service 3d0e] UpdateResources(): done
+Schema: sources: schema/schema.gql [14315B] 
+Connector "tovi-connector": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:45.275653   52038 control.go:73] [/emulator/skillix-db-service 3d0e] UpdateResources(): done\nSchema: sources: schema/schema.gql [14315B] \nConnector \"tovi-connector\": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] \n"}}
+[debug] [2025-06-14T21:48:45.370Z] I0614 18:48:45.369941   52038 codegen.go:82] [connector "tovi-connector" javascriptSdk] Generating sources into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:45.369941   52038 codegen.go:82] [connector \"tovi-connector\" javascriptSdk] Generating sources into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector\"\n"}}
+[debug] [2025-06-14T21:48:45.390Z] I0614 18:48:45.390036   52038 collector.go:107] schema extensions wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema"
+Generated sources: prelude.gql [71531B] main/input.gql [281797B] main/relation.gql [149925B] main/query.gql [38876B] main/mutation.gql [106893B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:45.390036   52038 collector.go:107] schema extensions wrote into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema\"\nGenerated sources: prelude.gql [71531B] main/input.gql [281797B] main/relation.gql [149925B] main/query.gql [38876B] main/mutation.gql [106893B] \n"}}
+[debug] [2025-06-14T21:48:45.392Z] I0614 18:48:45.391340   52038 collector.go:107] connector "tovi-connector" javascriptSdk wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+Generated sources: esm/index.esm.js [12318B] react/index.d.ts [14682B] react/index.cjs.js [11088B] react/esm/index.esm.js [10370B] react/README.md [148038B] index.d.ts [34160B] esm/package.json [17B] index.cjs.js [14376B] package.json [864B] README.md [144351B] react/package.json [472B] react/esm/package.json [17B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:45.391340   52038 collector.go:107] connector \"tovi-connector\" javascriptSdk wrote into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector\"\nGenerated sources: esm/index.esm.js [12318B] react/index.d.ts [14682B] react/index.cjs.js [11088B] react/esm/index.esm.js [10370B] react/README.md [148038B] index.d.ts [34160B] esm/package.json [17B] index.cjs.js [14376B] package.json [864B] README.md [144351B] react/package.json [472B] react/esm/package.json [17B] \n"}}
+[debug] [2025-06-14T21:48:45.393Z] I0614 18:48:45.393135   52038 installsdk.go:80] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:45.393135   52038 installsdk.go:80] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector\n"}}
+[debug] [2025-06-14T21:48:45.545Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-06-14T21:48:45.545Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-06-14T21:48:46.048Z] I0614 18:48:46.047815   52038 load.go:115] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:46.047815   52038 load.go:115] Finished reloading\n"}}
+[debug] [2025-06-14T21:48:46.080Z] I0614 18:48:46.065425   52038 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:46.065425   52038 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[debug] [2025-06-14T21:48:46.284Z] I0614 18:48:46.283721   52038 engine.go:170] [/emulator/skillix-db-service 3d0e] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:48:46.283721   52038 engine.go:170] [/emulator/skillix-db-service 3d0e] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[warn] ⚠  Data Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2025-06-14T21:59:37.724Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-06-14T21:59:40.373Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-06-14T21:59:40.374Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-14T21:59:40.374Z] > authorizing via signed-in user (lucamazza02@gmail.com)
+[debug] [2025-06-14T21:59:40.375Z] Checked if tokens are valid: true, expires at: 1749940161497
+[debug] [2025-06-14T21:59:40.376Z] Checked if tokens are valid: true, expires at: 1749940161497
+[debug] [2025-06-14T21:59:40.376Z] [Firebase Plugin] User found:  lucamazza02@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-06-14T21:59:40.376Z] Checked if tokens are valid: true, expires at: 1749940161497
+[debug] [2025-06-14T21:59:40.377Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-06-14T21:59:40.380Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.6.3) on port 50001
+[debug] [2025-06-14T21:59:41.152Z] I0614 18:59:41.102666   60224 control.go:73] [/emulator/skillix-db-service 47bf] UpdateResources(): done
+Schema: sources: schema/schema.gql [14315B] 
+Connector "tovi-connector": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:41.102666   60224 control.go:73] [/emulator/skillix-db-service 47bf] UpdateResources(): done\nSchema: sources: schema/schema.gql [14315B] \nConnector \"tovi-connector\": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] \n"}}
+[debug] [2025-06-14T21:59:41.152Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-06-14T21:59:41.152Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-06-14T21:59:41.152Z] Starting Data Connect Emulator with command {"binary":"/Users/lucamazzarello_/.cache/firebase/emulators/dataconnect-emulator-2.6.3","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"/Users/lucamazzarello_/.cache/firebase/emulators/dataconnect-emulator-2.6.3\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to dataconnect-debug.log"}}
+[debug] [2025-06-14T21:59:41.311Z] I0614 18:59:41.310044   60225 load.go:37] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:41.310044   60225 load.go:37] Reloading schema and connectors...\n"}}
+[debug] [2025-06-14T21:59:41.463Z] I0614 18:59:41.462955   60225 control.go:73] [/emulator/skillix-db-service 0dc9] UpdateResources(): done
+Schema: sources: schema/schema.gql [14315B] 
+Connector "tovi-connector": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:41.462955   60225 control.go:73] [/emulator/skillix-db-service 0dc9] UpdateResources(): done\nSchema: sources: schema/schema.gql [14315B] \nConnector \"tovi-connector\": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] \n"}}
+[debug] [2025-06-14T21:59:41.586Z] I0614 18:59:41.586825   60225 codegen.go:82] [connector "tovi-connector" javascriptSdk] Generating sources into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:41.586825   60225 codegen.go:82] [connector \"tovi-connector\" javascriptSdk] Generating sources into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector\"\n"}}
+[debug] [2025-06-14T21:59:41.608Z] I0614 18:59:41.608069   60225 collector.go:107] schema extensions wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema"
+Generated sources: prelude.gql [71531B] main/input.gql [281797B] main/relation.gql [149925B] main/query.gql [38876B] main/mutation.gql [106893B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:41.608069   60225 collector.go:107] schema extensions wrote into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema\"\nGenerated sources: prelude.gql [71531B] main/input.gql [281797B] main/relation.gql [149925B] main/query.gql [38876B] main/mutation.gql [106893B] \n"}}
+[debug] [2025-06-14T21:59:41.609Z] I0614 18:59:41.609218   60225 collector.go:107] connector "tovi-connector" javascriptSdk wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+Generated sources: esm/index.esm.js [12318B] esm/package.json [17B] index.cjs.js [14376B] README.md [144351B] react/esm/package.json [17B] react/index.cjs.js [11088B] index.d.ts [34160B] package.json [864B] react/index.d.ts [14682B] react/package.json [472B] react/esm/index.esm.js [10370B] react/README.md [148038B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:41.609218   60225 collector.go:107] connector \"tovi-connector\" javascriptSdk wrote into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector\"\nGenerated sources: esm/index.esm.js [12318B] esm/package.json [17B] index.cjs.js [14376B] README.md [144351B] react/esm/package.json [17B] react/index.cjs.js [11088B] index.d.ts [34160B] package.json [864B] react/index.d.ts [14682B] react/package.json [472B] react/esm/index.esm.js [10370B] react/README.md [148038B] \n"}}
+[debug] [2025-06-14T21:59:41.610Z] I0614 18:59:41.610374   60225 installsdk.go:80] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:41.610374   60225 installsdk.go:80] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector\n"}}
+[debug] [2025-06-14T21:59:41.796Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-06-14T21:59:41.796Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-06-14T21:59:42.285Z] I0614 18:59:42.285290   60225 load.go:115] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:42.285290   60225 load.go:115] Finished reloading\n"}}
+[debug] [2025-06-14T21:59:42.293Z] I0614 18:59:42.292539   60225 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:42.292539   60225 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[debug] [2025-06-14T21:59:42.510Z] I0614 18:59:42.510422   60225 engine.go:170] [/emulator/skillix-db-service 0dc9] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0614 18:59:42.510422   60225 engine.go:170] [/emulator/skillix-db-service 0dc9] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[warn] ⚠  Data Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2025-06-16T19:16:00.755Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-06-16T19:16:03.166Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-06-16T19:16:03.167Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-16T19:16:03.167Z] > authorizing via signed-in user (lucamazza02@gmail.com)
+[debug] [2025-06-16T19:16:03.168Z] Checked if tokens are valid: false, expires at: 1749940161497
+[debug] [2025-06-16T19:16:03.168Z] Checked if tokens are valid: false, expires at: 1749940161497
+[debug] [2025-06-16T19:16:03.168Z] > refreshing access token with scopes: []
+[debug] [2025-06-16T19:16:03.169Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-06-16T19:16:03.169Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-06-16T19:16:03.172Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.6.3) on port 50001
+[debug] [2025-06-16T19:16:04.009Z] I0616 16:16:03.949014    5799 control.go:73] [/emulator/skillix-db-service 0dca] UpdateResources(): done
+Schema: sources: schema/schema.gql [14315B] 
+Connector "tovi-connector": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:03.949014    5799 control.go:73] [/emulator/skillix-db-service 0dca] UpdateResources(): done\nSchema: sources: schema/schema.gql [14315B] \nConnector \"tovi-connector\": sources: connector/mutations.gql [8480B] connector/queries.gql [4273B] \n"}}
+[debug] [2025-06-16T19:16:04.010Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-06-16T19:16:04.010Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-06-16T19:16:04.010Z] Starting Data Connect Emulator with command {"binary":"/Users/lucamazzarello_/.cache/firebase/emulators/dataconnect-emulator-2.6.3","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"/Users/lucamazzarello_/.cache/firebase/emulators/dataconnect-emulator-2.6.3\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to dataconnect-debug.log"}}
+[debug] [2025-06-16T19:16:04.100Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-06-16T19:16:04.100Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-06-16T19:16:04.110Z] [Firebase Plugin] User found:  lucamazza02@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-06-16T19:16:04.110Z] Checked if tokens are valid: true, expires at: 1750104963100
+[debug] [2025-06-16T19:16:04.111Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-06-16T19:16:04.196Z] I0616 16:16:04.195494    5800 load.go:37] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:04.195494    5800 load.go:37] Reloading schema and connectors...\n"}}
+[debug] [2025-06-16T19:16:04.334Z] I0616 16:16:04.333429    5800 control.go:73] [/emulator/skillix-db-service f29c] UpdateResources(): done
+Schema: sources: schema/schema.gql [14315B] 
+Connector "tovi-connector": sources: connector/queries.gql [4273B] connector/mutations.gql [8480B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:04.333429    5800 control.go:73] [/emulator/skillix-db-service f29c] UpdateResources(): done\nSchema: sources: schema/schema.gql [14315B] \nConnector \"tovi-connector\": sources: connector/queries.gql [4273B] connector/mutations.gql [8480B] \n"}}
+[debug] [2025-06-16T19:16:04.430Z] I0616 16:16:04.429983    5800 codegen.go:82] [connector "tovi-connector" javascriptSdk] Generating sources into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:04.429983    5800 codegen.go:82] [connector \"tovi-connector\" javascriptSdk] Generating sources into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector\"\n"}}
+[debug] [2025-06-16T19:16:04.451Z] I0616 16:16:04.451548    5800 collector.go:107] schema extensions wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema"
+Generated sources: prelude.gql [71531B] main/relation.gql [149925B] main/query.gql [38876B] main/mutation.gql [106893B] main/input.gql [281797B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:04.451548    5800 collector.go:107] schema extensions wrote into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema\"\nGenerated sources: prelude.gql [71531B] main/relation.gql [149925B] main/query.gql [38876B] main/mutation.gql [106893B] main/input.gql [281797B] \n"}}
+[debug] [2025-06-16T19:16:04.453Z] I0616 16:16:04.453364    5800 collector.go:107] connector "tovi-connector" javascriptSdk wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+Generated sources: react/README.md [148038B] index.d.ts [34160B] esm/index.esm.js [12318B] esm/package.json [17B] package.json [864B] react/index.cjs.js [11088B] react/esm/index.esm.js [10370B] index.cjs.js [14376B] README.md [144351B] react/index.d.ts [14682B] react/package.json [472B] react/esm/package.json [17B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:04.453364    5800 collector.go:107] connector \"tovi-connector\" javascriptSdk wrote into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector\"\nGenerated sources: react/README.md [148038B] index.d.ts [34160B] esm/index.esm.js [12318B] esm/package.json [17B] package.json [864B] react/index.cjs.js [11088B] react/esm/index.esm.js [10370B] index.cjs.js [14376B] README.md [144351B] react/index.d.ts [14682B] react/package.json [472B] react/esm/package.json [17B] \n"}}
+[debug] [2025-06-16T19:16:04.454Z] I0616 16:16:04.454720    5800 installsdk.go:80] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:04.454720    5800 installsdk.go:80] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector\n"}}
+[debug] [2025-06-16T19:16:04.750Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-06-16T19:16:04.750Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-06-16T19:16:05.295Z] I0616 16:16:05.295636    5800 load.go:115] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:05.295636    5800 load.go:115] Finished reloading\n"}}
+[debug] [2025-06-16T19:16:05.300Z] I0616 16:16:05.300188    5800 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:05.300188    5800 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[debug] [2025-06-16T19:16:05.478Z] I0616 16:16:05.478145    5800 engine.go:170] [/emulator/skillix-db-service f29c] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0616 16:16:05.478145    5800 engine.go:170] [/emulator/skillix-db-service f29c] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
