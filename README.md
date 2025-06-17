@@ -7,23 +7,25 @@ Bienvenido al backend de Tovi, la plataforma de microlearning impulsada por IA. 
 ## Índice
 
 1.  [Descripción General](#descripción-general)
-2.  [Arquitectura y Flujo de Datos](#arquitectura-y-flujo-de-datos)
+2.  [🚀 Desarrollo Local - Guía Rápida](#desarrollo-local---guía-rápida)
+3.  [☁️ Despliegue a Google Cloud Run](#despliegue-a-google-cloud-run)
+4.  [Arquitectura y Flujo de Datos](#arquitectura-y-flujo-de-datos)
     -   [Diagrama del Flujo de Creación de Plan](#diagrama-del-flujo-de-creación-de-plan)
-3.  [Estructura del Proyecto](#estructura-del-proyecto)
-4.  [Orquestación de Agentes LLM](#orquestación-de-agentes-llm)
+5.  [Estructura del Proyecto](#estructura-del-proyecto)
+6.  [Orquestación de Agentes LLM](#orquestación-de-agentes-llm)
     -   [Tovill Analyzer](#1-tovill-analyzerservicets)
     -   [Learning Planner](#2-learningplannerservicets)
     -   [Pedagogical Expert](#3-pedagogicalexpertservicets)
     -   [Content Generator](#4-contentgeneratorservicets)
     -   [Analytics & Tovi](#5-otros-agentes-de-soporte)
-5.  [Persistencia y Base de Datos (Data Connect)](#persistencia-y-base-de-datos-dataconnectservicets)
-6.  [Robustez frente a la IA (Schemas con Zod)](#robustez-frente-a-la-ia-schemas-con-zod)
-7.  [Configuración y Entorno](#configuración-y-entorno)
-8.  [Cómo Empezar](#cómo-empezar)
-9.  [Entorno de Desarrollo Local con Emuladores](#entorno-de-desarrollo-local-con-emuladores)
-10. [Simulación y Pruebas](#simulación-y-pruebas)
-11. [Pruebas End-to-End (E2E) con Emuladores](#pruebas-end-to-end-e2e-con-emuladores)
-12. [Scripts del Proyecto](#scripts-del-proyecto)
+7.  [Persistencia y Base de Datos (Data Connect)](#persistencia-y-base-de-datos-dataconnectservicets)
+8.  [Robustez frente a la IA (Schemas con Zod)](#robustez-frente-a-la-ia-schemas-con-zod)
+9.  [Configuración y Entorno](#configuración-y-entorno)
+10. [Cómo Empezar](#cómo-empezar)
+11. [Entorno de Desarrollo Local con Emuladores](#entorno-de-desarrollo-local-con-emuladores)
+12. [Simulación y Pruebas](#simulación-y-pruebas)
+13. [Pruebas End-to-End (E2E) con Emuladores](#pruebas-end-to-end-e2e-con-emuladores)
+14. [Scripts del Proyecto](#scripts-del-proyecto)
 
 ---
 
@@ -34,6 +36,342 @@ Este backend, construido con **Node.js, Express y TypeScript**, es el cerebro de
 -   Orquestar una serie de **agentes de IA (LLM)** para crear experiencias de aprendizaje personalizadas y dinámicas.
 -   Interactuar de forma segura con la base de datos a través de **Firebase Data Connect**.
 -   Proveer una API RESTful para que las aplicaciones cliente (iOS, Android, Web) puedan consumir los servicios.
+
+---
+
+## 🚀 Desarrollo Local - Guía Rápida
+
+Para desarrollar localmente, necesitarás **4 terminales** ejecutándose en paralelo. Sigue este orden exacto:
+
+### **📋 Prerequisitos**
+```bash
+# 1. Instalar dependencias del backend
+cd skillix-backend
+pnpm install
+
+# 2. Configurar variables de entorno
+cp .env.example .env
+# Edita .env con tus valores reales (ver sección Configuración)
+
+# 3. Instalar Firebase CLI globalmente (si no lo tienes)
+npm install -g firebase-tools
+
+# 4. Autenticarte con Firebase
+firebase login
+```
+
+### **🔥 Terminal 1: Emuladores de Firebase**
+```bash
+cd skillix-backend
+firebase emulators:start --project=skillix-db
+```
+**¿Qué hace?** Inicia los emuladores de Firebase (Auth y Data Connect) en localhost.  
+**Estado esperado:** Verás logs confirmando que los emuladores están corriendo.
+
+### **🖥️ Terminal 2: Backend Express**
+```bash
+cd skillix-backend
+pnpm dev
+```
+**¿Qué hace?** Inicia tu servidor Express en modo desarrollo en puerto 8080.  
+**Estado esperado:** `🦊 Tovi Backend listening on port 8080`
+
+### **📱 Terminal 3: Metro Bundler (React Native)**
+```bash
+cd skillix
+pnpm start
+```
+**¿Qué hace?** Inicia Metro, el bundler de JavaScript para React Native.  
+**Estado esperado:** Metro corriendo en puerto 8081.
+
+### **🎯 Terminal 4: App React Native**
+```bash
+cd skillix
+# Para iOS:
+pnpm ios
+
+# Para Android:
+pnpm android
+```
+**¿Qué hace?** Compila y ejecuta la app en el simulador/emulador.  
+**Estado esperado:** App funcionando y conectándose al backend local.
+
+### **🔗 URLs Importantes**
+- **Backend API:** http://localhost:8080
+- **Firebase Auth Emulator:** http://localhost:9099
+- **Firebase Data Connect Emulator:** http://localhost:9399
+- **Metro Bundler:** http://localhost:8081
+
+### **✅ Verificación Rápida**
+```bash
+# Probar que el backend responde
+curl http://localhost:8080/api/health
+
+# Debería retornar: "OK"
+```
+
+### **🛠️ Troubleshooting Común**
+- **Error "Puerto en uso":** Mata procesos con `kill -9 $(lsof -ti:8080)`
+- **Firebase no conecta:** Verifica que `FIREBASE_AUTH_EMULATOR_HOST=localhost:9099` en tu .env
+- **Metro falla:** Limpia cache con `pnpm start --reset-cache`
+
+---
+
+## ☁️ Despliegue a Google Cloud Run
+
+Esta sección explica cómo desplegar el backend a Google Cloud Run tanto para **primera vez** como para **actualizaciones**.
+
+### **📋 Prerequisitos para Producción**
+
+```bash
+# 1. Instalar Google Cloud CLI
+# macOS:
+brew install google-cloud-sdk
+
+# Windows/Linux: https://cloud.google.com/sdk/docs/install
+
+# 2. Autenticarte con Google Cloud
+gcloud auth login
+gcloud auth application-default login
+
+# 3. Configurar proyecto
+gcloud config set project tu-project-id
+
+# 4. Habilitar APIs necesarias
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable run.googleapis.com
+gcloud services enable sqladmin.googleapis.com
+```
+
+### **🔧 Configuración Inicial (Primera Vez)**
+
+#### **1. Configurar Variables de Entorno de Producción**
+
+Crea las variables de entorno en Google Cloud Run:
+
+```bash
+# Variables principales (reemplaza con tus valores reales)
+gcloud run services update skillix-backend \
+  --region=us-central1 \
+  --set-env-vars="NODE_ENV=production" \
+  --set-env-vars="PORT=8080" \
+  --set-env-vars="FIREBASE_PROJECT_ID=skillix-db" \
+  --set-env-vars="OPENAI_API_KEY=tu-openai-api-key" \
+  --set-env-vars="OPENAI_MODEL=gpt-4o-mini"
+
+# Variables de Firebase (para producción)
+gcloud run services update skillix-backend \
+  --region=us-central1 \
+  --set-env-vars="DATA_CONNECT_SERVICE_ID=skillix-db-service" \
+  --set-env-vars="DATA_CONNECT_LOCATION=us-central1"
+```
+
+#### **2. Configurar Service Account Key**
+
+```bash
+# 1. Crear un Service Account
+gcloud iam service-accounts create skillix-backend-sa \
+  --display-name="Skillix Backend Service Account"
+
+# 2. Asignar roles necesarios
+gcloud projects add-iam-policy-binding tu-project-id \
+  --member="serviceAccount:skillix-backend-sa@tu-project-id.iam.gserviceaccount.com" \
+  --role="roles/dataconnect.serviceAgent"
+
+gcloud projects add-iam-policy-binding tu-project-id \
+  --member="serviceAccount:skillix-backend-sa@tu-project-id.iam.gserviceaccount.com" \
+  --role="roles/firebase.admin"
+
+# 3. Crear key JSON
+gcloud iam service-accounts keys create ./serviceAccountKey.json \
+  --iam-account=skillix-backend-sa@tu-project-id.iam.gserviceaccount.com
+
+# 4. Subir key como secret (más seguro que variable de entorno)
+gcloud secrets create firebase-service-account-key \
+  --data-file=./serviceAccountKey.json
+```
+
+### **🚀 Métodos de Despliegue**
+
+#### **Método 1: Despliegue Manual (Rápido)**
+
+```bash
+# 1. Construir y desplegar directamente
+gcloud run deploy skillix-backend \
+  --source . \
+  --region=us-central1 \
+  --platform=managed \
+  --allow-unauthenticated \
+  --port=8080 \
+  --memory=1Gi \
+  --cpu=1 \
+  --max-instances=10 \
+  --set-env-vars="NODE_ENV=production,PORT=8080"
+```
+
+#### **Método 2: Con Docker (Más Control)**
+
+```bash
+# 1. Construir la imagen Docker localmente
+docker build -t gcr.io/tu-project-id/skillix-backend:latest .
+
+# 2. Subir imagen a Container Registry
+docker push gcr.io/tu-project-id/skillix-backend:latest
+
+# 3. Desplegar desde la imagen
+gcloud run deploy skillix-backend \
+  --image gcr.io/tu-project-id/skillix-backend:latest \
+  --region=us-central1 \
+  --platform=managed \
+  --allow-unauthenticated
+```
+
+#### **Método 3: Con Cloud Build (Recomendado para Producción)**
+
+```bash
+# 1. Verificar que cloudbuild.yaml está configurado correctamente
+cat cloudbuild.yaml
+
+# 2. Ejecutar build y deploy automático
+gcloud builds submit --config cloudbuild.yaml .
+
+# 3. (Opcional) Configurar trigger automático para commits
+gcloud builds triggers create github \
+  --repo-name=skillix-backend \
+  --repo-owner=tu-github-username \
+  --branch-pattern="main" \
+  --build-config=cloudbuild.yaml
+```
+
+### **🔄 Actualizaciones (Pushes Posteriores)**
+
+#### **Para cambios de código:**
+
+```bash
+# Opción A: Despliegue rápido
+gcloud run deploy skillix-backend \
+  --source . \
+  --region=us-central1
+
+# Opción B: Con Cloud Build (si está configurado)
+gcloud builds submit --config cloudbuild.yaml .
+
+# Opción C: Si tienes trigger automático configurado
+git push origin main  # Se despliega automáticamente
+```
+
+#### **Para cambios de variables de entorno:**
+
+```bash
+# Actualizar variables específicas
+gcloud run services update skillix-backend \
+  --region=us-central1 \
+  --set-env-vars="NUEVA_VARIABLE=nuevo-valor"
+
+# Ver variables actuales
+gcloud run services describe skillix-backend \
+  --region=us-central1 \
+  --format="export"
+```
+
+### **🔒 Configuración de Seguridad**
+
+#### **Service Account para Cloud Run:**
+
+```bash
+# Configurar el servicio para usar el service account creado
+gcloud run services update skillix-backend \
+  --region=us-central1 \
+  --service-account=skillix-backend-sa@tu-project-id.iam.gserviceaccount.com
+```
+
+#### **Secrets Manager (Recomendado):**
+
+```bash
+# En lugar de variables de entorno, usar secrets para datos sensibles
+gcloud run services update skillix-backend \
+  --region=us-central1 \
+  --set-secrets="OPENAI_API_KEY=openai-key:latest" \
+  --set-secrets="FIREBASE_KEY=firebase-service-account-key:latest"
+```
+
+### **📊 Verificación del Despliegue**
+
+```bash
+# 1. Obtener URL del servicio
+SERVICE_URL=$(gcloud run services describe skillix-backend \
+  --region=us-central1 \
+  --format="value(status.url)")
+
+echo "Service URL: $SERVICE_URL"
+
+# 2. Probar health check
+curl "$SERVICE_URL/api/health"
+
+# 3. Ver logs en tiempo real
+gcloud run services logs tail skillix-backend --region=us-central1
+
+# 4. Ver métricas
+gcloud run services describe skillix-backend \
+  --region=us-central1 \
+  --format="table(status.conditions[].type,status.conditions[].status)"
+```
+
+### **🛠️ Troubleshooting en Producción**
+
+#### **Problemas comunes y soluciones:**
+
+```bash
+# 1. Ver logs detallados
+gcloud run services logs read skillix-backend \
+  --region=us-central1 \
+  --limit=50
+
+# 2. Verificar configuración del servicio
+gcloud run services describe skillix-backend \
+  --region=us-central1
+
+# 3. Probar conectividad a Firebase
+gcloud run services proxy skillix-backend \
+  --region=us-central1 \
+  --port=8080
+
+# 4. Reiniciar servicio (forzar nuevo deployment)
+gcloud run services replace service.yaml --region=us-central1
+```
+
+#### **Monitoreo:**
+
+```bash
+# Configurar alertas
+gcloud alpha monitoring policies create \
+  --policy-from-file=monitoring-policy.yaml
+
+# Ver métricas de uso
+gcloud run services describe skillix-backend \
+  --region=us-central1 \
+  --format="table(metadata.name,status.latestReadyRevisionName,status.url)"
+```
+
+### **🔗 URLs Finales**
+
+Una vez desplegado, tendrás:
+
+- **API Production:** `https://skillix-backend-xxxxxxx-uc.a.run.app`
+- **Health Check:** `https://skillix-backend-xxxxxxx-uc.a.run.app/api/health`
+- **Cloud Console:** `https://console.cloud.google.com/run/detail/us-central1/skillix-backend`
+
+### **📝 Checklist de Despliegue**
+
+- [ ] Variables de entorno configuradas
+- [ ] Service Account creado y configurado
+- [ ] Firebase Data Connect configurado para producción
+- [ ] OpenAI API Key configurada
+- [ ] Health check funcionando
+- [ ] Logs sin errores críticos
+- [ ] Frontend actualizado con URL de producción
+
+---
 
 ## Arquitectura y Flujo de Datos
 

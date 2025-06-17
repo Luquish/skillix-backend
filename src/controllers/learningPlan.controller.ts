@@ -169,3 +169,69 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
+
+/**
+ * Controlador para obtener el plan de aprendizaje actual del usuario autenticado.
+ */
+export const getCurrentLearningPlanController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user!; // El middleware isAuthenticated garantiza que user exista
+
+    // Obtener el plan activo del usuario
+    const currentPlan = await DataConnectService.getCurrentUserLearningPlan(user.firebaseUid);
+
+    if (!currentPlan) {
+      return res.status(404).json({ 
+        message: 'No active learning plan found for the user.' 
+      });
+    }
+
+    res.status(200).json({
+      message: 'Current learning plan retrieved successfully.',
+      plan: currentPlan,
+    });
+
+  } catch (error: any) {
+    console.error('Error in getCurrentLearningPlanController:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
+/**
+ * Controlador para obtener un plan de aprendizaje específico por ID.
+ */
+export const getLearningPlanByIdController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user!; // El middleware isAuthenticated garantiza que user exista
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: 'Learning plan ID is required.' });
+    }
+
+    // Obtener el plan por ID
+    const plan = await DataConnectService.getLearningPlanStructureById(id);
+
+    if (!plan) {
+      return res.status(404).json({ 
+        message: 'Learning plan not found.' 
+      });
+    }
+
+    // Verificar que el plan pertenece al usuario autenticado
+    if (plan.userFirebaseUid !== user.firebaseUid) {
+      return res.status(403).json({ 
+        message: 'Access denied. You can only access your own learning plans.' 
+      });
+    }
+
+    res.status(200).json({
+      message: 'Learning plan retrieved successfully.',
+      plan: plan,
+    });
+
+  } catch (error: any) {
+    console.error('Error in getLearningPlanByIdController:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};

@@ -169,6 +169,69 @@ export const getLearningPlanStructureById = async (learningPlanId: string): Prom
 };
 
 /**
+ * Obtiene el plan de aprendizaje activo más reciente del usuario.
+ */
+export const getCurrentUserLearningPlan = async (userFirebaseUid: string): Promise<DbTypes.DbLearningPlan | null> => {
+    // Query para obtener el plan más reciente del usuario con status ACTIVE
+    const GET_CURRENT_USER_PLAN_QUERY = `
+        query GetCurrentUserLearningPlan($userFirebaseUid: String!) {
+            learningPlans(
+                where: { 
+                    userFirebaseUid: { eq: $userFirebaseUid }
+                }
+                orderBy: { generatedAt: DESC }
+                limit: 1
+            ) {
+                id
+                userFirebaseUid
+                skillName
+                generatedAt
+                totalDurationWeeks
+                dailyTimeMinutes
+                skillLevelTarget
+                milestones
+                progressMetrics
+                flexibilityOptions
+                sections: planSections_on_learningPlan {
+                    id
+                    title
+                    order
+                    days: dayContents_on_section {
+                        id
+                        dayNumber
+                        title
+                        focusArea
+                        isActionDay
+                        objectives
+                        completionStatus
+                    }
+                }
+                skillAnalysis: skillAnalysis_on_learningPlan {
+                    skillCategory
+                    marketDemand
+                    isSkillValid
+                    learningPathRecommendation
+                    realWorldApplications
+                    complementarySkills
+                    components: skillComponentDatas_on_skillAnalysis {
+                        name
+                        description
+                        difficultyLevel
+                        prerequisitesText
+                        estimatedLearningHours
+                        practicalApplications
+                        order
+                    }
+                }
+            }
+        }
+    `;
+
+    const response = await executeGraphQL<{ learningPlans: DbTypes.DbLearningPlan[] }>(GET_CURRENT_USER_PLAN_QUERY, { userFirebaseUid }, true);
+    return response.data?.learningPlans?.[0] ?? null;
+};
+
+/**
  * Actualiza el estado de completado de un día.
  * NOTA: Esta función reemplaza la necesidad de 'updateUserEnrollmentProgress' ya que el progreso
  * se puede calcular a partir del estado de los días.
@@ -387,5 +450,171 @@ export const getUserDeviceTokens = async (firebaseUid: string): Promise<string[]
     const response = await executeGraphQL<{ user: { fcmTokens: string[] } }>(GET_USER_FCM_TOKENS_QUERY, { firebaseUid }, true);
     // El schema indica que fcmTokens puede ser null, y si el usuario no existe, response.data.user también lo será.
     return response.data?.user?.fcmTokens ?? null; 
+};
+
+/**
+ * Obtiene los datos de streak del usuario.
+ */
+export const getUserStreakData = async (userFirebaseUid: string): Promise<DbTypes.DbStreakData | null> => {
+    const GET_USER_STREAK_QUERY = `
+        query GetUserStreak($userFirebaseUid: String!) {
+            streakData(key: { userFirebaseUid: $userFirebaseUid }) {
+                currentStreak
+                longestStreak
+                lastContributionDate
+            }
+        }
+    `;
+
+    const response = await executeGraphQL<{ streakData: DbTypes.DbStreakData }>(GET_USER_STREAK_QUERY, { userFirebaseUid }, true);
+    return response.data?.streakData ?? null;
+};
+
+/**
+ * Calcula el XP total del usuario basado en contenidos completados.
+ */
+export const calculateUserTotalXP = async (userFirebaseUid: string): Promise<number> => {
+    const CALCULATE_XP_QUERY = `
+        query CalculateUserXP($userFirebaseUid: String!) {
+            # XP de MainContent completado
+            mainContentItems(
+                where: { 
+                    dayContent: { 
+                        section: { 
+                            learningPlan: { 
+                                userFirebaseUid: { eq: $userFirebaseUid }
+                            }
+                        },
+                        completionStatus: { eq: "COMPLETED" }
+                    }
+                }
+            ) {
+                xp
+            }
+            
+            # XP de ActionTasks completadas
+            actionTaskItems(
+                where: { 
+                    dayContent: { 
+                        section: { 
+                            learningPlan: { 
+                                userFirebaseUid: { eq: $userFirebaseUid }
+                            }
+                        },
+                        completionStatus: { eq: "COMPLETED" }
+                    }
+                }
+            ) {
+                xp
+            }
+            
+            # XP de ContentBlocks completados
+            contentBlockItems(
+                where: { 
+                    dayContent: { 
+                        section: { 
+                            learningPlan: { 
+                                userFirebaseUid: { eq: $userFirebaseUid }
+                            }
+                        },
+                        completionStatus: { eq: "COMPLETED" }
+                    }
+                }
+            ) {
+                xp
+            }
+        }
+    `;
+
+    const response = await executeGraphQL<{ 
+        mainContentItems: { xp: number }[], 
+        actionTaskItems: { xp: number }[], 
+        contentBlockItems: { xp: number }[] 
+    }>(CALCULATE_XP_QUERY, { userFirebaseUid }, true);
+    
+    let totalXP = 0;
+    
+    // Sumar XP de todos los tipos de contenido
+    response.data?.mainContentItems?.forEach(item => totalXP += item.xp || 0);
+    response.data?.actionTaskItems?.forEach(item => totalXP += item.xp || 0);
+    response.data?.contentBlockItems?.forEach(item => totalXP += item.xp || 0);
+    
+    return totalXP;
+};
+
+/**
+ * Obtiene el desglose detallado de XP del usuario.
+ */
+export const getUserXPBreakdown = async (userFirebaseUid: string): Promise<{
+    mainContent: number;
+    actionTasks: number;
+    exercises: number;
+    total: number;
+}> => {
+    const XP_BREAKDOWN_QUERY = `
+        query GetUserXPBreakdown($userFirebaseUid: String!) {
+            mainContentItems(
+                where: { 
+                    dayContent: { 
+                        section: { 
+                            learningPlan: { 
+                                userFirebaseUid: { eq: $userFirebaseUid }
+                            }
+                        },
+                        completionStatus: { eq: "COMPLETED" }
+                    }
+                }
+            ) {
+                xp
+            }
+            
+            actionTaskItems(
+                where: { 
+                    dayContent: { 
+                        section: { 
+                            learningPlan: { 
+                                userFirebaseUid: { eq: $userFirebaseUid }
+                            }
+                        },
+                        completionStatus: { eq: "COMPLETED" }
+                    }
+                }
+            ) {
+                xp
+            }
+            
+            contentBlockItems(
+                where: { 
+                    dayContent: { 
+                        section: { 
+                            learningPlan: { 
+                                userFirebaseUid: { eq: $userFirebaseUid }
+                            }
+                        },
+                        completionStatus: { eq: "COMPLETED" }
+                    }
+                }
+            ) {
+                xp
+            }
+        }
+    `;
+
+    const response = await executeGraphQL<{ 
+        mainContentItems: { xp: number }[], 
+        actionTaskItems: { xp: number }[], 
+        contentBlockItems: { xp: number }[] 
+    }>(XP_BREAKDOWN_QUERY, { userFirebaseUid }, true);
+    
+    const mainContentXP = response.data?.mainContentItems?.reduce((sum, item) => sum + (item.xp || 0), 0) || 0;
+    const actionTasksXP = response.data?.actionTaskItems?.reduce((sum, item) => sum + (item.xp || 0), 0) || 0;
+    const exercisesXP = response.data?.contentBlockItems?.reduce((sum, item) => sum + (item.xp || 0), 0) || 0;
+    
+    return {
+        mainContent: mainContentXP,
+        actionTasks: actionTasksXP,
+        exercises: exercisesXP,
+        total: mainContentXP + actionTasksXP + exercisesXP
+    };
 };
 
