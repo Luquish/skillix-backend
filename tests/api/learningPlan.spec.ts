@@ -47,7 +47,7 @@ describe('Learning Plan API (/api/learning-plan)', () => {
 
   describe('POST /create', () => {
     it('debería devolver 401 Unauthorized si no se provee un token', async () => {
-        const onboardingPrefs = { skill: 'Test', experienceLevel: 'BEGINNER', availableTimeMinutes: 10, learningStyle: 'VISUAL', motivation: 'Test', goal: 'Test' };
+        const onboardingPrefs = { skill: 'Test', experienceLevel: 'BEGINNER', availableTimeMinutes: 10, motivation: 'Test', goal: 'Test' };
         const skillAnalysis = { skillName: 'Test', skillCategory: 'TECHNICAL', marketDemand: 'HIGH', components: [], learningPathRecommendation: '', realWorldApplications: [], complementarySkills: [], isSkillValid: true };
         
         const unauthedClient = axios.create({ baseURL: API_BASE_URL });
@@ -60,7 +60,7 @@ describe('Learning Plan API (/api/learning-plan)', () => {
     });
 
     it('debería devolver 403 Forbidden si se provee un token inválido', async () => {
-        const onboardingPrefs = { skill: 'Test', experienceLevel: 'BEGINNER', availableTimeMinutes: 10, learningStyle: 'VISUAL', motivation: 'Test', goal: 'Test' };
+        const onboardingPrefs = { skill: 'Test', experienceLevel: 'BEGINNER', availableTimeMinutes: 10, motivation: 'Test', goal: 'Test' };
         const skillAnalysis = { skillName: 'Test', skillCategory: 'TECHNICAL', marketDemand: 'HIGH', components: [], learningPathRecommendation: '', realWorldApplications: [], complementarySkills: [], isSkillValid: true };
         
         const invalidApiClient = axios.create({ 
@@ -79,7 +79,7 @@ describe('Learning Plan API (/api/learning-plan)', () => {
     it('debería crear un plan de aprendizaje con un token válido y datos correctos', async () => {
         expect(testUser?.token).toBeDefined();
 
-        const onboardingPrefs = { skill: 'TypeScript', experience: 'BEGINNER', availableTimeMinutes: 30, learningStyle: 'KINESTHETIC', motivation: 'Career Change', goal: 'Build a web app' };
+        const onboardingPrefs = { skill: 'TypeScript', experience: 'BEGINNER', availableTimeMinutes: 30, motivation: 'Career Change', goal: 'Build a web app' };
         const skillAnalysis = {
             skill_name: 'TypeScript',
             skill_category: 'TECHNICAL',

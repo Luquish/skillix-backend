@@ -29,7 +29,6 @@ type UserPreference @table(name: "user_preferences") {
   experienceLevel: String! @col(name: "experience_level")
   motivation: String!
   availableTimeMinutes: Int! @col(name: "available_time_minutes")
-  learningStyle: String! @col(name: "learning_style")
   goal: String!
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")

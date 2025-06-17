@@ -21,13 +21,7 @@ export enum UserExperienceLevel {
     ADVANCED = "ADVANCED"
 }
 
-export enum LearningStyle {
-    VISUAL = "VISUAL",
-    AUDITORY = "AUDITORY",
-    KINESTHETIC = "KINESTHETIC",
-    READING_WRITING = "READING_WRITING",
-    MIXED = "MIXED"
-}
+
 
 export enum DifficultyAdaptationLevel {
     EASIER = "EASIER",
@@ -143,7 +137,6 @@ export interface DbUserPreference {
     experienceLevel: string;
     motivation: string;
     availableTimeMinutes: number;
-    learningStyle: string;
     goal: string;
     createdAt?: string | null; // Timestamp
     updatedAt?: string | null; // Timestamp

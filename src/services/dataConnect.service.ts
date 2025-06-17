@@ -144,7 +144,6 @@ export const createUserPreference = async (input: DbTypes.UserPreferenceInsert) 
         experienceLevel: input.experienceLevel,
         motivation: input.motivation,
         availableTimeMinutes: input.availableTimeMinutes,
-        learningStyle: input.learningStyle,
         goal: input.goal
     };
     const response = await executeGraphQL(CREATE_USER_PREFERENCE_MUTATION, variables);

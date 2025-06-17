@@ -30,7 +30,7 @@ describe('Content API (/api/content)', () => {
         });
 
         // Crear un plan de aprendizaje para usarlo en las pruebas de contenido
-        const onboardingPrefs = { skill: 'Testing en NodeJS', experience: 'BEGINNER', availableTimeMinutes: 15, learningStyle: 'VISUAL', motivation: 'Escribir pruebas robustas', goal: 'Testear mi API' };
+        const onboardingPrefs = { skill: 'Testing en NodeJS', experience: 'BEGINNER', availableTimeMinutes: 15, motivation: 'Escribir pruebas robustas', goal: 'Testear mi API' };
         const skillAnalysis = {
             skill_name: 'Testing en Node.js',
             skill_category: 'TECHNICAL',

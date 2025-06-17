@@ -499,69 +499,125 @@ export const AdaptiveLearningRecommendationSchema = z.object({
 const SkillComponentSchemaRaw = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  difficulty_level: z.enum(['beginner', 'intermediate', 'advanced', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED']),
-  prerequisites: z.array(z.string()),
-  estimated_learning_hours: z.number().int().positive(),
-  practical_applications: z.array(z.string().min(1)),
+  // Acepta tanto snake_case como camelCase
+  difficulty_level: z.enum(['beginner', 'intermediate', 'advanced', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED']).optional(),
+  difficultyLevel: z.enum(['beginner', 'intermediate', 'advanced', 'BEGINNER', 'INTERMEDIATE', 'ADVANCED']).optional(),
+  prerequisites: z.array(z.string()).optional(),
+  prerequisitesText: z.array(z.string()).optional(),
+  estimated_learning_hours: z.number().int().positive().optional(),
+  estimatedLearningHours: z.number().int().positive().optional(),
+  practical_applications: z.array(z.string().min(1)).optional(),
+  practicalApplications: z.array(z.string().min(1)).optional(),
+  order: z.number().int().optional(),
+}).refine((data) => {
+  // Validar que al menos una versión de cada campo requerido esté presente
+  const hasDifficultyLevel = data.difficulty_level || data.difficultyLevel;
+  const hasPrerequisites = data.prerequisites || data.prerequisitesText;
+  const hasEstimatedHours = data.estimated_learning_hours || data.estimatedLearningHours;
+  const hasPracticalApplications = data.practical_applications || data.practicalApplications;
+  
+  return hasDifficultyLevel && hasPrerequisites && hasEstimatedHours && hasPracticalApplications;
+}, {
+  message: "Los campos requeridos del componente de skill deben estar presentes en alguna de sus variantes."
 });
 
-export const SkillComponentSchema = SkillComponentSchemaRaw.transform((data, ctx) => ({
-  name: data.name,
-  description: data.description,
-  difficultyLevel: data.difficulty_level.toUpperCase() as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED',
-  prerequisitesText: data.prerequisites,
-  estimatedLearningHours: data.estimated_learning_hours,
-  practicalApplications: data.practical_applications,
-  order: 0, // El LLM no lo provee, lo añadimos por defecto. El sistema debería reordenar.
-}));
+export const SkillComponentSchema = SkillComponentSchemaRaw.transform((data, ctx) => {
+  // Usar campos de ambos formatos (snake_case o camelCase)
+  const difficultyLevel = data.difficulty_level || data.difficultyLevel || 'BEGINNER';
+  const prerequisites = data.prerequisites || data.prerequisitesText || [];
+  const estimatedLearningHours = data.estimated_learning_hours || data.estimatedLearningHours || 1;
+  const practicalApplications = data.practical_applications || data.practicalApplications || [];
+  const order = data.order || 0;
+
+  return {
+    name: data.name,
+    description: data.description,
+    difficultyLevel: difficultyLevel.toString().toUpperCase() as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED',
+    prerequisitesText: prerequisites,
+    estimatedLearningHours: estimatedLearningHours,
+    practicalApplications: practicalApplications,
+    order: order, // El LLM no lo provee, lo añadimos por defecto. El sistema debería reordenar.
+  };
+});
 
 const SkillAnalysisSchemaRaw = z.object({
-  skill_name: z.string().min(1),
-  skill_category: z.string(), 
-  market_demand: z.string(), 
-  is_skill_valid: z.boolean(),
+  // Acepta tanto snake_case como camelCase para compatibilidad frontend-backend
+  skill_name: z.string().min(1).optional(),
+  skillName: z.string().min(1).optional(),
+  skill_category: z.string().optional(), 
+  skillCategory: z.string().optional(),
+  market_demand: z.string().optional(), 
+  marketDemand: z.string().optional(),
+  is_skill_valid: z.boolean().optional(),
+  isSkillValid: z.boolean().optional(),
   viability_reason: z.string().nullable().optional(),
+  viabilityReason: z.string().nullable().optional(),
   learning_path_recommendation: z.string().nullable().optional(),
+  learningPathRecommendation: z.string().nullable().optional(),
   real_world_applications: z.array(z.string().min(1)).nullable().optional(),
+  realWorldApplications: z.array(z.string().min(1)).nullable().optional(),
   complementary_skills: z.array(z.string().min(1)).nullable().optional(),
+  complementarySkills: z.array(z.string().min(1)).nullable().optional(),
   components: z.array(SkillComponentSchemaRaw).nullable().optional(),
+  generated_by: z.string().optional(),
+  generatedBy: z.string().optional(),
+}).refine((data) => {
+  // Validar que al menos una versión de cada campo requerido esté presente
+  const hasSkillName = data.skill_name || data.skillName;
+  const hasSkillCategory = data.skill_category || data.skillCategory;
+  const hasMarketDemand = data.market_demand || data.marketDemand;
+  const hasIsSkillValid = data.is_skill_valid !== undefined || data.isSkillValid !== undefined;
+  
+  return hasSkillName && hasSkillCategory && hasMarketDemand && hasIsSkillValid;
+}, {
+  message: "Los campos requeridos (skill_name/skillName, skill_category/skillCategory, market_demand/marketDemand, is_skill_valid/isSkillValid) deben estar presentes en alguna de sus variantes."
 });
 
 export const SkillAnalysisSchema = SkillAnalysisSchemaRaw.transform((data) => {
+  // Usar campos de ambos formatos (snake_case o camelCase)
+  const skillName = data.skill_name || data.skillName || '';
+  const skillCategoryRaw = data.skill_category || data.skillCategory || '';
+  const marketDemandRaw = data.market_demand || data.marketDemand || '';
+  const isSkillValid = data.is_skill_valid !== undefined ? data.is_skill_valid : data.isSkillValid;
+  const viabilityReason = data.viability_reason || data.viabilityReason;
+  const learningPathRecommendation = data.learning_path_recommendation || data.learningPathRecommendation;
+  const realWorldApplications = data.real_world_applications || data.realWorldApplications;
+  const complementarySkills = data.complementary_skills || data.complementarySkills;
+  const generatedBy = data.generated_by || data.generatedBy || 'llm-openai';
+
   // Mapear los enums a los valores válidos, o a un default.
   let skillCategory: 'TECHNICAL' | 'SOFT_SKILL' | 'CREATIVE' | 'BUSINESS' | 'ACADEMIC' | 'LANGUAGE' | 'HEALTH_WELLNESS' | 'HOBBY' | 'OTHER' = 'OTHER';
-  if (data.skill_category.toUpperCase().includes('BUSINESS')) skillCategory = 'BUSINESS';
-  if (data.skill_category.toUpperCase().includes('TECHNICAL')) skillCategory = 'TECHNICAL';
+  if (skillCategoryRaw.toUpperCase().includes('BUSINESS')) skillCategory = 'BUSINESS';
+  if (skillCategoryRaw.toUpperCase().includes('TECHNICAL')) skillCategory = 'TECHNICAL';
   // ... añadir más mapeos si es necesario ...
 
   let marketDemand: 'HIGH' | 'MEDIUM' | 'LOW' | 'NICHE' | 'EMERGING' | 'UNKNOWN' = 'UNKNOWN';
-  const demand = data.market_demand.toUpperCase();
+  const demand = marketDemandRaw.toUpperCase();
   if (demand.includes('HIGH')) marketDemand = 'HIGH';
   else if (demand.includes('MEDIUM')) marketDemand = 'MEDIUM';
   else if (demand.includes('LOW')) marketDemand = 'LOW';
   
-  // Transformar los componentes
-  const transformedComponents = data.components?.map((c, index) => ({
-    name: c.name,
-    description: c.description,
-    difficultyLevel: c.difficulty_level.toUpperCase() as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED',
-    prerequisitesText: c.prerequisites,
-    estimatedLearningHours: c.estimated_learning_hours,
-    practicalApplications: c.practical_applications,
-    order: index + 1, // Asignar un orden secuencial
-  }));
+  // Transformar los componentes usando el schema ya definido
+  const transformedComponents = data.components?.map((c, index) => {
+    try {
+      return SkillComponentSchema.parse({ ...c, order: index + 1 });
+    } catch (error) {
+      console.warn(`Error transforming skill component at index ${index}:`, error);
+      return null;
+    }
+  }).filter(Boolean) || [];
 
   return {
     // NOTA: Mantenemos skillName para el LLM pero será filtrado en dataConnect.service
-    skillName: data.skill_name,
+    skillName: skillName,
     skillCategory: skillCategory,
     marketDemand: marketDemand,
-    isSkillValid: data.is_skill_valid,
-    viabilityReason: data.viability_reason ?? undefined,
-    learningPathRecommendation: data.learning_path_recommendation,
-    realWorldApplications: data.real_world_applications,
-    complementarySkills: data.complementary_skills,
-    generatedBy: 'llm-openai', // Añadir valor por defecto
+    isSkillValid: isSkillValid,
+    viabilityReason: viabilityReason ?? undefined,
+    learningPathRecommendation: learningPathRecommendation,
+    realWorldApplications: realWorldApplications,
+    complementarySkills: complementarySkills,
+    generatedBy: generatedBy,
     components: transformedComponents || [],
   };
 });

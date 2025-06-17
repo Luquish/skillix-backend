@@ -41,7 +41,6 @@ describe('User API (/api/user)', () => {
             skill: 'User Testing APIs', 
             experience: 'INTERMEDIATE', 
             availableTimeMinutes: 25, 
-            learningStyle: 'KINESTHETIC', 
             motivation: 'Mejorar habilidades de testing', 
             goal: 'Crear tests robustos para APIs' 
         };

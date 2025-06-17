@@ -27,14 +27,24 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
     const { uid } = decodedToken;
 
     // Buscar al usuario en nuestra base de datos usando el UID de Firebase
+    console.log(`🔍 MIDDLEWARE: Buscando usuario en DB con UID: ${uid}`);
     const userProfile = await DataConnectService.getUserByFirebaseUid(uid);
+    
+    console.log(`🔍 MIDDLEWARE: Resultado de búsqueda:`, {
+      found: !!userProfile,
+      userEmail: userProfile?.email || 'N/A',
+      userId: userProfile?.firebaseUid || 'N/A'
+    });
     
     if (!userProfile) {
       // Este caso es importante. Significa que el usuario está autenticado en Firebase
       // pero no tiene un registro en nuestra DB. Para el endpoint de 'create-plan',
       // esto sería un error, pero para un endpoint de 'sign-up' sería el comportamiento esperado.
+      console.log(`❌ MIDDLEWARE: Usuario ${uid} no encontrado en DB - BLOQUEANDO petición`);
       return res.status(401).send({ message: 'Unauthorized: User is not registered in our system.' });
     }
+    
+    console.log(`✅ MIDDLEWARE: Usuario ${uid} encontrado en DB - PERMITIENDO petición`);
 
     // 3. Adjuntar el objeto de usuario completo al objeto request
     req.user = userProfile;

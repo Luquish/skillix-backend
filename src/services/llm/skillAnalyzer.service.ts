@@ -70,8 +70,20 @@ Provide a comprehensive skill breakdown and viability assessment in the exact JS
 
   try {
     const rawAnalysisResult = JSON.parse(response.content);
+    
+    // 🔍 DEBUG: Mostrar la respuesta cruda de OpenAI antes de la validación
+    console.log('🔍 RAW OpenAI Response:', JSON.stringify(rawAnalysisResult, null, 2));
+    console.log('🔍 Campo is_skill_valid en raw:', rawAnalysisResult.is_skill_valid);
+    console.log('🔍 Tipo de is_skill_valid:', typeof rawAnalysisResult.is_skill_valid);
+    console.log('🔍 Todas las keys en raw:', Object.keys(rawAnalysisResult));
+    
     // Validar con Zod
     const validatedAnalysis = SkillAnalysisSchema.parse(rawAnalysisResult);
+    
+    // 🔍 DEBUG: Mostrar el resultado después de la transformación Zod
+    console.log('🔍 TRANSFORMED Analysis:', JSON.stringify(validatedAnalysis, null, 2));
+    console.log('🔍 Campo isSkillValid transformado:', validatedAnalysis.isSkillValid);
+    console.log('🔍 Tipo de isSkillValid transformado:', typeof validatedAnalysis.isSkillValid);
     
     // Si is_skill_valid es true, pero components está vacío, podría ser un problema de generación del LLM.
     if (validatedAnalysis.isSkillValid && validatedAnalysis.components.length === 0) {

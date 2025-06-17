@@ -7,51 +7,94 @@ import { AuthProvider, DbUser, Platform } from '../services/dataConnect.types';
 // Esquema de validación para el registro
 const SignUpSchema = z.object({
   email: z.string().email('Invalid email format.'),
-  password: z.string().min(6, 'Password must be at least 6 characters long.'),
   name: z.string().min(1, 'Name is required.'),
-  platform: z.enum(['IOS', 'ANDROID', 'WEB', 'UNKNOWN']).optional().default('UNKNOWN'),
+  firebaseUid: z.string().min(1, 'Firebase UID is required.').optional(), // Hacerlo opcional por compatibilidad
 });
 
 /**
  * Controlador para registrar un nuevo usuario.
- * Crea el usuario en Firebase Auth y luego en la base de datos de Data Connect.
+ * Asume que el usuario YA existe en Firebase Auth (creado por el frontend)
+ * y solo crea el perfil en la base de datos de Data Connect.
  */
 export const signUpController = async (req: Request, res: Response) => {
   try {
     // 1. Validar la entrada usando el esquema Zod
-    const { email, password, name } = SignUpSchema.parse(req.body);
+    const { email, name, firebaseUid } = SignUpSchema.parse(req.body);
 
-    // 2. Crear el usuario en Firebase Authentication usando el servicio centralizado
-    console.log(`Creating user in Firebase Auth for email: ${email}...`);
-    const userRecord = await FirebaseService.createUserInAuth({
-      email,
-      password,
-      displayName: name,
-    });
-    console.log(`User created in Firebase Auth with UID: ${userRecord.uid}.`);
+    // 2. Si no se proporciona el UID, intentar obtenerlo del token de autorización
+    let uid = firebaseUid;
+    if (!uid) {
+      const { authorization } = req.headers;
+      if (!authorization || !authorization.startsWith('Bearer ')) {
+        return res.status(401).json({ 
+          message: 'Unauthorized: Firebase UID required in body or token in Authorization header.' 
+        });
+      }
+      
+      const token = authorization.split('Bearer ')[1];
+      if (!token) {
+        return res.status(401).json({ message: 'Unauthorized: No token provided.' });
+      }
 
-    // 3. Crear el registro del usuario en nuestra base de datos (Data Connect)
-    console.log(`Creating user profile in Data Connect DB for UID: ${userRecord.uid}...`);
+      try {
+        const decodedToken = await FirebaseService.verifyFirebaseIdToken(token);
+        uid = decodedToken.uid;
+        console.log(`Using UID from token: ${uid}`);
+      } catch (error) {
+        console.error('Error verifying token:', error);
+        return res.status(401).json({ message: 'Invalid Firebase token.' });
+      }
+    }
+
+    // 3. Verificar que el usuario existe en Firebase Auth
+    console.log(`Verifying user exists in Firebase Auth for UID: ${uid}...`);
+    let userRecord;
+    try {
+      userRecord = await FirebaseService.getUserFromAuth(uid);
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        return res.status(404).json({ 
+          message: 'User not found in Firebase Auth. Please ensure the user is created in Firebase first.' 
+        });
+      }
+      throw error;
+    }
+    console.log(`User verified in Firebase Auth: ${userRecord.email}`);
+
+    // 4. Verificar si el usuario ya existe en nuestra base de datos
+    const existingUser = await DataConnectService.getUserByFirebaseUid(uid);
+    if (existingUser) {
+      console.log(`User already exists in database: ${existingUser.email}`);
+      return res.status(200).json({
+        message: 'User already registered!',
+        user: {
+          uid: existingUser.firebaseUid,
+          email: existingUser.email,
+          name: existingUser.name,
+        },
+      });
+    }
+
+    // 5. Crear el registro del usuario en nuestra base de datos (Data Connect)
+    console.log(`Creating user profile in Data Connect DB for UID: ${uid}...`);
     const newUserInput: DbUser = {
-      firebaseUid: userRecord.uid,
+      firebaseUid: uid,
       email: userRecord.email!,
-      name: userRecord.displayName,
+      name: name || userRecord.displayName || userRecord.email!.split('@')[0],
       authProvider: AuthProvider.EMAIL,
       emailVerified: userRecord.emailVerified,
     };
     const createdUserInDb = await DataConnectService.createUser(newUserInput);
 
     if (!createdUserInDb) {
-      // Este es un caso problemático: el usuario existe en Auth pero no en nuestra DB.
-      // Se podría añadir una lógica para reintentar o limpiar.
-      console.error(`CRITICAL: User created in Auth (uid: ${userRecord.uid}) but failed to create in Data Connect DB.`);
-      return res.status(500).json({ message: 'User authenticated but failed to create profile.' });
+      console.error(`CRITICAL: Failed to create user profile in Data Connect DB for UID: ${uid}`);
+      return res.status(500).json({ message: 'Failed to create user profile in database.' });
     }
     console.log(`User profile created in Data Connect DB for UID: ${createdUserInDb.firebaseUid}`);
 
-    // 4. Devolver la respuesta (sin incluir la contraseña)
+    // 6. Devolver la respuesta
     res.status(201).json({
-      message: 'User created successfully!',
+      message: 'User registered successfully!',
       user: {
         uid: newUserInput.firebaseUid,
         email: newUserInput.email,
@@ -64,16 +107,10 @@ export const signUpController = async (req: Request, res: Response) => {
       const errorMessage = error.errors.map(e => e.message).join(', ');
       return res.status(400).json({ message: errorMessage, errors: error.errors });
     }
-    // Manejar errores de Firebase Auth
-    if (error.code === 'auth/email-already-exists') {
-      return res.status(409).json({ message: 'The email address is already in use by another account.' });
-    }
-    if (error.code && error.code.startsWith('auth/')) {
-        return res.status(400).json({ message: error.message || 'An authentication error occurred.' });
-    }
+    
     // Loguear el error completo para facilitar la depuración
     console.error('Error in signUpController:', error.message, { code: error.code, stack: error.stack });
-    res.status(500).json({ message: 'Internal server error during sign-up.' });
+    res.status(500).json({ message: 'Internal server error during user registration.' });
   }
 };
 
