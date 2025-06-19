@@ -30,6 +30,11 @@ type UserPreference @table(name: "user_preferences") {
   motivation: String!
   availableTimeMinutes: Int! @col(name: "available_time_minutes")
   goal: String!
+  # Nuevos campos opcionales para mejor personalización
+  learningStyle: String @col(name: "learning_style")
+  preferredStudyTime: String @col(name: "preferred_study_time")
+  learningContext: String @col(name: "learning_context")
+  challengePreference: String @col(name: "challenge_preference")
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
 }

@@ -9,6 +9,11 @@ const OnboardingInputSchema = z.object({
   time: z.string().min(1, 'Time commitment is required.'), // ej: "10min / day"
   motivation: z.string().min(1, 'Motivation is required.'), // ej: "Career Growth"
   goal: z.string().optional(),
+  // Nuevos campos opcionales para mejor personalización
+  learning_style: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']).optional(),
+  preferred_study_time: z.enum(['morning', 'afternoon', 'evening', 'flexible']).optional(),
+  learning_context: z.enum(['career_change', 'skill_improvement', 'hobby', 'academic', 'promotion']).optional(),
+  challenge_preference: z.enum(['gradual', 'moderate', 'intense']).optional(),
 });
 
 /**
@@ -22,6 +27,10 @@ export const analyzeSkillController = async (req: Request, res: Response) => {
       experience: onboardingData.experience.toLowerCase(),
       goal: onboardingData.motivation,
       time: onboardingData.time,
+      learning_style: onboardingData.learning_style,
+      preferred_study_time: onboardingData.preferred_study_time,
+      learning_context: onboardingData.learning_context,
+      challenge_preference: onboardingData.challenge_preference,
     };
 
     const analysis = await analyzeSkillWithOpenAI(onboardingData.skill, userContext);

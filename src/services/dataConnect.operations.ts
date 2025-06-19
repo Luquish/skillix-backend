@@ -83,11 +83,15 @@ export const DELETE_USER_MUTATION = `
 export const CREATE_USER_PREFERENCE_MUTATION = `
   mutation CreateUserPreference(
     $userFirebaseUid: String!, $skill: String!, $experienceLevel: String!,
-    $motivation: String!, $availableTimeMinutes: Int!, $goal: String!
+    $motivation: String!, $availableTimeMinutes: Int!, $goal: String!,
+    $learningStyle: String, $preferredStudyTime: String, 
+    $learningContext: String, $challengePreference: String
   ) {
     userPreference_insert(data: {
       userFirebaseUid: $userFirebaseUid, skill: $skill, experienceLevel: $experienceLevel,
-      motivation: $motivation, availableTimeMinutes: $availableTimeMinutes, goal: $goal
+      motivation: $motivation, availableTimeMinutes: $availableTimeMinutes, goal: $goal,
+      learningStyle: $learningStyle, preferredStudyTime: $preferredStudyTime,
+      learningContext: $learningContext, challengePreference: $challengePreference
     })
   }
 `;

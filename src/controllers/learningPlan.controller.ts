@@ -15,6 +15,11 @@ const CreatePlanInputSchema = z.object({
     time: z.string().min(1, 'Time commitment is required.'), // ej: "10min / day"
     motivation: z.string().min(1, 'Motivation is required.'), // ej: "Career Growth"
     goal: z.string().optional(),
+    // Nuevos campos opcionales para mejor personalización
+    learning_style: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']).optional(),
+    preferred_study_time: z.enum(['morning', 'afternoon', 'evening', 'flexible']).optional(),
+    learning_context: z.enum(['career_change', 'skill_improvement', 'hobby', 'academic', 'promotion']).optional(),
+    challenge_preference: z.enum(['gradual', 'moderate', 'intense']).optional(),
   }),
   skillAnalysis: SkillAnalysisSchema,
 });
@@ -45,6 +50,10 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
       motivation: onboardingPrefs.motivation,
       availableTimeMinutes: availableTimeMinutes,
       goal: onboardingPrefs.goal,
+      learningStyle: onboardingPrefs.learning_style,
+      preferredStudyTime: onboardingPrefs.preferred_study_time,
+      learningContext: onboardingPrefs.learning_context,
+      challengePreference: onboardingPrefs.challenge_preference,
     });
     console.log(`Preferencias guardadas para el usuario ${user.firebaseUid}`);
 
@@ -56,6 +65,10 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
         experience: onboardingPrefs.experience,
         time: onboardingPrefs.time,
         goal: onboardingPrefs.goal,
+        learning_style: onboardingPrefs.learning_style,
+        preferred_study_time: onboardingPrefs.preferred_study_time,
+        learning_context: onboardingPrefs.learning_context,
+        challenge_preference: onboardingPrefs.challenge_preference,
       },
       skillAnalysis: skillAnalysis,
     });
@@ -79,6 +92,10 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
         experience: onboardingPrefs.experience,
         time: onboardingPrefs.time,
         goal: onboardingPrefs.goal,
+        learning_style: onboardingPrefs.learning_style,
+        preferred_study_time: onboardingPrefs.preferred_study_time,
+        learning_context: onboardingPrefs.learning_context,
+        challenge_preference: onboardingPrefs.challenge_preference,
       },
     });
 
@@ -99,6 +116,10 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
           experience: onboardingPrefs.experience,
           time: onboardingPrefs.time,
           goal: onboardingPrefs.goal,
+          learning_style: onboardingPrefs.learning_style,
+          preferred_study_time: onboardingPrefs.preferred_study_time,
+          learning_context: onboardingPrefs.learning_context,
+          challenge_preference: onboardingPrefs.challenge_preference,
         },
         skillAnalysis: skillAnalysis,
         pedagogicalAnalysis: pedagogicalAnalysis, // Incluir el análisis para el refinamiento

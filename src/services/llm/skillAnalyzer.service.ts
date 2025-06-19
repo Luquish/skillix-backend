@@ -21,7 +21,10 @@ export interface UserSkillContext {
   experience: 'beginner' | 'intermediate' | 'advanced' | string; // ej. 'beginner'
   goal: string; // ej. 'general proficiency', 'career advancement'
   time: string; // ej. '15 minutes daily', '1 hour on weekends'
-  learning_style?: string; // Opcional, pero bueno tenerlo si el prompt lo usa
+  learning_style?: 'visual' | 'auditory' | 'kinesthetic' | 'reading' | string; // Estilo de aprendizaje preferido
+  preferred_study_time?: 'morning' | 'afternoon' | 'evening' | 'flexible' | string; // Horario preferido
+  learning_context?: 'career_change' | 'skill_improvement' | 'hobby' | 'academic' | 'promotion' | string; // Contexto de uso
+  challenge_preference?: 'gradual' | 'moderate' | 'intense' | string; // Nivel de desafío preferido
 }
 
 /**
@@ -40,6 +43,9 @@ User Experience: ${userContext.experience}
 Learning Goal: ${userContext.goal}
 Available Time: ${userContext.time}
 ${userContext.learning_style ? `Preferred Learning Style: ${userContext.learning_style}` : ''}
+${userContext.preferred_study_time ? `Preferred Study Time: ${userContext.preferred_study_time}` : ''}
+${userContext.learning_context ? `Learning Context: ${userContext.learning_context}` : ''}
+${userContext.challenge_preference ? `Challenge Preference: ${userContext.challenge_preference}` : ''}
 
 Provide a comprehensive skill breakdown and viability assessment in the exact JSON format specified in the system instructions.`;
 

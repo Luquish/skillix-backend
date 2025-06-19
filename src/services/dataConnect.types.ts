@@ -138,6 +138,10 @@ export interface DbUserPreference {
     motivation: string;
     availableTimeMinutes: number;
     goal: string;
+    learningStyle?: string | null;
+    preferredStudyTime?: string | null;
+    learningContext?: string | null;
+    challengePreference?: string | null;
     createdAt?: string | null; // Timestamp
     updatedAt?: string | null; // Timestamp
 }

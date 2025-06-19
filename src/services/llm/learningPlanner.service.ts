@@ -23,6 +23,9 @@ export interface OnboardingDataForPlanner extends UserSkillContext {
   skill: string;
   name?: string; 
   learning_style?: string; 
+  preferred_study_time?: string;
+  learning_context?: string;
+  challenge_preference?: string;
 }
 export interface LearningPlanInput {
   onboardingData: OnboardingDataForPlanner;
@@ -54,6 +57,9 @@ User Profile:
 - Learning Goal: ${onboardingData.goal}
 ${onboardingData.name ? `- User Name: ${onboardingData.name}` : ''}
 ${onboardingData.learning_style ? `- Preferred Learning Style: ${onboardingData.learning_style}` : ''}
+${onboardingData.preferred_study_time ? `- Preferred Study Time: ${onboardingData.preferred_study_time}` : ''}
+${onboardingData.learning_context ? `- Learning Context: ${onboardingData.learning_context}` : ''}
+${onboardingData.challenge_preference ? `- Challenge Preference: ${onboardingData.challenge_preference}` : ''}
 
 Detailed Skill Analysis (use this to structure the plan, define milestones, and inform daily activities):
 ${JSON.stringify(skillAnalysis, null, 2)}

@@ -34,6 +34,9 @@ export interface UserDataForContent extends UserSkillContext {
   name?: string; 
   skill: string; 
   learning_style: 'visual' | 'auditory' | 'kinesthetic' | 'reading' | string; 
+  preferred_study_time?: 'morning' | 'afternoon' | 'evening' | 'flexible' | string;
+  learning_context?: 'career_change' | 'skill_improvement' | 'hobby' | 'academic' | 'promotion' | string;
+  challenge_preference?: 'gradual' | 'moderate' | 'intense' | string;
 }
 
 // Definición más específica para adaptiveInsights
@@ -74,6 +77,9 @@ Target User Profile:
 - Available Daily Time: ${userData.time}
 - Preferred Learning Style: ${userData.learning_style}
 - Learning Goal: ${userData.goal}
+${userData.preferred_study_time ? `- Preferred Study Time: ${userData.preferred_study_time}` : ''}
+${userData.learning_context ? `- Learning Context: ${userData.learning_context}` : ''}
+${userData.challenge_preference ? `- Challenge Preference: ${userData.challenge_preference}` : ''}
 
 Day Specifics:
 - Day Number: ${dayInfo.day_number}
@@ -108,6 +114,9 @@ Target User Profile:
 - Experience Level: ${userData.experience}
 - Available Daily Time: ${userData.time}
 - Learning Goal: ${userData.goal}
+${userData.preferred_study_time ? `- Preferred Study Time: ${userData.preferred_study_time}` : ''}
+${userData.learning_context ? `- Learning Context: ${userData.learning_context}` : ''}
+${userData.challenge_preference ? `- Challenge Preference: ${userData.challenge_preference}` : ''}
 
 Action Day Specifics:
 - Day Number: ${dayInfo.day_number}

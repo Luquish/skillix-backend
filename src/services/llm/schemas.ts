@@ -743,7 +743,39 @@ export const DailyMotivationSchema = z.object({
   signoff: z.string().min(1, "Ski's characteristic sign-off."),
 });
 
+// --- Onboarding Schemas ---
+
+export const OnboardingPreferencesSchema = z.object({
+  skill: z.string().min(1, 'Skill is required.'),
+  experience: z.enum(['Beginner', 'Intermediate', 'Advanced']),
+  time: z.string().min(1, 'Time commitment is required.'), // ej: "10min / day"
+  motivation: z.string().min(1, 'Motivation is required.'), // ej: "Career Growth"
+  goal: z.string().optional(),
+  // Nuevos campos opcionales para mejor personalización
+  learning_style: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']).optional(),
+  preferred_study_time: z.enum(['morning', 'afternoon', 'evening', 'flexible']).optional(),
+  learning_context: z.enum(['career_change', 'skill_improvement', 'hobby', 'academic', 'promotion']).optional(),
+  challenge_preference: z.enum(['gradual', 'moderate', 'intense']).optional(),
+});
+
+export const UserPreferencesSchema = z.object({
+  userFirebaseUid: z.string().min(1),
+  skill: z.string().min(1),
+  experienceLevel: z.string().min(1),
+  motivation: z.string().min(1),
+  availableTimeMinutes: z.number().int().positive(),
+  goal: z.string(),
+  // Nuevos campos opcionales
+  learningStyle: z.string().optional().nullable(),
+  preferredStudyTime: z.string().optional().nullable(),
+  learningContext: z.string().optional().nullable(),
+  challengePreference: z.string().optional().nullable(),
+});
+
 // --- Type Exports ---
+
+export type OnboardingPreferences = z.infer<typeof OnboardingPreferencesSchema>;
+export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
 
 export type LearningPattern = z.infer<typeof LearningPatternSchema>;
 export type OptimalLearningTime = z.infer<typeof OptimalLearningTimeSchema>;
