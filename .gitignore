@@ -13,7 +13,6 @@ storage/**/
 !package.json
 !package-lock.json
 !tsconfig.json
-jest.config.js
 
 # Python
 __pycache__/
