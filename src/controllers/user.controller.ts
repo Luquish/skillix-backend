@@ -60,7 +60,8 @@ export const getUserStatsController = async (req: AuthenticatedRequest, res: Res
     });
 
   } catch (error: unknown) {
-    console.error('Error in getUserStatsController:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in getUserStatsController:', errorMessage);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
@@ -90,7 +91,8 @@ export const getUserStreakController = async (req: AuthenticatedRequest, res: Re
     });
 
   } catch (error: unknown) {
-    console.error('Error in getUserStreakController:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in getUserStreakController:', errorMessage);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
@@ -113,7 +115,8 @@ export const getUserXPController = async (req: AuthenticatedRequest, res: Respon
     });
 
   } catch (error: unknown) {
-    console.error('Error in getUserXPController:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in getUserXPController:', errorMessage);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };

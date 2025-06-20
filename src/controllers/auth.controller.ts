@@ -109,7 +109,10 @@ export const signUpController = async (req: Request, res: Response) => {
     }
     
     // Loguear el error completo para facilitar la depuración
-    console.error('Error in signUpController:', error.message, { code: error.code, stack: error.stack });
+    const errorInfo = error instanceof Error 
+      ? { message: error.message, code: (error as any).code, stack: error.stack }
+      : { message: String(error), code: undefined, stack: undefined };
+    console.error('Error in signUpController:', errorInfo);
     res.status(500).json({ message: 'Internal server error during user registration.' });
   }
 };

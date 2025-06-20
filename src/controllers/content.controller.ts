@@ -45,7 +45,8 @@ export const generateNextDayContentController = async (req: AuthenticatedRequest
     });
 
   } catch (error: unknown) {
-    console.error(`CRITICAL: Unhandled error in generateNextDayContentController for plan ${learningPlanId}, user ${userId}.`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`CRITICAL: Unhandled error in generateNextDayContentController for plan ${learningPlanId}, user ${userId}.`, errorMessage);
     res.status(500).json({ message: 'An unexpected server error occurred while generating content.' });
   }
 };

@@ -203,7 +203,8 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
         }))
       });
     }
-    console.error('Error in createLearningPlanController:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in createLearningPlanController:', errorMessage);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
@@ -230,7 +231,8 @@ export const getCurrentLearningPlanController = async (req: AuthenticatedRequest
     });
 
   } catch (error: unknown) {
-    console.error('Error in getCurrentLearningPlanController:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in getCurrentLearningPlanController:', errorMessage);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };
@@ -269,7 +271,8 @@ export const getLearningPlanByIdController = async (req: AuthenticatedRequest, r
     });
 
   } catch (error: unknown) {
-    console.error('Error in getLearningPlanByIdController:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in getLearningPlanByIdController:', errorMessage);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };

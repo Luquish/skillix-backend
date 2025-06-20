@@ -23,7 +23,8 @@ function initialize() {
       admin.initializeApp({ credential });
       logger.log('Firebase Admin App initialized successfully (default app).');
     } catch (error: unknown) {
-      logger.error('CRITICAL: Failed to initialize Firebase Admin SDK.', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('CRITICAL: Failed to initialize Firebase Admin SDK.', errorMessage);
       return; // No continuar si falla la inicialización de admin
     }
   }
@@ -40,7 +41,8 @@ function initialize() {
         logger.log(`Firebase Data Connect: Emulator detected. The SDK will connect to the emulator.`);
       }
     } catch (error: unknown) {
-      logger.error('Failed to initialize Firebase Data Connect SDK:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to initialize Firebase Data Connect SDK:', errorMessage);
     }
   }
 }

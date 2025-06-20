@@ -51,7 +51,8 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
     
     next();
   } catch (error: unknown) {
-    console.error('Authentication error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Authentication error:', errorMessage);
     // El token puede ser inválido, expirado, etc.
     return res.status(403).send({ message: 'Forbidden: Invalid or expired token.' });
   }

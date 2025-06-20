@@ -13,6 +13,10 @@
     "start:test": "NODE_ENV=test ts-node -r tsconfig-paths/register src/app.ts",
     "test:run": "start-server-and-test start:test http://localhost:8080 test",
     "test:e2e": "firebase emulators:exec --project=skillix-db \"pnpm test:run\"",
+    "test:e2e:log": "firebase emulators:exec --project=skillix-db \"pnpm test:run\" 2>&1 | tee test-logs/test-$(date +%Y%m%d-%H%M%S).log",
+    "test:log": "jest --runInBand --verbose 2>&1 | tee test-logs/jest-$(date +%Y%m%d-%H%M%S).log",
+    "test:run:log": "start-server-and-test start:test http://localhost:8080 test:log",
+    "test:debug": "jest --runInBand --verbose --detectOpenHandles --forceExit 2>&1 | tee test-logs/debug-$(date +%Y%m%d-%H%M%S).log",
     "simulate": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/simulation.ts",
     "test:next-day": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/generateNextDay.ts",
     "test:migrate": "GOOGLE_APPLICATION_CREDENTIALS=./src/config/serviceAccountKey.json firebase emulators:exec --project=skillix-db \"firebase dataconnect:sql:migrate --force\""

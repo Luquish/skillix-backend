@@ -92,7 +92,8 @@ async function executeGraphQL<TData = any, TVariables = Record<string, any>>(
     }
     return response;
   } catch (error: unknown) {
-    logger.error('Error fundamental ejecutando GraphQL:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error('Error fundamental ejecutando GraphQL:', errorMessage);
     throw error;
   }
 }

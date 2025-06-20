@@ -1,0 +1,478 @@
+(node:67303) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+i  emulators: Starting emulators: auth, dataconnect
+i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log
+i  dataconnect: Started up Postgres server, listening on {"address":"127.0.0.1","family":"IPv4","port":5432}
+i  Running script: pnpm test:run
+
+> tovi-backend@1.0.0 test:run /Users/lucamazzarello_/Desktop/Repositories/skillix-backend
+> start-server-and-test start:test http://localhost:8080 test
+
+1: starting server using command "npm run start:test"
+and when url "[ 'http://localhost:8080' ]" is responding with HTTP status code 200
+running tests using command "npm run test"
+
+npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+npm warn Unknown env config "global-bin-dir". This will stop working in the next major version of npm.
+npm warn Unknown env config "global-dir". This will stop working in the next major version of npm.
+
+> tovi-backend@1.0.0 start:test
+> NODE_ENV=test ts-node -r tsconfig-paths/register src/app.ts
+
+Cliente de OpenAI inicializado correctamente.
+Firebase Admin SDK: Initializing with service account file from path: /Users/lucamazzarello_/Desktop/Repositories/skillix-backend/src/config/serviceAccountKey.json
+Firebase Admin App initialized successfully (default app).
+Firebase Data Connect SDK initialized for service: skillix-db-service in us-central1
+Firebase Data Connect: Emulator detected. The SDK will connect to the emulator.
+(node:67405) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+🦊 Tovi Backend listening on port 8080
+npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+npm warn Unknown env config "global-bin-dir". This will stop working in the next major version of npm.
+npm warn Unknown env config "global-dir". This will stop working in the next major version of npm.
+
+> tovi-backend@1.0.0 test
+> jest --runInBand
+
+(node:67441) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+FAIL tests/api/user.spec.ts
+  ● User API (/api/user) › GET /stats › debería devolver 401 Unauthorized si no se provee un token
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● User API (/api/user) › GET /stats › debería devolver 403 Forbidden si se provee un token inválido
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● User API (/api/user) › GET /stats › debería devolver estadísticas completas del usuario con token válido
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● User API (/api/user) › GET /streak › debería devolver 401 Unauthorized si no se provee un token
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● User API (/api/user) › GET /streak › debería devolver 403 Forbidden si se provee un token inválido
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● User API (/api/user) › GET /streak › debería devolver 404 si no hay datos de streak para el usuario
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● User API (/api/user) › GET /xp › debería devolver 401 Unauthorized si no se provee un token
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● User API (/api/user) › GET /xp › debería devolver 403 Forbidden si se provee un token inválido
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● User API (/api/user) › GET /xp › debería devolver XP del usuario con token válido
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+FAIL tests/api/auth.spec.ts
+  ● Console
+
+    console.log
+      Firebase Admin SDK: Initializing with service account file from path: /Users/lucamazzarello_/Desktop/Repositories/skillix-backend/src/config/serviceAccountKey.json
+
+      at initialize (src/services/firebase.service.ts:21:14)
+
+    console.log
+      Firebase Admin App initialized successfully (default app).
+
+      at initialize (src/services/firebase.service.ts:24:14)
+
+    console.log
+      Firebase Data Connect SDK initialized for service: skillix-db-service in us-central1
+
+      at initialize (src/services/firebase.service.ts:39:14)
+
+    console.log
+      Firebase Data Connect: Emulator detected. The SDK will connect to the emulator.
+
+      at initialize (src/services/firebase.service.ts:41:16)
+
+  ● Auth API (/api/auth) › POST /signup › debería crear un nuevo usuario correctamente y devolver un 201
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● Auth API (/api/auth) › POST /signup › debería devolver un 409 (Conflict) si el email ya existe
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 409
+    Received: 401
+
+      72 |       } catch (error: any) {
+      73 |         // Assert
+    > 74 |         expect(error.response.status).toBe(409);
+         |                                       ^
+      75 |         expect(error.response.data.message).toContain('email address is already in use');
+      76 |       }
+      77 |     });
+
+      at tests/api/auth.spec.ts:74:39
+          at Generator.throw (<anonymous>)
+      at rejected (tests/api/auth.spec.ts:39:65)
+
+  ● Auth API (/api/auth) › POST /signup › debería devolver un 400 si la contraseña es demasiado corta
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 400
+    Received: 401
+
+      90 |         } catch (error: any) {
+      91 |           // Assert
+    > 92 |           expect(error.response.status).toBe(400);
+         |                                         ^
+      93 |           expect(error.response.data.message).toContain('Password must be at least 6 characters long.');
+      94 |         }
+      95 |       });
+
+      at tests/api/auth.spec.ts:92:41
+          at Generator.throw (<anonymous>)
+      at rejected (tests/api/auth.spec.ts:39:65)
+
+FAIL tests/api/content.spec.ts
+  ● Content API (/api/content) › POST /generate-next › debería devolver 401 Unauthorized si no se provee un token
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● Content API (/api/content) › POST /generate-next › debería devolver 403 Forbidden si se provee un token inválido
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● Content API (/api/content) › POST /generate-next › debería devolver 404 Not Found si el plan de aprendizaje no existe
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● Content API (/api/content) › POST /generate-next › debería generar contenido para el día siguiente exitosamente
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+FAIL tests/api/learningPlan.spec.ts
+  ● Learning Plan API (/api/learning-plan) › POST /create › debería devolver 401 Unauthorized si no se provee un token
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● Learning Plan API (/api/learning-plan) › POST /create › debería devolver 403 Forbidden si se provee un token inválido
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+  ● Learning Plan API (/api/learning-plan) › POST /create › debería crear un plan de aprendizaje con un token válido y datos correctos
+
+    AxiosError: Request failed with status code 401
+
+      at settle (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/settle.js:19:12)
+      at IncomingMessage.handleStreamEnd (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/adapters/http.js:599:11)
+      at Axios.request (node_modules/.pnpm/axios@1.9.0_debug@4.4.1/node_modules/axios/lib/core/Axios.js:45:41)
+
+Solicitando análisis de habilidad para: "Aprender a tocar la guitarra"
+Enviando solicitud a OpenAI. Modelo: gpt-4o-mini, Temp: 0.5
+🔍 RAW OpenAI Response: {
+  "skill_name": "Aprender a tocar la guitarra",
+  "skill_category": "Música",
+  "market_demand": "Alto",
+  "is_skill_valid": true,
+  "viability_reason": null,
+  "learning_path_recommendation": "Comenzar con acordes básicos y progresiones, luego avanzar a canciones sencillas y técnicas de rasgueo.",
+  "real_world_applications": [
+    "Tocar en reuniones sociales",
+    "Componer música",
+    "Desarrollar habilidades de improvisación"
+  ],
+  "complementary_skills": [
+    "Lectura de partituras",
+    "Teoría musical",
+    "Técnicas de canto"
+  ],
+  "components": [
+    {
+      "name": "Acordes básicos",
+      "description": "Aprender los acordes básicos que se utilizan en muchas canciones populares.",
+      "difficulty_level": "beginner",
+      "prerequisites": [],
+      "estimated_learning_hours": 5,
+      "practical_applications": [
+        "Tocar canciones sencillas",
+        "Acompañar a otros músicos"
+      ]
+    },
+    {
+      "name": "Progresiones de acordes",
+      "description": "Entender cómo se combinan los acordes para formar progresiones que son la base de muchas canciones.",
+      "difficulty_level": "beginner",
+      "prerequisites": [
+        "Acordes básicos"
+      ],
+      "estimated_learning_hours": 5,
+      "practical_applications": [
+        "Crear melodías originales",
+        "Interpretar canciones populares"
+      ]
+    },
+    {
+      "name": "Técnicas de rasgueo",
+      "description": "Aprender diferentes técnicas de rasgueo y arpegio para enriquecer la interpretación.",
+      "difficulty_level": "intermediate",
+      "prerequisites": [
+        "Acordes básicos",
+        "Progresiones de acordes"
+      ],
+      "estimated_learning_hours": 10,
+      "practical_applications": [
+        "Mejorar la dinámica de la interpretación",
+        "Tocar canciones con diferentes estilos"
+      ]
+    },
+    {
+      "name": "Tocar canciones favoritas",
+      "description": "Aplicar lo aprendido para tocar canciones específicas que el estudiante disfruta.",
+      "difficulty_level": "beginner",
+      "prerequisites": [
+        "Acordes básicos",
+        "Progresiones de acordes"
+      ],
+      "estimated_learning_hours": 10,
+      "practical_applications": [
+        "Recrear experiencias musicales personales",
+        "Desarrollar confianza en la interpretación"
+      ]
+    }
+  ]
+}
+🔍 Campo is_skill_valid en raw: true
+🔍 Tipo de is_skill_valid: boolean
+🔍 Todas las keys en raw: [
+  'skill_name',
+  'skill_category',
+  'market_demand',
+  'is_skill_valid',
+  'viability_reason',
+  'learning_path_recommendation',
+  'real_world_applications',
+  'complementary_skills',
+  'components'
+]
+🔍 TRANSFORMED Analysis: {
+  "skillName": "Aprender a tocar la guitarra",
+  "skillCategory": "OTHER",
+  "marketDemand": "UNKNOWN",
+  "isSkillValid": true,
+  "learningPathRecommendation": "Comenzar con acordes básicos y progresiones, luego avanzar a canciones sencillas y técnicas de rasgueo.",
+  "realWorldApplications": [
+    "Tocar en reuniones sociales",
+    "Componer música",
+    "Desarrollar habilidades de improvisación"
+  ],
+  "complementarySkills": [
+    "Lectura de partituras",
+    "Teoría musical",
+    "Técnicas de canto"
+  ],
+  "generatedBy": "llm-openai",
+  "components": [
+    {
+      "name": "Acordes básicos",
+      "description": "Aprender los acordes básicos que se utilizan en muchas canciones populares.",
+      "difficultyLevel": "BEGINNER",
+      "prerequisitesText": [],
+      "estimatedLearningHours": 5,
+      "practicalApplications": [
+        "Tocar canciones sencillas",
+        "Acompañar a otros músicos"
+      ],
+      "order": 1
+    },
+    {
+      "name": "Progresiones de acordes",
+      "description": "Entender cómo se combinan los acordes para formar progresiones que son la base de muchas canciones.",
+      "difficultyLevel": "BEGINNER",
+      "prerequisitesText": [
+        "Acordes básicos"
+      ],
+      "estimatedLearningHours": 5,
+      "practicalApplications": [
+        "Crear melodías originales",
+        "Interpretar canciones populares"
+      ],
+      "order": 2
+    },
+    {
+      "name": "Técnicas de rasgueo",
+      "description": "Aprender diferentes técnicas de rasgueo y arpegio para enriquecer la interpretación.",
+      "difficultyLevel": "INTERMEDIATE",
+      "prerequisitesText": [
+        "Acordes básicos",
+        "Progresiones de acordes"
+      ],
+      "estimatedLearningHours": 10,
+      "practicalApplications": [
+        "Mejorar la dinámica de la interpretación",
+        "Tocar canciones con diferentes estilos"
+      ],
+      "order": 3
+    },
+    {
+      "name": "Tocar canciones favoritas",
+      "description": "Aplicar lo aprendido para tocar canciones específicas que el estudiante disfruta.",
+      "difficultyLevel": "BEGINNER",
+      "prerequisitesText": [
+        "Acordes básicos",
+        "Progresiones de acordes"
+      ],
+      "estimatedLearningHours": 10,
+      "practicalApplications": [
+        "Recrear experiencias musicales personales",
+        "Desarrollar confianza en la interpretación"
+      ],
+      "order": 4
+    }
+  ]
+}
+🔍 Campo isSkillValid transformado: true
+🔍 Tipo de isSkillValid transformado: boolean
+Análisis de habilidad completado y validado para: "Aprender a tocar la guitarra". Viable: true
+Solicitando análisis de habilidad para: "Aprender a viajar en el tiempo"
+Enviando solicitud a OpenAI. Modelo: gpt-4o-mini, Temp: 0.5
+🔍 RAW OpenAI Response: {
+  "skill_name": "Aprender a viajar en el tiempo",
+  "skill_category": "Fictional Skills",
+  "market_demand": "Not applicable",
+  "is_skill_valid": false,
+  "viability_reason": "Time travel is a fictional concept and not a real or teachable skill.",
+  "learning_path_recommendation": null,
+  "real_world_applications": [],
+  "complementary_skills": [],
+  "components": []
+}
+🔍 Campo is_skill_valid en raw: false
+🔍 Tipo de is_skill_valid: boolean
+🔍 Todas las keys en raw: [
+  'skill_name',
+  'skill_category',
+  'market_demand',
+  'is_skill_valid',
+  'viability_reason',
+  'learning_path_recommendation',
+  'real_world_applications',
+  'complementary_skills',
+  'components'
+]
+🔍 TRANSFORMED Analysis: {
+  "skillName": "Aprender a viajar en el tiempo",
+  "skillCategory": "OTHER",
+  "marketDemand": "UNKNOWN",
+  "isSkillValid": false,
+  "viabilityReason": "Time travel is a fictional concept and not a real or teachable skill.",
+  "realWorldApplications": [],
+  "complementarySkills": [],
+  "generatedBy": "llm-openai",
+  "components": []
+}
+🔍 Campo isSkillValid transformado: false
+🔍 Tipo de isSkillValid transformado: boolean
+Análisis de habilidad completado y validado para: "Aprender a viajar en el tiempo". Viable: false
+PASS tests/api/onboarding.spec.ts (12.498 s)
+
+Test Suites: 4 failed, 1 passed, 5 total
+Tests:       19 failed, 3 passed, 22 total
+Snapshots:   0 total
+Time:        14.227 s, estimated 17 s
+Ran all test suites.
+Error: Command failed with exit code 1: npm run test
+    at makeError (/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/node_modules/.pnpm/execa@5.1.1/node_modules/execa/lib/error.js:60:11)
+    at handlePromise (/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/node_modules/.pnpm/execa@5.1.1/node_modules/execa/index.js:118:26)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  shortMessage: 'Command failed with exit code 1: npm run test',
+  command: 'npm run test',
+  escapedCommand: '"npm run test"',
+  exitCode: 1,
+  signal: undefined,
+  signalDescription: undefined,
+  stdout: undefined,
+  stderr: undefined,
+  failed: true,
+  timedOut: false,
+  isCanceled: false,
+  killed: false
+}
+ ELIFECYCLE  Command failed with exit code 1.
+⚠  Script exited unsuccessfully (code 1)
+i  emulators: Shutting down emulators.
+i  auth: Stopping Authentication Emulator
+i  dataconnect: Stopping Data Connect Emulator
+⚠  Data Connect Emulator has exited upon receiving signal: SIGINT
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator
+
+Error: Script "pnpm test:run" exited with code 1
