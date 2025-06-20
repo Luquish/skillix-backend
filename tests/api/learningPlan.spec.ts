@@ -47,7 +47,8 @@ describe('Learning Plan API (/api/learning-plan)', () => {
 
   describe('POST /create', () => {
     it('debería devolver 401 Unauthorized si no se provee un token', async () => {
-        const onboardingPrefs = { skill: 'Test', experienceLevel: 'BEGINNER', availableTimeMinutes: 10, motivation: 'Test', goal: 'Test' };
+        // Propiedades mínimas para provocar el error de autenticación
+        const onboardingPrefs = { skill: 'Test', experience: 'BEGINNER', time: '10 minutes', motivation: 'Test', goal: 'Test' };
         const skillAnalysis = { skillName: 'Test', skillCategory: 'TECHNICAL', marketDemand: 'HIGH', components: [], learningPathRecommendation: '', realWorldApplications: [], complementarySkills: [], isSkillValid: true };
         
         const unauthedClient = axios.create({ baseURL: API_BASE_URL });
@@ -60,7 +61,7 @@ describe('Learning Plan API (/api/learning-plan)', () => {
     });
 
     it('debería devolver 403 Forbidden si se provee un token inválido', async () => {
-        const onboardingPrefs = { skill: 'Test', experienceLevel: 'BEGINNER', availableTimeMinutes: 10, motivation: 'Test', goal: 'Test' };
+        const onboardingPrefs = { skill: 'Test', experience: 'BEGINNER', time: '10 minutes', motivation: 'Test', goal: 'Test' };
         const skillAnalysis = { skillName: 'Test', skillCategory: 'TECHNICAL', marketDemand: 'HIGH', components: [], learningPathRecommendation: '', realWorldApplications: [], complementarySkills: [], isSkillValid: true };
         
         const invalidApiClient = axios.create({ 
@@ -79,7 +80,7 @@ describe('Learning Plan API (/api/learning-plan)', () => {
     it('debería crear un plan de aprendizaje con un token válido y datos correctos', async () => {
         expect(testUser?.token).toBeDefined();
 
-        const onboardingPrefs = { skill: 'TypeScript', experience: 'BEGINNER', availableTimeMinutes: 30, motivation: 'Career Change', goal: 'Build a web app' };
+        const onboardingPrefs = { skill: 'TypeScript', experience: 'BEGINNER', time: '30 minutes', motivation: 'Career Change', goal: 'Build a web app' };
         const skillAnalysis = {
             skill_name: 'TypeScript',
             skill_category: 'TECHNICAL',
@@ -100,10 +101,11 @@ describe('Learning Plan API (/api/learning-plan)', () => {
         };
         
         const response = await apiClient.post('/learning-plan/create', { onboardingPrefs, skillAnalysis });
-        
+
         expect(response.status).toBe(201);
         expect(response.data.message).toBe('Learning plan created successfully!');
-        expect(response.data.planId).toBeDefined();
+        expect(typeof response.data.planId).toBe('string');
+        expect(response.data.planId.length).toBeGreaterThan(0);
     });
   });
 }); 
