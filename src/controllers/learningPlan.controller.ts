@@ -38,7 +38,8 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
     const { onboardingPrefs, skillAnalysis } = CreatePlanInputSchema.parse(req.body);
     const user = req.user!; // El middleware isAuthenticated garantiza que user exista
 
-    // Parsear tiempo de string a número (ej: "15 minutes" → 15)
+    // `onboardingPrefs.time` llega como '30 minutes', '1h', etc.  Extraemos
+    // los dígitos para convertirlo a minutos y almacenarlo de forma numérica.
     const availableTimeMinutes = parseInt(onboardingPrefs.time?.replace(/\D/g, '') || '15', 10);
     
     // Guardar las preferencias del usuario

@@ -13,7 +13,7 @@ Bienvenido al backend de Tovi, la plataforma de microlearning impulsada por IA. 
     -   [Diagrama del Flujo de Creación de Plan](#diagrama-del-flujo-de-creación-de-plan)
 5.  [Estructura del Proyecto](#estructura-del-proyecto)
 6.  [Orquestación de Agentes LLM](#orquestación-de-agentes-llm)
-    -   [Tovill Analyzer](#1-tovill-analyzerservicets)
+    -   [Skill Analyzer](#1-skill-analyzerservicets)
     -   [Learning Planner](#2-learningplannerservicets)
     -   [Pedagogical Expert](#3-pedagogicalexpertservicets)
     -   [Content Generator](#4-contentgeneratorservicets)
@@ -443,15 +443,15 @@ El código fuente se encuentra en el directorio `src/`.
 
 Ubicados en `src/services/llm/`, cada servicio actúa como un "agente" de IA especializado, con su propio `prompt` de sistema definido en `prompts.ts`.
 
-### 1. `tovillAnalyzer.service.ts`
+### 1. `skillAnalyzer.service.ts`
 -   **Objetivo**: Analizar la habilidad que un usuario desea aprender.
 -   **Función**: Determina si la habilidad es viable para la plataforma (segura, ética, enseñable online), la categoriza, y la descompone en componentes clave.
--   **Salida**: Un objeto `TovillAnalysis` que sirve como base para la planificación.
+-   **Salida**: Un objeto `SkillAnalysis` que sirve como base para la planificación.
 
 ### 2. `learningPlanner.service.ts`
 -   **Objetivo**: Crear un plan de aprendizaje estructurado y personalizado.
 -   **Función**: Se llama en un proceso de dos pasos:
-    1.  **Borrador**: Genera un plan inicial basado en el `TovillAnalysis` y las preferencias del usuario.
+    1.  **Borrador**: Genera un plan inicial basado en el `SkillAnalysis` y las preferencias del usuario.
     2.  **Refinamiento**: Recibe el análisis del `PedagogicalExpert` y lo utiliza para mejorar y finalizar el plan, ajustando la estructura, actividades y recursos.
 -   **Salida**: Un objeto `LearningPlan` detallado.
 
