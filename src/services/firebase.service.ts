@@ -22,8 +22,8 @@ function initialize() {
       const credential = admin.credential.cert(serviceAccountPath);
       admin.initializeApp({ credential });
       logger.log('Firebase Admin App initialized successfully (default app).');
-    } catch (error: any) {
-      logger.error(`CRITICAL: Failed to initialize Firebase Admin SDK. Error: ${error.message}`);
+    } catch (error: unknown) {
+      logger.error('CRITICAL: Failed to initialize Firebase Admin SDK.', error);
       return; // No continuar si falla la inicialización de admin
     }
   }
@@ -39,7 +39,7 @@ function initialize() {
       if (IS_EMULATOR) {
         logger.log(`Firebase Data Connect: Emulator detected. The SDK will connect to the emulator.`);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Failed to initialize Firebase Data Connect SDK:', error);
     }
   }
@@ -71,8 +71,9 @@ export async function verifyFirebaseIdToken(idToken: string): Promise<DecodedIdT
   try {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     return decodedToken;
-  } catch (error: any) {
-    logger.warn(`Error verificando Firebase ID Token: ${error.code} - ${error.message}`);
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string };
+    logger.warn(`Error verificando Firebase ID Token: ${err.code} - ${err.message}`);
     throw error;
   }
 }
@@ -89,8 +90,9 @@ export async function createUserInAuth(
     const userRecord = await admin.auth().createUser(userData);
     logger.info(`Usuario creado en Firebase Auth con UID: ${userRecord.uid}`);
     return userRecord;
-  } catch (error: any) {
-    logger.error(`Error creando usuario en Firebase Auth para email ${userData.email}: ${error.code} - ${error.message}`);
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string };
+    logger.error(`Error creando usuario en Firebase Auth para email ${userData.email}: ${err.code} - ${err.message}`);
     throw error;
   }
 }
@@ -104,8 +106,9 @@ export async function getUserFromAuth(uid: string): Promise<admin.auth.UserRecor
   try {
     const userRecord = await admin.auth().getUser(uid);
     return userRecord;
-  } catch (error: any) {
-    logger.error(`Error obteniendo usuario de Firebase Auth con UID ${uid}: ${error.code} - ${error.message}`);
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string };
+    logger.error(`Error obteniendo usuario de Firebase Auth con UID ${uid}: ${err.code} - ${err.message}`);
     throw error;
   }
 }
@@ -142,10 +145,11 @@ export async function sendFcmNotification(
     const response = await admin.messaging().send(message);
     logger.info(`Notificación FCM enviada exitosamente a token ${deviceToken.substring(0,20)}... : ${response}`);
     return true;
-  } catch (error: any) {
-    logger.error(`Error enviando notificación FCM al token ${deviceToken.substring(0,20)}...: ${error.code} - ${error.message}`);
-    if (error.code === 'messaging/registration-token-not-registered' || 
-        error.code === 'messaging/invalid-registration-token') {
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string };
+    logger.error(`Error enviando notificación FCM al token ${deviceToken.substring(0,20)}...: ${err.code} - ${err.message}`);
+    if (err.code === 'messaging/registration-token-not-registered' ||
+        err.code === 'messaging/invalid-registration-token') {
       logger.info(`Token FCM inválido o no registrado: ${deviceToken}. Debería ser eliminado de la base de datos.`);
     }
     return false;

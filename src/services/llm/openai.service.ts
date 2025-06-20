@@ -89,18 +89,18 @@ export async function getOpenAiChatCompletion(
       content: messageContent,
       usage: completion.usage,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error llamando al API de OpenAI:', error);
     let errorMessage = 'Error desconocido al contactar OpenAI.';
-    if (error.response) {
+    if ((error as any).response) {
       // El API devolvió un error (ej. 4xx, 5xx)
-      errorMessage = `Error de OpenAI API: ${error.response.status} - ${JSON.stringify(error.response.data)}`;
-    } else if (error.request) {
+      errorMessage = `Error de OpenAI API: ${(error as any).response.status} - ${JSON.stringify((error as any).response.data)}`;
+    } else if ((error as any).request) {
       // La solicitud se hizo pero no se recibió respuesta
       errorMessage = 'No se recibió respuesta de OpenAI API.';
-    } else if (error.message) {
+    } else if ((error as Error).message) {
       // Algo más ocurrió
-      errorMessage = error.message;
+      errorMessage = (error as Error).message;
     }
     return {
       success: false,

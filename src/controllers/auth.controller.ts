@@ -40,7 +40,7 @@ export const signUpController = async (req: Request, res: Response) => {
         const decodedToken = await FirebaseService.verifyFirebaseIdToken(token);
         uid = decodedToken.uid;
         console.log(`Using UID from token: ${uid}`);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error verifying token:', error);
         return res.status(401).json({ message: 'Invalid Firebase token.' });
       }
@@ -51,10 +51,10 @@ export const signUpController = async (req: Request, res: Response) => {
     let userRecord;
     try {
       userRecord = await FirebaseService.getUserFromAuth(uid);
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        return res.status(404).json({ 
-          message: 'User not found in Firebase Auth. Please ensure the user is created in Firebase first.' 
+    } catch (error: unknown) {
+      if ((error as { code?: string }).code === 'auth/user-not-found') {
+        return res.status(404).json({
+          message: 'User not found in Firebase Auth. Please ensure the user is created in Firebase first.'
         });
       }
       throw error;
@@ -101,7 +101,7 @@ export const signUpController = async (req: Request, res: Response) => {
         name: newUserInput.name,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Manejar errores de validación de Zod
     if (error instanceof z.ZodError) {
       const errorMessage = error.errors.map(e => e.message).join(', ');
@@ -158,9 +158,7 @@ export const socialSignInController = async (req: Request, res: Response) => {
       } else if (providerId === 'apple.com') {
         authProvider = AuthProvider.APPLE;
       } else {
-        // En el flujo de sign-up con email, el proveedor no viene en el token de la misma forma.
-        // Pero para el social sign-in, este es el fallback. Usaremos 'EMAIL' según la definición de tipo.
-        authProvider = AuthProvider.EMAIL;
+        return res.status(400).json({ message: `Unsupported sign-in provider: ${providerId}` });
       }
 
       const newUserInput: DbUser = {
@@ -189,10 +187,10 @@ export const socialSignInController = async (req: Request, res: Response) => {
         }
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in socialSignInController:', error);
     // Si el error es por un token inválido, devolver 403
-    if (error.code && error.code.startsWith('auth/')) {
+    if ((error as { code?: string }).code && (error as { code?: string }).code!.startsWith('auth/')) {
       return res.status(403).json({ message: 'Forbidden: Invalid authentication token.' });
     }
     // Cualquier otro error (ej. fallo de conexión con la DB) es un 500
@@ -214,8 +212,9 @@ export const verifyToken = async (req: Request, res: Response) => {
         const decodedToken = await FirebaseService.verifyFirebaseIdToken(token);
         // Opcional: Podrías querer devolver algún dato del perfil del usuario aquí
         res.status(200).json({ message: 'Token verificado con éxito.', data: { uid: decodedToken.uid } });
-    } catch (error: any) {
+    } catch (error: unknown) {
         // El servicio ya loguea el error, aquí solo respondemos al cliente
-        res.status(401).json({ message: 'Token inválido o expirado.', error: error.code });
+        const code = (error as { code?: string }).code;
+        res.status(401).json({ message: 'Token inválido o expirado.', error: code });
     }
 };
