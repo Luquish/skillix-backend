@@ -1,35 +1,67 @@
 import axios from 'axios';
+import * as admin from 'firebase-admin';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-// Clave de API web de Firebase. Para el emulador, puede ser cualquier string no vacío.
-// En un entorno real, la obtendrías de la configuración de tu proyecto de Firebase.
 const FIREBASE_WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY || 'test-api-key';
-
-// La URL de la API REST del emulador de Auth
 const AUTH_EMULATOR_URL = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword`;
 
+export interface TestUserAuth {
+  uid: string;
+  token: string;
+}
+
 /**
- * Inicia sesión como un usuario de prueba en el emulador de Auth y devuelve su ID Token.
- * @param email - El email del usuario de prueba.
- * @param password - La contraseña del usuario de prueba.
- * @returns El ID Token del usuario o null si falla el inicio de sesión.
+ * Crea un usuario en el emulador de Firebase Auth y devuelve su UID y token de sesión.
  */
-export const getTestUserAuthToken = async (email: string, password = 'password123'): Promise<string | null> => {
-    try {
-        const response = await axios.post(AUTH_EMULATOR_URL, {
-            email,
-            password,
-            returnSecureToken: true,
-        }, {
-            params: {
-                key: FIREBASE_WEB_API_KEY,
-            },
-        });
-        return response.data.idToken;
-    } catch (error: any) {
-        console.error('Error al obtener el token de autenticación de prueba:', error.response?.data?.error?.message || error.message);
-        return null;
+export const createTestUserAndGetToken = async (
+  email: string,
+  password = 'password123'
+): Promise<TestUserAuth> => {
+  if (admin.apps.length === 0) {
+    admin.initializeApp();
+  }
+
+  const userRecord = await admin.auth().createUser({ email, password });
+
+  const response = await axios.post(
+    AUTH_EMULATOR_URL,
+    { email, password, returnSecureToken: true },
+    {
+      params: { key: FIREBASE_WEB_API_KEY },
     }
-}; 
+  );
+
+  return { uid: userRecord.uid, token: response.data.idToken };
+};
+
+/**
+ * Inicia sesión en el emulador con las credenciales indicadas y devuelve un token.
+ */
+export const getTestUserAuthToken = async (
+  email: string,
+  password = 'password123'
+): Promise<string | null> => {
+  try {
+    const response = await axios.post(
+      AUTH_EMULATOR_URL,
+      {
+        email,
+        password,
+        returnSecureToken: true,
+      },
+      {
+        params: { key: FIREBASE_WEB_API_KEY },
+      }
+    );
+    return response.data.idToken;
+  } catch (error: any) {
+    console.error(
+      'Error al obtener el token de autenticación de prueba:',
+      error.response?.data?.error?.message || error.message
+    );
+    return null;
+  }
+};
+

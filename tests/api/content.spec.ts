@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import * as admin from 'firebase-admin';
-import { getTestUserAuthToken } from '../helpers/auth.helper';
+import { createTestUserAndGetToken } from '../helpers/auth.helper';
 import * as crypto from 'crypto';
 
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
@@ -19,10 +19,13 @@ describe('Content API (/api/content)', () => {
 
         const email = generateRandomEmail();
         const password = 'password123';
-        const signupResponse = await axios.post(`${API_BASE_URL}/auth/signup`, { email, password, name: 'Content Tester' });
-        testUser = { uid: signupResponse.data.user.uid, email };
-        
-        testUser.token = await getTestUserAuthToken(email, password);
+        const { uid, token } = await createTestUserAndGetToken(email, password);
+        testUser = { uid, email, token };
+        await axios.post(
+            `${API_BASE_URL}/auth/sync-profile`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
 
         apiClient = axios.create({ 
             baseURL: API_BASE_URL,

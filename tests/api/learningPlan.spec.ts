@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import * as admin from 'firebase-admin';
-import { getTestUserAuthToken } from '../helpers/auth.helper';
+import { createTestUserAndGetToken } from '../helpers/auth.helper';
 
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 
@@ -20,13 +20,13 @@ describe('Learning Plan API (/api/learning-plan)', () => {
 
     const email = generateRandomEmail();
     const password = 'password123';
-    
-    // 1. Registrar el usuario a través del endpoint de signup
-    const signupResponse = await axios.post(`${API_BASE_URL}/auth/signup`, { email, password, name: 'Plan Tester' });
-    testUser = { uid: signupResponse.data.user.uid, email };
-    
-    // 2. Obtener el token de autenticación del usuario usando el helper.
-    testUser.token = await getTestUserAuthToken(email, password);
+    const { uid, token } = await createTestUserAndGetToken(email, password);
+    testUser = { uid, email, token };
+    await axios.post(
+      `${API_BASE_URL}/auth/sync-profile`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
     
     // Crear una instancia de axios pre-configurada
     apiClient = axios.create({ 

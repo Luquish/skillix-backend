@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import * as admin from 'firebase-admin';
-import { getTestUserAuthToken } from '../helpers/auth.helper';
+import { createTestUserAndGetToken } from '../helpers/auth.helper';
 
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 
@@ -18,17 +18,13 @@ describe('User API (/api/user)', () => {
 
         const email = generateRandomEmail();
         const password = 'password123';
-        
-        // 1. Crear usuario de prueba
-        const signupResponse = await axios.post(`${API_BASE_URL}/auth/signup`, { 
-            email, 
-            password, 
-            name: 'User Stats Tester' 
-        });
-        testUser = { uid: signupResponse.data.user.uid, email };
-        
-        // 2. Obtener token de autenticación
-        testUser.token = await getTestUserAuthToken(email, password);
+        const { uid, token } = await createTestUserAndGetToken(email, password);
+        testUser = { uid, email, token };
+        await axios.post(
+            `${API_BASE_URL}/auth/sync-profile`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
 
         // 3. Configurar cliente HTTP autenticado
         apiClient = axios.create({ 
