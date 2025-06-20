@@ -118,8 +118,6 @@ export interface DbUser {
     platform?: string | null;
     photoUrl?: string | null;
     emailVerified?: boolean | null;
-    llmKeyInsights?: string[] | null;
-    llmOverallEngagementScore?: number | null;
     fcmTokens?: string[] | null;
     lastSignInAt?: string | null; // Timestamp
     isActive?: boolean | null;

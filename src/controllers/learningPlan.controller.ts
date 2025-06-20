@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { z } from 'zod';
-import { LearningPlan, SkillAnalysisSchema } from '../services/llm/schemas';
+import { LearningPlan, SkillAnalysisSchema, OnboardingPreferencesSchema } from '../services/llm/schemas';
 import * as DataConnectService from '../services/dataConnect.service';
 import * as llmService from '../services/llm/learningPlanner.service';
 import * as pedagogicalExpert from '../services/llm/pedagogicalExpert.service';
@@ -9,18 +9,7 @@ import * as ContentOrchestrator from '../services/contentOrchestrator.service';
 
 // Esquema de validación para la creación del plan (copiado de onboarding.controller.ts)
 const CreatePlanInputSchema = z.object({
-  onboardingPrefs: z.object({
-    skill: z.string().min(1, 'Skill is required.'),
-    experience: z.enum(['Beginner', 'Intermediate', 'Advanced']),
-    time: z.string().min(1, 'Time commitment is required.'), // ej: "10min / day"
-    motivation: z.string().min(1, 'Motivation is required.'), // ej: "Career Growth"
-    goal: z.string().optional(),
-    // Nuevos campos opcionales para mejor personalización
-    learning_style: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']).optional(),
-    preferred_study_time: z.enum(['morning', 'afternoon', 'evening', 'flexible']).optional(),
-    learning_context: z.enum(['career_change', 'skill_improvement', 'hobby', 'academic', 'promotion']).optional(),
-    challenge_preference: z.enum(['gradual', 'moderate', 'intense']).optional(),
-  }),
+  onboardingPrefs: OnboardingPreferencesSchema,
   skillAnalysis: SkillAnalysisSchema,
 });
 
@@ -192,7 +181,7 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
       initialContent: day1Result.success ? day1Result.data : null,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       // 🔍 DEBUG: Logs detallados de errores de validación Zod
       console.error('❌ BACKEND - Error de validación Zod:', JSON.stringify(error.errors, null, 2));
@@ -240,7 +229,7 @@ export const getCurrentLearningPlanController = async (req: AuthenticatedRequest
       plan: currentPlan,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in getCurrentLearningPlanController:', error);
     res.status(500).json({ message: 'Internal server error.' });
   }
@@ -279,7 +268,7 @@ export const getLearningPlanByIdController = async (req: AuthenticatedRequest, r
       plan: plan,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in getLearningPlanByIdController:', error);
     res.status(500).json({ message: 'Internal server error.' });
   }

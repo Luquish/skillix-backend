@@ -50,9 +50,9 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
     req.user = userProfile;
     
     next();
-  } catch (error: any) {
-    console.error(`Authentication error: ${error.message}`);
+  } catch (error: unknown) {
+    console.error('Authentication error:', error);
     // El token puede ser inválido, expirado, etc.
     return res.status(403).send({ message: 'Forbidden: Invalid or expired token.' });
   }
-}; 
+};

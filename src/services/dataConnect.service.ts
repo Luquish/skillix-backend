@@ -91,8 +91,8 @@ async function executeGraphQL<TData = any, TVariables = Record<string, any>>(
       logger.error(`Errores en GraphQL para op '${opName}':`, JSON.stringify(response.errors, null, 2));
     }
     return response;
-  } catch (error: any) {
-    logger.error(`Error fundamental ejecutando GraphQL: ${error.message}`, error);
+  } catch (error: unknown) {
+    logger.error('Error fundamental ejecutando GraphQL:', error);
     throw error;
   }
 }

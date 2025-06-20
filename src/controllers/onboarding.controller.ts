@@ -1,20 +1,10 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { analyzeSkillWithOpenAI, UserSkillContext } from '../services/llm/skillAnalyzer.service';
+import { OnboardingPreferencesSchema } from '../services/llm/schemas';
 
 // Esquema de validación para la entrada del onboarding (lo mantenemos cerca del controlador que lo usa)
-const OnboardingInputSchema = z.object({
-  skill: z.string().min(1, 'Skill is required.'),
-  experience: z.enum(['Beginner', 'Intermediate', 'Advanced']),
-  time: z.string().min(1, 'Time commitment is required.'), // ej: "10min / day"
-  motivation: z.string().min(1, 'Motivation is required.'), // ej: "Career Growth"
-  goal: z.string().optional(),
-  // Nuevos campos opcionales para mejor personalización
-  learning_style: z.enum(['visual', 'auditory', 'kinesthetic', 'reading']).optional(),
-  preferred_study_time: z.enum(['morning', 'afternoon', 'evening', 'flexible']).optional(),
-  learning_context: z.enum(['career_change', 'skill_improvement', 'hobby', 'academic', 'promotion']).optional(),
-  challenge_preference: z.enum(['gradual', 'moderate', 'intense']).optional(),
-});
+const OnboardingInputSchema = OnboardingPreferencesSchema;
 
 /**
  * Controlador para analizar una habilidad durante el onboarding.
