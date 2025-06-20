@@ -10,6 +10,52 @@ cp .env.example .env       # fill in the real values
 pnpm dev                   # start the API on http://localhost:8080
 ```
 
+## 🧪 Testing con Logs Automáticos
+
+Este proyecto incluye un sistema avanzado de logging para tests que permite guardar automáticamente todos los resultados para análisis posterior por OpenAI Codex u otros tools de análisis.
+
+### Comandos de Testing Disponibles:
+
+```bash
+# Tests E2E con logs automáticos (RECOMENDADO para debugging)
+npm run test:e2e:log
+
+# Tests unitarios con logs detallados
+npm run test:log
+
+# Tests en modo debug con información extra
+npm run test:debug
+
+# Scripts tradicionales (sin logs persistentes)
+npm run test:e2e
+npm run test
+```
+
+### Script Avanzado de Testing:
+
+```bash
+# Ejecutar tests E2E con logging avanzado
+./scripts/test-logger.sh e2e
+
+# Ver información de logs disponibles
+./scripts/test-logger.sh show
+
+# Ver el contenido del log más reciente
+./scripts/test-logger.sh latest
+
+# Limpiar logs antiguos
+./scripts/test-logger.sh clean
+```
+
+**💡 Beneficios del sistema de logs:**
+- Los logs se guardan automáticamente en `test-logs/` con timestamp único
+- Incluye stack traces completos, console output y estadísticas detalladas
+- Ideal para que OpenAI pueda analizar errores sin ejecutar tests directamente
+- Auto-cleanup mantiene solo los 10 logs más recientes
+- Formato legible tanto para humanos como para AI
+
+Ver `test-logs/README.md` para documentación completa del sistema de logging.
+
 ## Overview
 
 The backend is built with **Node.js**, **Express** and **TypeScript**. It is responsible for:
