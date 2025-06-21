@@ -35,7 +35,7 @@ export interface PedagogicalAnalysisInput {
 // Input interface for adaptive learning recommendation function
 // TODO: Define a more specific type for userProgressData
 export interface AdaptiveLearningInput {
-  userProgressData: Record<string, any>; // e.g., { completion_rates: {"day1": 0.8}, quiz_scores: {"day1_quiz1": 75}, time_spent: {"day1": "20min"} }
+  userProgressData: Record<string, unknown>; // e.g., { completion_rates: {"day1": 0.8}, quiz_scores: {"day1_quiz1": 75}, time_spent: {"day1": "20min"} }
   currentLearningPlanSegment?: Partial<LearningPlan>; // Optional: The specific part of the plan being adapted
   userContext: UserSkillContext & {
     preferred_study_time?: string;

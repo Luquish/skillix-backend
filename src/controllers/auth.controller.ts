@@ -52,9 +52,13 @@ export const syncProfileController = async (req: Request, res: Response) => {
         return res.status(400).json({ message: `Unsupported sign-in provider: ${providerId}` });
       }
 
+      if (!email) {
+        return res.status(400).json({ message: 'Email not provided by authentication provider.' });
+      }
+
       const newUserInput: DbUser = {
         firebaseUid: uid,
-        email: email!,
+        email: email,
         name: name,
         photoUrl: picture,
         authProvider: authProvider,
@@ -81,7 +85,8 @@ export const syncProfileController = async (req: Request, res: Response) => {
   } catch (error: unknown) {
     console.error('Error in syncProfileController:', error);
     // Si el error es por un token inválido, devolver 403
-    if ((error as { code?: string }).code && (error as { code?: string }).code!.startsWith('auth/')) {
+    const code = (error as { code?: string }).code;
+    if (code && code.startsWith('auth/')) {
       return res.status(403).json({ message: 'Invalid or expired token.' });
     }
     // Cualquier otro error (ej. fallo de conexión con la DB) es un 500

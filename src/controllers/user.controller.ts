@@ -7,7 +7,10 @@ import * as DataConnectService from '../services/dataConnect.service';
  */
 export const getUserStatsController = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = req.user!;
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
 
     // Obtener datos del plan actual
     const currentPlan = await DataConnectService.getCurrentUserLearningPlan(user.firebaseUid);
@@ -71,7 +74,10 @@ export const getUserStatsController = async (req: AuthenticatedRequest, res: Res
  */
 export const getUserStreakController = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = req.user!;
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
     
     const streakData = await DataConnectService.getUserStreakData(user.firebaseUid);
     
@@ -102,7 +108,10 @@ export const getUserStreakController = async (req: AuthenticatedRequest, res: Re
  */
 export const getUserXPController = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = req.user!;
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
     
     const totalXP = await DataConnectService.calculateUserTotalXP(user.firebaseUid);
 

@@ -35,28 +35,21 @@ import {
 // Importar tipos de LLM y Zod para los datos de entrada
 import {
     DayContent as LlmDayContent,
-    KeyConcept as LlmKeyConcept,
-    ActionTask as LlmActionTask,
-    MainContent as LlmMainContentType,
-    QuizMCQBlock as LlmQuizMCQBlock,
-    TrueFalseBlock as LlmTrueFalseBlock,
-    MatchToMeaningBlock as LlmMatchToMeaningBlock,
-    ScenarioQuizBlock as LlmScenarioQuizBlock,
-    ExerciseBlock as LlmExerciseBlock,
     SkillAnalysis as LlmSkillAnalysis,
     PedagogicalAnalysis as LlmPedagogicalAnalysis,
     LearningPlan as LlmLearningPlan,
+    MatchToMeaningBlock as LlmMatchToMeaningBlock,
 } from './llm/schemas';
 
 const logger = console; // O tu logger configurado
 
 // Se extiende la interfaz para incluir la propiedad opcional de errores
-interface FirebaseDataConnectResponse<TData = any> extends ExecuteGraphqlResponse<TData> {
+interface FirebaseDataConnectResponse<TData = unknown> extends ExecuteGraphqlResponse<TData> {
   errors?: Array<{
     message: string;
     locations?: Array<{ line: number; column: number }>;
     path?: Array<string | number>;
-    extensions?: Record<string, any>;
+    extensions?: Record<string, unknown>;
   }>;
 }
 
@@ -67,7 +60,7 @@ const dcService: DataConnect | null = getDb();
  * Ejecuta una query o mutation GraphQL usando el conector de Data Connect del Admin SDK.
  * El SDK de Admin de Firebase requiere el string completo de la query/mutation.
  */
-async function executeGraphQL<TData = any, TVariables = Record<string, any>>(
+async function executeGraphQL<TData = unknown, TVariables = Record<string, unknown>>(
   operationString: string,
   variables?: TVariables,
   isReadOnly = false
@@ -241,7 +234,10 @@ export const getCurrentUserLearningPlan = async (userFirebaseUid: string): Promi
  * se puede calcular a partir del estado de los días.
  */
 export const updateDayCompletionStatus = async (dayContentId: string, status: DbTypes.CompletionStatus): Promise<boolean> => {
-    const response = await executeGraphQL(UPDATE_DAY_COMPLETION_STATUS_MUTATION, { dayContentId, status });
+    const response = await executeGraphQL<{ dayContent_update: { id: string } }>(
+        UPDATE_DAY_COMPLETION_STATUS_MUTATION,
+        { dayContentId, status }
+    );
     return !!response.data?.dayContent_update;
 };
 
@@ -281,10 +277,11 @@ export async function createFullLearningPlanInDB(
     // --- PASO 2: Crear SkillAnalysis y sus componentes ---
     const skillAnalysisData = { ...llmSkillAnalysis };
     const componentsToCreate = skillAnalysisData.components; // Guardar componentes
-    delete (skillAnalysisData as any).components; // Eliminar del objeto principal
+    delete (skillAnalysisData as { components?: unknown }).components; // Eliminar del objeto principal
 
     // ACTUALIZADO: Eliminar skillName redundante
-    const { skillName, ...skillAnalysisWithoutSkillName } = skillAnalysisData;
+    const { skillName: _skillName, ...skillAnalysisWithoutSkillName } = skillAnalysisData;
+    void _skillName;
     const skillAnalysisVars = { ...skillAnalysisWithoutSkillName, learningPlanId };
     const saResponse = await executeGraphQL<{ skillAnalysis_insert: { id: string } }>(CREATE_SKILL_ANALYSIS_MUTATION, skillAnalysisVars);
     const skillAnalysisId = saResponse.data?.skillAnalysis_insert.id;
@@ -302,7 +299,7 @@ export async function createFullLearningPlanInDB(
     if (llmPedagogicalAnalysis) {
         const pedagogicalAnalysisData = { ...llmPedagogicalAnalysis };
         const objectivesToCreate = pedagogicalAnalysisData.objectives;
-        delete (pedagogicalAnalysisData as any).objectives;
+        delete (pedagogicalAnalysisData as { objectives?: unknown }).objectives;
 
         const paResponse = await executeGraphQL<{ pedagogicalAnalysis_insert: { id: string } }>(
             CREATE_PEDAGOGICAL_ANALYSIS_MUTATION, { ...pedagogicalAnalysisData, learningPlanId }
@@ -327,7 +324,8 @@ export async function createFullLearningPlanInDB(
 
         if (sectionId) {
             for (const day of days) {
-                const { order, ...dayData } = day;
+                const { order: _order, ...dayData } = day;
+                void _order;
                 await executeGraphQL(CREATE_DAY_CONTENT_MUTATION, { ...dayData, sectionId });
             }
         }
@@ -385,8 +383,8 @@ export async function saveDailyContentDetailsInDB(dayContentId: string, llmConte
         const actionTaskItemId = atResponse.data?.actionTaskItem_insert.id;
 
         if (actionTaskItemId) {
-            for (const step of at.steps) {
-                // Se necesita mapeo si la estructura no coincide 1 a 1
+            for (const _step of at.steps) {
+                void _step; // placeholder until mapped
             }
         } else {
             allOperationsSucceeded = false;
@@ -428,7 +426,11 @@ export async function saveDailyContentDetailsInDB(dayContentId: string, llmConte
         const contentBlockVars = {
             dayContentId,
             blockType: blockType,
-            title: (exercise as any).question || (exercise as any).statement || 'Ejercicio Interactivo',
+            title: 'question' in exercise && exercise.question
+                ? exercise.question
+                : 'statement' in exercise && exercise.statement
+                    ? exercise.statement
+                    : 'Ejercicio Interactivo',
             xp: exercise.xp,
             order: index + 1,
             quizDetailsId,

@@ -38,8 +38,9 @@ export const errorHandler = (
   }
 
   // Prioridad 2: Manejo de errores con statusCode específico (respetar códigos 401, 403, 404, etc.)
-  if ((error as ApiError).statusCode) {
-    return res.status((error as ApiError).statusCode!).json({
+  const statusCode = (error as ApiError).statusCode;
+  if (statusCode) {
+    return res.status(statusCode).json({
       message: error.message || 'An error occurred'
     });
   }

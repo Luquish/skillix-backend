@@ -1,13 +1,11 @@
 // src/services/notifications.service.ts
 
-import { getConfig } from '@/config';
 import { UserAnalytics } from './schemas';
 import { getSkiMotivationalMessage } from './toviTheFox.service';
 import { UserDataForContent } from './contentGenerator.service';
 import { sendFcmNotification } from '@/services/firebase.service';
 import { getUserDeviceTokens } from '@/services/dataConnect.service';
 
-const config = getConfig();
 const logger = console; // O tu logger configurado
 
 export interface NotificationPayload {
