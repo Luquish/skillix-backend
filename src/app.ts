@@ -3,8 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 
 // Importar el router principal de la API (asumiendo que hay un index.ts en api/)
-import apiRouter from './api'; 
+import apiRouter from './api';
 import { errorHandler, notFoundHandler } from './utils/errorHandler';
+import logger from './utils/logger';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -31,6 +32,9 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Iniciar el servidor
-app.listen(PORT, () => {});
+// Start the server and log the startup
+app.listen(PORT, () => {
+  logger.info(`Server listening on port ${PORT}`);
+});
 
 export default app;
