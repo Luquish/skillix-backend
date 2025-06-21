@@ -1,7 +1,8 @@
 import * as DataConnectService from './dataConnect.service';
 import * as ContentGenerator from './llm/contentGenerator.service';
 import { SkillAnalysis } from './llm/schemas';
-import { CompletionStatus, DbLearningPlan, DbUser } from './dataConnect.types';
+import { CompletionStatus } from './dataConnect.types';
+import { DayContent } from './llm/schemas';
 
 interface OrchestratorInput {
   userId: string;
@@ -14,7 +15,7 @@ interface OrchestratorResult {
   success: boolean;
   message: string;
   statusCode?: number;
-  data?: any;
+  data?: DayContent;
 }
 
 /**

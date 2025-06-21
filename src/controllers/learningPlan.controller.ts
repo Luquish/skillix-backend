@@ -25,7 +25,10 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
     console.log('🔍 BACKEND - skillAnalysis recibido keys:', req.body.skillAnalysis ? Object.keys(req.body.skillAnalysis) : 'No skillAnalysis');
     
     const { onboardingPrefs, skillAnalysis } = CreatePlanInputSchema.parse(req.body);
-    const user = req.user!; // El middleware isAuthenticated garantiza que user exista
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
 
     // `onboardingPrefs.time` llega como '30 minutes', '1h', etc.  Extraemos
     // los dígitos para convertirlo a minutos y almacenarlo de forma numérica.
@@ -214,7 +217,10 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
  */
 export const getCurrentLearningPlanController = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = req.user!; // El middleware isAuthenticated garantiza que user exista
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
 
     // Obtener el plan activo del usuario
     const currentPlan = await DataConnectService.getCurrentUserLearningPlan(user.firebaseUid);
@@ -242,7 +248,10 @@ export const getCurrentLearningPlanController = async (req: AuthenticatedRequest
  */
 export const getLearningPlanByIdController = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const user = req.user!; // El middleware isAuthenticated garantiza que user exista
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
     const { id } = req.params;
 
     if (!id) {

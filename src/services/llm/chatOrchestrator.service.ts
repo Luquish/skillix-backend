@@ -12,7 +12,7 @@ import {
   type ChatMessage, 
   type ChatResponse 
 } from './schemas';
-import { UserAnalytics, OptimalLearningTime, StreakMaintenance, LearningPattern, ContentOptimization } from './schemas'; 
+import { UserAnalytics, LearningPlan, DayContent } from './schemas';
 import { UserDataForContent } from './contentGenerator.service'; 
 import { SYSTEM_PROMPT_CHAT_ORCHESTRATOR } from './prompts';
 
@@ -53,8 +53,8 @@ export interface ChatContext {
   > | null;
   // Campo para pasar datos detallados cargados bajo demanda por el controlador
   detailedContext?: {
-    learningPlan?: any; // Aquí iría el tipo LearningPlan completo si se carga
-    dayContent?: any;   // Aquí iría el tipo DayContent completo si se carga
+    learningPlan?: Partial<LearningPlan>; // Detalles completos del plan si se cargan
+    dayContent?: Partial<DayContent>;   // Detalles completos del día si se cargan
     // Otros datos específicos
   } | null;
 }

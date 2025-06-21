@@ -140,7 +140,7 @@ Current Streak (if relevant and > 0): ${currentStreakDays || 0} days.
 export async function getSkiStreakCelebration(
   input: StreakCelebrationInput
 ): Promise<StreakCelebration | null> {
-  const { userName, streakDays, analyticsInsights } = input;
+  const { userName, streakDays } = input;
 
   let milestoneText = `¡${streakDays} días seguidos!`;
   if (streakDays === 3) milestoneText = "¡PRIMERA META! 3 días seguidos";

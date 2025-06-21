@@ -521,7 +521,7 @@ const SkillComponentSchemaRaw = z.object({
   message: "Los campos requeridos del componente de skill deben estar presentes en alguna de sus variantes."
 });
 
-export const SkillComponentSchema = SkillComponentSchemaRaw.transform((data, ctx) => {
+export const SkillComponentSchema = SkillComponentSchemaRaw.transform((data) => {
   // Usar campos de ambos formatos (snake_case o camelCase)
   const difficultyLevel = data.difficulty_level || data.difficultyLevel || 'BEGINNER';
   const prerequisites = data.prerequisites || data.prerequisitesText || [];
@@ -674,7 +674,7 @@ const LearningPlanSchemaRaw = z.object({
   pedagogicalAnalysis: PedagogicalAnalysisSchema.optional(), // El LLM no lo manda
 });
 
-export const LearningPlanSchema = LearningPlanSchemaRaw.transform((data, ctx) => {
+export const LearningPlanSchema = LearningPlanSchemaRaw.transform((data) => {
   // Lógica para crear secciones y días si no vienen
   let sections = data.sections;
   if (!sections) {
