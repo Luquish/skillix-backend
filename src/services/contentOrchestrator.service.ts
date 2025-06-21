@@ -25,8 +25,6 @@ export const generateAndSaveContentForDay = async (
   input: OrchestratorInput
 ): Promise<OrchestratorResult> => {
   const { userId, learningPlanId, dayNumber, performanceSummary } = input;
-  console.log(`Iniciando generación de contenido para el día ${dayNumber} del plan ${learningPlanId}`);
-
   // 1. Obtener toda la información necesaria en paralelo
   const [plan, user] = await Promise.all([
     DataConnectService.getLearningPlanStructureById(learningPlanId),
@@ -45,7 +43,6 @@ export const generateAndSaveContentForDay = async (
   }
   const totalDays = plan.sections?.flatMap(s => s.days ?? []).length ?? 0;
   if (dayNumber > totalDays) {
-    console.log(`Plan ${learningPlanId} completado. No hay más días que generar.`);
     return { success: true, message: 'Learning plan successfully completed. No more content to generate.' };
   }
 
@@ -77,7 +74,6 @@ export const generateAndSaveContentForDay = async (
   };
 
   // 5. Generar contenido con el LLM
-  console.log(`Llamando al LLM para generar contenido para el día ${dayNumber}...`);
   const generatedDayContent = await ContentGenerator.generateDailyContentStructureWithOpenAI(llmInput);
 
   if (!generatedDayContent) {
@@ -86,7 +82,6 @@ export const generateAndSaveContentForDay = async (
   
   // Si es un día de acción, generar la tarea específica
   if (generatedDayContent.is_action_day) {
-    console.log(`Día de acción detectado. Generando tarea de acción...`);
     const actionTaskInput: ContentGenerator.ActionDayInput = {
       dayInfo: llmInput.dayInfo,
       userData: llmInput.userData,
@@ -96,7 +91,6 @@ export const generateAndSaveContentForDay = async (
   }
 
   // 6. Guardar el contenido generado en la base de datos
-  console.log(`Guardando el contenido generado para el día ${dayNumber} en la base de datos...`);
   const saveSuccess = await DataConnectService.saveDailyContentDetailsInDB(dayMetadata.id, generatedDayContent);
   
   if (!saveSuccess) {
@@ -106,7 +100,6 @@ export const generateAndSaveContentForDay = async (
   // 7. Actualizar el progreso del usuario marcando el día como 'IN_PROGRESS'
   await DataConnectService.updateDayCompletionStatus(dayMetadata.id, CompletionStatus.IN_PROGRESS);
   
-  console.log(`Contenido para el día ${dayNumber} del plan ${learningPlanId} generado y guardado exitosamente.`);
   return {
     success: true,
     message: `Content for day ${dayNumber} generated and saved successfully.`,

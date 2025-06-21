@@ -155,8 +155,6 @@ export async function orchestrateChatResponse(
     content: userInput,
   });
 
-  console.log(`Requesting chat response for user: ${chatContext.user.firebaseUid}. Context string length: ${contextStringForLlm.length}, History items: ${historyItemCount}`);
-
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, 
@@ -177,7 +175,6 @@ export async function orchestrateChatResponse(
     const rawResult = JSON.parse(response.content);
     const validatedResult = ChatResponseSchema.parse(rawResult);
     
-    console.log(`Chat response generated and validated for user: ${chatContext.user.firebaseUid}`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) {

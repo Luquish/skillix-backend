@@ -88,8 +88,6 @@ The 'daily_time_minutes' in the output JSON must accurately reflect the user's "
     },
   ];
 
-  console.log(`Solicitando plan de aprendizaje para: "${onboardingData.skill}"`);
-
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, 
@@ -110,7 +108,6 @@ The 'daily_time_minutes' in the output JSON must accurately reflect the user's "
     // Validar con Zod
     const validatedLearningPlan = LearningPlanSchema.parse(rawLearningPlanResult);
     
-    console.log(`Plan de aprendizaje generado y validado para: "${onboardingData.skill}"`);
     return validatedLearningPlan;
   } catch (error) {
     if (error instanceof z.ZodError) {

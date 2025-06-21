@@ -30,15 +30,12 @@ export const syncProfileController = async (req: Request, res: Response) => {
 
     if (existingUser) {
       // 2a. El usuario ya existe (es un login). Devolvemos sus datos.
-      console.log(`Usuario existente ${uid} ha iniciado sesión.`);
       return res.status(200).json({
         message: 'User logged in successfully!',
         user: existingUser,
       });
     } else {
       // 2b. El usuario no existe (es un sign-up). Lo creamos.
-      console.log(`Nuevo usuario social con UID: ${uid}. Creando perfil en la DB...`);
-
       const providerId = decodedToken.firebase.sign_in_provider;
       let authProvider: AuthProvider;
 
@@ -68,11 +65,9 @@ export const syncProfileController = async (req: Request, res: Response) => {
       const createdUserInDb = await DataConnectService.createUser(newUserInput);
 
       if (!createdUserInDb) {
-        console.error(`CRITICAL: User authenticated (uid: ${uid}) but failed to create in DB.`);
         return res.status(500).json({ message: 'Failed to create user profile.' });
       }
 
-      console.log(`Nuevo usuario creado en DB con UID: ${createdUserInDb.firebaseUid}`);
       return res.status(201).json({
         message: 'User created successfully!',
         user: {

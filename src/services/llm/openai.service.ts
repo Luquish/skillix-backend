@@ -16,7 +16,6 @@ function ensureOpenAiClient(): OpenAI | null {
     openai = new OpenAI({
       apiKey: config.openaiApiKey,
     });
-    console.log('Cliente de OpenAI inicializado correctamente.');
   } catch (error) {
     console.error('Error inicializando el cliente de OpenAI:', error);
     openai = null;
@@ -62,7 +61,6 @@ export async function getOpenAiChatCompletion(
   const modelToUse = params.model || config.openaiModel || 'gpt-4o-mini'; // Usar modelo de params, luego config, luego default
 
   try {
-    console.log(`Enviando solicitud a OpenAI. Modelo: ${modelToUse}, Temp: ${params.temperature ?? config.llmModelConfig.temperature}`);
     const completion = await client.chat.completions.create({
       model: modelToUse,
       messages: params.messages,

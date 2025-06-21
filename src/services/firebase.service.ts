@@ -5,7 +5,7 @@ import * as path from 'path';
 import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
 
 const config = getConfig();
-const logger = console; // O tu logger configurado
+import logger from '../utils/logger';
 let dataConnectInstance: DataConnect | null = null;
 
 // --- CONSTANTES DE CONFIGURACIÓN ---
@@ -18,13 +18,13 @@ function initialize() {
   if (admin.apps.length === 0) {
     try {
       const serviceAccountPath = path.resolve(process.cwd(), config.firebaseServiceAccountPath);
-      logger.log(`Firebase Admin SDK: Initializing with service account file from path: ${serviceAccountPath}`);
+      logger.info(`Firebase Admin SDK: Initializing with service account file from path: ${serviceAccountPath}`);
       const credential = admin.credential.cert(serviceAccountPath);
       admin.initializeApp({ credential });
-      logger.log('Firebase Admin App initialized successfully (default app).');
+      logger.info('Firebase Admin App initialized successfully (default app)');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('CRITICAL: Failed to initialize Firebase Admin SDK.', errorMessage);
+      logger.error('CRITICAL: Failed to initialize Firebase Admin SDK', { error: errorMessage });
       return; // No continuar si falla la inicialización de admin
     }
   }
@@ -36,9 +36,9 @@ function initialize() {
         serviceId: DATA_CONNECT_SERVICE_ID,
         location: DATA_CONNECT_LOCATION,
       });
-      logger.log(`Firebase Data Connect SDK initialized for service: ${DATA_CONNECT_SERVICE_ID} in ${DATA_CONNECT_LOCATION}`);
+      logger.info(`Firebase Data Connect SDK initialized for service: ${DATA_CONNECT_SERVICE_ID} in ${DATA_CONNECT_LOCATION}`);
       if (IS_EMULATOR) {
-        logger.log(`Firebase Data Connect: Emulator detected. The SDK will connect to the emulator.`);
+        logger.info('Firebase Data Connect: Emulator detected. The SDK will connect to the emulator');
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);

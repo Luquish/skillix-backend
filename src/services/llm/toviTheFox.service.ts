@@ -109,7 +109,6 @@ Current Streak (if relevant and > 0): ${currentStreakDays || 0} days.
     { role: 'user', content: userMessageForLlm },
   ];
 
-  console.log(`Requesting Ski message for situation: "${situation}"`);
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, 
@@ -124,7 +123,6 @@ Current Streak (if relevant and > 0): ${currentStreakDays || 0} days.
   try {
     const rawResult = JSON.parse(response.content);
     const validatedResult = SkiMessageSchema.parse(rawResult);
-    console.log(`Ski message generated: "${validatedResult.message}"`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) console.error('Zod validation error for SkiMessage:', error.errors);
@@ -162,7 +160,6 @@ Milestone context: ${milestoneText}
     { role: 'user', content: userMessageForLlm },
   ];
 
-  console.log(`Requesting Ski streak celebration for ${userName} at ${streakDays} days.`);
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel,
@@ -181,7 +178,6 @@ Milestone context: ${milestoneText}
         console.warn(`Streak count mismatch from LLM. Input: ${streakDays}, LLM: ${validatedResult.streak_count}. Overriding with input.`);
         validatedResult.streak_count = streakDays;
     }
-    console.log(`Ski streak celebration generated for ${userName}.`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) console.error('Zod validation error for StreakCelebration:', error.errors);
@@ -211,7 +207,6 @@ ${JSON.stringify(analyticsInfo, null, 2)}
     { role: 'user', content: userMessageForLlm },
   ];
 
-  console.log(`Requesting Ski daily motivation for ${userName || 'user'}.`);
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel,
@@ -226,7 +221,6 @@ ${JSON.stringify(analyticsInfo, null, 2)}
   try {
     const rawResult = JSON.parse(response.content);
     const validatedResult = DailyMotivationSchema.parse(rawResult);
-    console.log(`Ski daily motivation generated for ${userName || 'user'}.`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) console.error('Zod validation error for DailyMotivation:', error.errors);

@@ -41,7 +41,7 @@ describe('Learning Plan API (/api/learning-plan)', () => {
   afterAll(async () => {
     if (testUser?.uid) {
       await admin.auth().deleteUser(testUser.uid);
-      console.log(`[Test Cleanup] Usuario de plan ${testUser.uid} eliminado.`);
+
     }
   });
 

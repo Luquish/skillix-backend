@@ -56,8 +56,6 @@ Provide a comprehensive analysis in the exact 'UserAnalytics' JSON format specif
     { role: 'user', content: userMessageContent },
   ];
 
-  console.log(`Requesting learning analytics for user: ${userHistory.firebase_uid}`);
-
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, // Or a model specialized for data analysis
@@ -74,7 +72,6 @@ Provide a comprehensive analysis in the exact 'UserAnalytics' JSON format specif
     const rawResult = JSON.parse(response.content);
     const validatedResult = UserAnalyticsSchema.parse(rawResult);
     
-    console.log(`Learning analytics generated and validated for user: ${userHistory.firebase_uid}`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -105,8 +102,6 @@ Focus on providing a 'StreakMaintenance' JSON object as specified in the system 
     { role: 'user', content: userMessageContent },
   ];
 
-  console.log(`Requesting churn prediction and intervention strategies for user: ${userHistory.firebase_uid}`);
-
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, // Or a model specialized for predictive tasks
@@ -123,7 +118,6 @@ Focus on providing a 'StreakMaintenance' JSON object as specified in the system 
     const rawResult = JSON.parse(response.content);
     const validatedResult = StreakMaintenanceSchema.parse(rawResult);
     
-    console.log(`Churn prediction and intervention strategies generated for user: ${userHistory.firebase_uid}`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) {

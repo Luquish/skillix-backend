@@ -76,8 +76,6 @@ Provide detailed pedagogical analysis and recommendations in the exact JSON form
     { role: 'user', content: userMessageContent },
   ];
 
-  console.log(`Requesting pedagogical analysis for plan: "${userContext.skill}"`);
-
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, // Or a model specialized for educational analysis
@@ -94,7 +92,6 @@ Provide detailed pedagogical analysis and recommendations in the exact JSON form
     const rawResult = JSON.parse(response.content);
     const validatedResult = PedagogicalAnalysisSchema.parse(rawResult);
     
-    console.log(`Pedagogical analysis completed and validated for: "${userContext.skill}"`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -146,8 +143,6 @@ Provide specific, actionable recommendations for content and motivational adapta
     { role: 'user', content: userMessageContent },
   ];
 
-  console.log(`Requesting adaptive learning recommendations for user: ${userContext.experience} learner.`); // Avoid logging PII
-
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, // Or a model specialized for this
@@ -164,7 +159,6 @@ Provide specific, actionable recommendations for content and motivational adapta
     const rawResult = JSON.parse(response.content);
     const validatedResult = AdaptiveLearningRecommendationSchema.parse(rawResult);
     
-    console.log(`Adaptive learning recommendations generated and validated.`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) {

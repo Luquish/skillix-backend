@@ -56,9 +56,9 @@ describe('Content API (/api/content)', () => {
         try {
             const planResponse = await apiClient.post('/learning-plan/create', { onboardingPrefs, skillAnalysis });
             learningPlanId = planResponse.data.planId;
-            console.log(`[Test Setup] Plan de aprendizaje ${learningPlanId} creado para el usuario ${testUser.uid}`);
+
         } catch (error: any) {
-            console.error("Fallo al crear el plan de aprendizaje en beforeAll:", error.response?.data || error.message);
+
             throw new Error("La creación del plan de aprendizaje falló en beforeAll, las pruebas no pueden continuar.");
         }
     });
@@ -67,7 +67,7 @@ describe('Content API (/api/content)', () => {
         if (testUser?.uid) {
             // Aquí también deberíamos limpiar el plan de aprendizaje, pero por ahora solo el usuario.
             await admin.auth().deleteUser(testUser.uid);
-            console.log(`[Test Cleanup] Usuario de contenido ${testUser.uid} eliminado.`);
+
         }
     });
 

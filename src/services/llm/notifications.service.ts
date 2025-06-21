@@ -6,7 +6,7 @@ import { UserDataForContent } from './contentGenerator.service';
 import { sendFcmNotification } from '@/services/firebase.service';
 import { getUserDeviceTokens } from '@/services/dataConnect.service';
 
-const logger = console; // O tu logger configurado
+import logger from '../../utils/logger';
 
 export interface NotificationPayload {
   title: string;

@@ -41,7 +41,7 @@ import {
     MatchToMeaningBlock as LlmMatchToMeaningBlock,
 } from './llm/schemas';
 
-const logger = console; // O tu logger configurado
+import logger from '../utils/logger';
 
 // Se extiende la interfaz para incluir la propiedad opcional de errores
 interface FirebaseDataConnectResponse<TData = unknown> extends ExecuteGraphqlResponse<TData> {

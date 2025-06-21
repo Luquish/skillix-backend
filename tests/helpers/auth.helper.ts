@@ -25,12 +25,12 @@ export const createTestUserAndGetToken = async (
     admin.initializeApp();
   }
 
-  console.log(`🔍 [AUTH HELPER] Creando usuario en emulador: ${AUTH_EMULATOR_HOST}`);
+
   
   const userRecord = await admin.auth().createUser({ email, password });
-  console.log(`🔍 [AUTH HELPER] Usuario creado con UID: ${userRecord.uid}`);
 
-  console.log(`🔍 [AUTH HELPER] Obteniendo token de: ${AUTH_EMULATOR_URL}`);
+
+
   const response = await axios.post(
     AUTH_EMULATOR_URL,
     { email, password, returnSecureToken: true },
@@ -39,7 +39,7 @@ export const createTestUserAndGetToken = async (
     }
   );
 
-  console.log(`🔍 [AUTH HELPER] Token obtenido exitosamente`);
+
   return { uid: userRecord.uid, token: response.data.idToken };
 };
 
@@ -64,10 +64,7 @@ export const getTestUserAuthToken = async (
     );
     return response.data.idToken;
   } catch (error: any) {
-    console.error(
-      'Error al obtener el token de autenticación de prueba:',
-      error.response?.data?.error?.message || error.message
-    );
+
     return null;
   }
 };

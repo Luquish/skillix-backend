@@ -148,8 +148,6 @@ export async function generateDailyContentStructureWithOpenAI(
     { role: 'user', content: userMessage },
   ];
 
-  console.log(`Requesting daily content structure for: Day ${input.dayInfo.day_number} - "${input.dayInfo.title}", Is Action Day: ${input.dayInfo.is_action_day}`);
-
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, 
@@ -192,7 +190,6 @@ export async function generateDailyContentStructureWithOpenAI(
         console.warn(`Content day (Day ${validatedResult.title}) structure has no exercises. This might be acceptable depending on content type, but typically exercises are expected.`);
     }
 
-    console.log(`Daily content structure generated and validated for: Day ${input.dayInfo.day_number} - "${validatedResult.title}"`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -218,8 +215,6 @@ export async function generateActionDayTaskWithOpenAI(
     { role: 'user', content: userMessage },
   ];
 
-  console.log(`Requesting Action Day task for: Day ${input.dayInfo.day_number} - "${input.dayInfo.title}"`);
-
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,
     model: config.openaiModel, 
@@ -236,7 +231,6 @@ export async function generateActionDayTaskWithOpenAI(
     const rawResult = JSON.parse(response.content);
     const validatedResult = ActionTaskSchema.parse(rawResult);
     
-    console.log(`Action Day task generated and validated for: Day ${input.dayInfo.day_number} - "${validatedResult.title}"`);
     return validatedResult;
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -31,11 +31,6 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`🦊 Tovi Backend listening on port ${PORT}`);
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Local endpoint: http://localhost:${PORT}`);
-  }
-});
+app.listen(PORT, () => {});
 
 export default app;
