@@ -134,31 +134,28 @@ export async function orchestrateChatResponse(
     { role: 'system', content: SYSTEM_PROMPT_CHAT_ORCHESTRATOR },
   ];
 
+  messages.push({
+    role: 'user',
+    content: contextStringForLlm,
+  });
+
+  let historyItemCount = 0;
   if (chatHistory.length > 0) {
-    const recentHistory = chatHistory.slice(-10); 
+    const recentHistory = chatHistory.slice(-10);
+    historyItemCount = recentHistory.length;
     // Correctly map ChatMessage[] to OpenAI.Chat.ChatCompletionMessageParam[]
     const historyMessages: OpenAI.Chat.ChatCompletionMessageParam[] = recentHistory.map(
-      (msg: ChatMessage): OpenAI.Chat.ChatCompletionMessageParam => {
-        // The 'as const' assertions help TypeScript narrow down the role type.
-        // Alternatively, use if/else if/else as shown in thought process.
-        if (msg.role === 'user') {
-          return { role: msg.role, content: msg.content };
-        } else if (msg.role === 'assistant') {
-          return { role: msg.role, content: msg.content };
-        } else { // system
-          return { role: msg.role, content: msg.content };
-        }
-      }
+      (msg: ChatMessage): OpenAI.Chat.ChatCompletionMessageParam => ({ role: msg.role, content: msg.content })
     );
     messages.push(...historyMessages);
   }
 
   messages.push({
     role: 'user',
-    content: `${contextStringForLlm}\nUser Message: ${userInput}`,
+    content: userInput,
   });
 
-  console.log(`Requesting chat response for user: ${chatContext.user.firebaseUid}. Context string length: ${contextStringForLlm.length}, History items: ${messages.filter(m => m.role !== 'system').length -1 }`); // Log actual history items sent
+  console.log(`Requesting chat response for user: ${chatContext.user.firebaseUid}. Context string length: ${contextStringForLlm.length}, History items: ${historyItemCount}`);
 
   const response: LlmResponse = await getOpenAiChatCompletion({
     messages,

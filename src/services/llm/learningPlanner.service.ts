@@ -104,6 +104,9 @@ The 'daily_time_minutes' in the output JSON must accurately reflect the user's "
 
   try {
     const rawLearningPlanResult = JSON.parse(response.content);
+    if (!rawLearningPlanResult.skillName) {
+      rawLearningPlanResult.skillName = skillAnalysis.skillName;
+    }
     // Validar con Zod
     const validatedLearningPlan = LearningPlanSchema.parse(rawLearningPlanResult);
     
