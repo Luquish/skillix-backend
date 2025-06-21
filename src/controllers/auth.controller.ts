@@ -12,12 +12,12 @@ export const syncProfileController = async (req: Request, res: Response) => {
   const { authorization } = req.headers;
   
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    return res.status(401).send({ message: 'Unauthorized: No token provided.' });
+    return res.status(401).json({ message: 'No token provided.' });
   }
   
   const token = authorization.split('Bearer ')[1];
   if (!token) {
-    return res.status(401).send({ message: 'Unauthorized: No token provided.' });
+    return res.status(401).json({ message: 'No token provided.' });
   }
 
   try {
@@ -46,6 +46,8 @@ export const syncProfileController = async (req: Request, res: Response) => {
         authProvider = AuthProvider.GOOGLE;
       } else if (providerId === 'apple.com') {
         authProvider = AuthProvider.APPLE;
+      } else if (providerId === 'password') {
+        authProvider = AuthProvider.EMAIL; // Asumiendo que EMAIL es para password/email auth
       } else {
         return res.status(400).json({ message: `Unsupported sign-in provider: ${providerId}` });
       }
@@ -80,7 +82,7 @@ export const syncProfileController = async (req: Request, res: Response) => {
     console.error('Error in syncProfileController:', error);
     // Si el error es por un token inválido, devolver 403
     if ((error as { code?: string }).code && (error as { code?: string }).code!.startsWith('auth/')) {
-      return res.status(403).json({ message: 'Forbidden: Invalid authentication token.' });
+      return res.status(403).json({ message: 'Invalid or expired token.' });
     }
     // Cualquier otro error (ej. fallo de conexión con la DB) es un 500
     return res.status(500).json({ message: 'An internal server error occurred.' });

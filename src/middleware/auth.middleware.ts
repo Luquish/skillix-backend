@@ -16,7 +16,7 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    return res.status(401).send({ message: 'Unauthorized: No token provided.' });
+    return res.status(401).json({ message: 'No token provided.' });
   }
 
   const token = authorization.split('Bearer ')[1];
@@ -41,7 +41,7 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
       // pero no tiene un registro en nuestra DB. Para el endpoint de 'create-plan',
       // esto sería un error, pero para un endpoint de 'sign-up' sería el comportamiento esperado.
       console.log(`❌ MIDDLEWARE: Usuario ${uid} no encontrado en DB - BLOQUEANDO petición`);
-      return res.status(401).send({ message: 'Unauthorized: User is not registered in our system.' });
+      return res.status(401).json({ message: 'User is not registered in our system.' });
     }
     
     console.log(`✅ MIDDLEWARE: Usuario ${uid} encontrado en DB - PERMITIENDO petición`);
@@ -54,6 +54,6 @@ export const isAuthenticated = async (req: AuthenticatedRequest, res: Response, 
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Authentication error:', errorMessage);
     // El token puede ser inválido, expirado, etc.
-    return res.status(403).send({ message: 'Forbidden: Invalid or expired token.' });
+    return res.status(403).json({ message: 'Invalid or expired token.' });
   }
 };

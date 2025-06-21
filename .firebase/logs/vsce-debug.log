@@ -400,3 +400,123 @@ Generated sources: index.d.ts [35398B] index.cjs.js [14906B] react/index.d.ts [1
 [debug] [2025-06-21T16:50:26.732Z] I0621 13:50:26.732865   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
  {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0621 13:50:26.732865   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
 [debug] [2025-06-21T16:50:47.337Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T18:35:31.533Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T18:35:31.534Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T18:35:31.539Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T18:35:31.539Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":9699,"timeout":10000}}
+[debug] [2025-06-21T18:35:31.665Z] I0621 15:35:31.665299   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0621 15:35:31.665299   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-21T18:35:46.958Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T18:38:25.532Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T18:38:25.533Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T18:38:25.536Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T18:38:25.536Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":9900,"timeout":10000}}
+[debug] [2025-06-21T18:38:25.655Z] I0621 15:38:25.655505   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0621 15:38:25.655505   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-21T18:38:43.702Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T18:44:25.667Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T18:44:25.668Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T18:44:25.671Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T18:44:25.672Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":10233,"timeout":10000}}
+[debug] [2025-06-21T18:44:25.791Z] I0621 15:44:25.791736   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0621 15:44:25.791736   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-21T18:44:40.822Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T18:45:30.003Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T18:45:30.004Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T18:45:30.016Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T18:45:30.016Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"ui":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"name":"ui","host":"127.0.0.1","port":4000},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":10474,"timeout":10000}}
+[debug] [2025-06-21T18:45:30.133Z] I0621 15:45:30.133743   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0621 15:45:30.133743   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-21T18:47:20.922Z] [Firebase Plugin] Received CLI notification.
+[debug] [2025-06-21T18:47:20.924Z] [Firebase Plugin] Received emulators shutdown notification.
+[warn] ⚠  Data Connect Emulator has exited upon receiving signal: SIGTERM 
+[debug] [2025-06-21T18:47:36.362Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T18:47:48.763Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T18:47:48.764Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T18:47:48.767Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T18:47:48.768Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":10809,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T18:48:05.455Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T18:51:30.485Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T18:51:30.485Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T18:51:30.489Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T18:51:30.489Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":11092,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T18:51:49.271Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T18:57:25.567Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T18:57:25.568Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T18:57:25.571Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T18:57:25.571Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":11478,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T18:58:57.889Z] [Firebase Plugin] Received CLI notification.
+[debug] [2025-06-21T18:58:57.892Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:04:29.011Z] [Firebase Plugin] Received CLI notification.
+[debug] [2025-06-21T19:04:29.013Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:04:46.505Z] [Firebase Plugin] Received CLI notification.
+[debug] [2025-06-21T19:04:46.507Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:05:16.505Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:05:16.505Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:05:16.508Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:05:16.509Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":12102,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:05:18.888Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:05:37.473Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:05:37.473Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:05:37.477Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:05:37.477Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":12209,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:05:37.999Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:05:52.766Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:05:52.766Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:05:52.769Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:05:52.769Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":12265,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:05:57.869Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:07:35.069Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:07:35.069Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:07:35.073Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:07:35.073Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":12468,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:07:40.357Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:07:59.456Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:07:59.456Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:07:59.460Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:07:59.460Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":12627,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:08:16.228Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:09:19.394Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:09:19.395Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:09:19.398Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:09:19.398Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":12817,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:10:00.756Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:11:10.747Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:11:10.748Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:11:10.751Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:11:10.751Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":13171,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:11:53.955Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:13:17.662Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:13:17.662Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:13:17.665Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:13:17.665Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":13383,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:14:02.470Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T19:14:18.746Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T19:14:18.746Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T19:14:18.749Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T19:14:18.750Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":13573,"timeout":10000}}
+[error] [Firebase Plugin]request to http://localhost:50001/v1/projects/p/locations/l/services/skillix-db-service:executeGraphqlRead failed, reason:  {"type":"system","errno":"ECONNREFUSED","code":"ECONNREFUSED"}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-06-21T19:16:09.896Z] [Firebase Plugin] Received emulators shutdown notification.

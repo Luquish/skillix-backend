@@ -36,7 +36,7 @@ describe('User API (/api/user)', () => {
         const onboardingPrefs = { 
             skill: 'User Testing APIs', 
             experience: 'INTERMEDIATE', 
-            availableTimeMinutes: 25, 
+            time: '25 minutes', 
             motivation: 'Mejorar habilidades de testing', 
             goal: 'Crear tests robustos para APIs' 
         };

@@ -747,7 +747,13 @@ export const DailyMotivationSchema = z.object({
 
 export const OnboardingPreferencesSchema = z.object({
   skill: z.string().min(1, 'Skill is required.'),
-  experience: z.enum(['Beginner', 'Intermediate', 'Advanced']),
+  experience: z.union([
+    z.enum(['Beginner', 'Intermediate', 'Advanced']),
+    z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED'])
+  ]).transform((val) => {
+    // Normalizar a formato con primera letra mayúscula
+    return val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+  }),
   time: z.string().min(1, 'Time commitment is required.'), // ej: "10min / day"
   motivation: z.string().min(1, 'Motivation is required.'), // ej: "Career Growth"
   goal: z.string().optional(),

@@ -5,7 +5,9 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 const FIREBASE_WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY || 'test-api-key';
-const AUTH_EMULATOR_URL = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword`;
+// Configurar el host del emulador de auth basado en firebase.json (puerto 9099)
+const AUTH_EMULATOR_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099';
+const AUTH_EMULATOR_URL = `http://${AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword`;
 
 export interface TestUserAuth {
   uid: string;
@@ -23,8 +25,12 @@ export const createTestUserAndGetToken = async (
     admin.initializeApp();
   }
 
+  console.log(`🔍 [AUTH HELPER] Creando usuario en emulador: ${AUTH_EMULATOR_HOST}`);
+  
   const userRecord = await admin.auth().createUser({ email, password });
+  console.log(`🔍 [AUTH HELPER] Usuario creado con UID: ${userRecord.uid}`);
 
+  console.log(`🔍 [AUTH HELPER] Obteniendo token de: ${AUTH_EMULATOR_URL}`);
   const response = await axios.post(
     AUTH_EMULATOR_URL,
     { email, password, returnSecureToken: true },
@@ -33,6 +39,7 @@ export const createTestUserAndGetToken = async (
     }
   );
 
+  console.log(`🔍 [AUTH HELPER] Token obtenido exitosamente`);
   return { uid: userRecord.uid, token: response.data.idToken };
 };
 
