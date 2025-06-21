@@ -164,7 +164,7 @@ export const QuizMCQBlockSchema = QuizMCQBlockSchemaRaw.transform((data, ctx) =>
 
         // NEW: If still not found, try to match it as a letter option (A, B, C...)
         if (answerIndex === -1) {
-            const letter = rawAnswer.trim().toUpperCase().replace(/[\.\)]$/, ''); // "B." -> "B"
+            const letter = rawAnswer.trim().toUpperCase().replace(/[.)]$/, ''); // "B." -> "B"
             if (letter.length === 1 && letter >= 'A' && letter <= 'Z') {
                 const letterIndex = letter.charCodeAt(0) - 'A'.charCodeAt(0);
                 if (letterIndex < data.options.length) {
@@ -307,7 +307,7 @@ export const ScenarioQuizBlockSchema = ScenarioQuizBlockSchemaRaw.transform((dat
 
         // NEW: If still not found, try to match it as a letter option (A, B, C...)
         if (answerIndex === -1) {
-            const letter = rawAnswer.trim().toUpperCase().replace(/[\.\)]$/, ''); // "B." -> "B"
+            const letter = rawAnswer.trim().toUpperCase().replace(/[.)]$/, ''); // "B." -> "B"
             if (letter.length === 1 && letter >= 'A' && letter <= 'Z') {
                 const letterIndex = letter.charCodeAt(0) - 'A'.charCodeAt(0);
                 if (letterIndex < data.options.length) {

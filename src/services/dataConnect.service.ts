@@ -70,7 +70,7 @@ const dcService: DataConnect | null = getDb();
 async function executeGraphQL<TData = any, TVariables = Record<string, any>>(
   operationString: string,
   variables?: TVariables,
-  isReadOnly: boolean = false
+  isReadOnly = false
 ): Promise<FirebaseDataConnectResponse<TData>> {
   if (!dcService) {
     const errorMessage = "DataConnectServiceNotInitialized: El SDK de Data Connect no está disponible o no se inicializó correctamente.";

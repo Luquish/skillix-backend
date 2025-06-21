@@ -3,25 +3,25 @@ import { getConfig } from '@/config'; // Asumiendo que tienes un gestor de confi
 
 const config = getConfig(); // Carga la configuración (API Key, modelo por defecto, etc.)
 
-// Inicializar el cliente de OpenAI
-// La API Key se tomará de la variable de entorno OPENAI_API_KEY por defecto
-// si no se pasa explícitamente aquí.
-// Es mejor configurar la API key a través de la variable de entorno.
-let openai: OpenAI;
+// Cliente de OpenAI se inicializa de forma perezosa para facilitar las pruebas
+// y evitar depender del orden de importaciones cuando se mockea.
+let openai: OpenAI | null = null;
 
-try {
-  if (!config.openaiApiKey) {
-    throw new Error('OpenAI API Key no está configurada en las variables de entorno (OPENAI_API_KEY).');
+function ensureOpenAiClient(): OpenAI | null {
+  if (openai) return openai;
+  try {
+    if (!config.openaiApiKey) {
+      throw new Error('OpenAI API Key no está configurada en las variables de entorno (OPENAI_API_KEY).');
+    }
+    openai = new OpenAI({
+      apiKey: config.openaiApiKey,
+    });
+    console.log('Cliente de OpenAI inicializado correctamente.');
+  } catch (error) {
+    console.error('Error inicializando el cliente de OpenAI:', error);
+    openai = null;
   }
-  openai = new OpenAI({
-    apiKey: config.openaiApiKey,
-  });
-  console.log('Cliente de OpenAI inicializado correctamente.');
-} catch (error) {
-  console.error('Error inicializando el cliente de OpenAI:', error);
-  // Podrías lanzar el error para detener la aplicación si OpenAI es crítico,
-  // o manejarlo de forma que la app pueda funcionar sin OpenAI para ciertas partes.
-  // Por ahora, lo logueamos y openai quedará indefinido.
+  return openai;
 }
 
 interface ChatCompletionParams {
@@ -50,7 +50,8 @@ export interface LlmResponse {
 export async function getOpenAiChatCompletion(
   params: ChatCompletionParams
 ): Promise<LlmResponse> {
-  if (!openai) {
+  const client = ensureOpenAiClient();
+  if (!client) {
     return {
       success: false,
       content: null,
@@ -62,7 +63,7 @@ export async function getOpenAiChatCompletion(
 
   try {
     console.log(`Enviando solicitud a OpenAI. Modelo: ${modelToUse}, Temp: ${params.temperature ?? config.llmModelConfig.temperature}`);
-    const completion = await openai.chat.completions.create({
+    const completion = await client.chat.completions.create({
       model: modelToUse,
       messages: params.messages,
       temperature: params.temperature ?? config.llmModelConfig.temperature, // Usa el de config si no se especifica
