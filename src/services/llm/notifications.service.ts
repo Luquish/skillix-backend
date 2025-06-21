@@ -32,29 +32,27 @@ export class NotificationService {
     const data: Record<string, string> = { type: "learning_reminder" };
 
     // 1. Usar OptimalLearningTime
-    if (userAnalytics.optimal_learning_time) {
-      const optimalTime = userAnalytics.optimal_learning_time;
+    if (userAnalytics.optimal_learning_time_start && userAnalytics.optimal_learning_time_end) {
       title = `🧠 Tu momento óptimo para aprender en Skillix!`;
-      body = `Según tus patrones, ¡ahora (${optimalTime.best_time_window_start} - ${optimalTime.best_time_window_end}) es un gran momento para aprender ${userContext?.skill || 'algo nuevo'}! ${optimalTime.reason.toLowerCase()}`;
+      body = `Según tus patrones, ¡ahora (${userAnalytics.optimal_learning_time_start} - ${userAnalytics.optimal_learning_time_end}) es un gran momento para aprender ${userContext?.skill || 'algo nuevo'}! ${userAnalytics.optimal_learning_time_reasoning?.toLowerCase() || ''}`;
       data.deep_link = "home_screen"; // Ejemplo
     }
 
     // 2. Usar StreakMaintenance para mensajes más específicos
-    if (userAnalytics.streak_maintenance_analysis) {
-      const streakInfo = userAnalytics.streak_maintenance_analysis;
-      if (streakInfo.risk_level === "high" && streakInfo.intervention_strategies.length > 0) {
+    if (userAnalytics.streak_risk_level) {
+      if (userAnalytics.streak_risk_level === "high" && userAnalytics.streak_intervention_strategies && userAnalytics.streak_intervention_strategies.length > 0) {
         title = "🚀 ¡No dejes que tu racha se apague!";
         // Podríamos usar Ski para generar un mensaje aquí basado en las estrategias
         const skiInput = {
             userContext: { name: userContext?.name, skill: userContext?.skill },
             situation: "custom_prompt" as const,
-            customPromptDetails: `El usuario tiene un riesgo alto de perder su racha. Factores: ${streakInfo.risk_factors.join(', ')}. Estrategia sugerida: ${streakInfo.intervention_strategies[0]}. Genera un mensaje corto y motivador de Ski (${streakInfo.motivational_approach}).`
+            customPromptDetails: `El usuario tiene un riesgo alto de perder su racha. Estrategia sugerida: ${userAnalytics.streak_intervention_strategies[0]}. Genera un mensaje corto y motivador de Ski.`
         };
         const skiMsg = await getSkiMotivationalMessage(skiInput);
-        body = skiMsg?.message || streakInfo.intervention_strategies[0]; // Fallback a la estrategia
+        body = skiMsg?.message || userAnalytics.streak_intervention_strategies[0]; // Fallback a la estrategia
         data.type = "streak_saver_reminder";
-      } else if (streakInfo.risk_level === "medium") {
-        body = `¡Sigue con tu racha de aprendizaje! ${streakInfo.intervention_strategies[0] || 'Un poco cada día hace una gran diferencia.'}`;
+      } else if (userAnalytics.streak_risk_level === "medium") {
+        body = `¡Sigue con tu racha de aprendizaje! ${userAnalytics.streak_intervention_strategies?.[0] || 'Un poco cada día hace una gran diferencia.'}`;
         data.type = "streak_maintenance_reminder";
       }
     }

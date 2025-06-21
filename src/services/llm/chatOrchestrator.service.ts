@@ -43,10 +43,13 @@ export interface ChatContext {
   userAnalyticsSummary?: Pick<UserAnalytics, 
     "key_insights" | 
     "overall_engagement_score" | 
-    "optimal_learning_time" | 
-    "streak_maintenance_analysis" | 
-    "learning_patterns" | 
-    "content_optimization"
+    "optimal_learning_time_start" | 
+    "optimal_learning_time_end" | 
+    "optimal_learning_time_reasoning" |
+    "streak_risk_level" | 
+    "streak_intervention_strategies" | 
+    "content_difficulty_recommendation" |
+    "ideal_session_length_minutes"
   > | null;
   // Campo para pasar datos detallados cargados bajo demanda por el controlador
   detailedContext?: {
@@ -102,20 +105,17 @@ export async function orchestrateChatResponse(
     if (analytics.key_insights && analytics.key_insights.length > 0) {
       contextStringForLlm += `  - General Observations: ${analytics.key_insights.join('; ')}\n`;
     }
-    if (analytics.optimal_learning_time) {
-      contextStringForLlm += `  - Optimal Learning Window: ${analytics.optimal_learning_time.best_time_window_start} - ${analytics.optimal_learning_time.best_time_window_end} (Reason: ${analytics.optimal_learning_time.reason})\n`;
+    if (analytics.optimal_learning_time_start && analytics.optimal_learning_time_end) {
+      contextStringForLlm += `  - Optimal Learning Window: ${analytics.optimal_learning_time_start} - ${analytics.optimal_learning_time_end}${analytics.optimal_learning_time_reasoning ? ` (Reason: ${analytics.optimal_learning_time_reasoning})` : ''}\n`;
     }
-    if (analytics.content_optimization) {
-      contextStringForLlm += `  - Content Suggestions: Difficulty should be '${analytics.content_optimization.difficulty_adjustment}'. User prefers: ${analytics.content_optimization.content_type_preferences?.join('/') || 'varied types'}. Ideal session: ${analytics.content_optimization.ideal_session_length_minutes} mins. Pacing: ${analytics.content_optimization.pacing_recommendation}\n`;
+    if (analytics.content_difficulty_recommendation || analytics.ideal_session_length_minutes) {
+      contextStringForLlm += `  - Content Suggestions:${analytics.content_difficulty_recommendation ? ` Difficulty: ${analytics.content_difficulty_recommendation}.` : ''}${analytics.ideal_session_length_minutes ? ` Ideal session: ${analytics.ideal_session_length_minutes} mins.` : ''}\n`;
     }
-     if (analytics.streak_maintenance_analysis) {
-      contextStringForLlm += `  - Streak Status: Risk level is '${analytics.streak_maintenance_analysis.risk_level}'. Potential factors: ${analytics.streak_maintenance_analysis.risk_factors?.join(', ') || 'N/A'}.\n`;
+    if (analytics.streak_risk_level) {
+      contextStringForLlm += `  - Streak Status: Risk level is '${analytics.streak_risk_level}'.${analytics.streak_intervention_strategies?.length ? ` Strategies: ${analytics.streak_intervention_strategies.join(', ')}.` : ''}\n`;
     }
     if (typeof analytics.overall_engagement_score === 'number') { 
         contextStringForLlm += `  - Current Engagement Score: ${analytics.overall_engagement_score.toFixed(2)}/1.0\n`;
-    }
-    if (analytics.learning_patterns && analytics.learning_patterns.length > 0) {
-        contextStringForLlm += `  - Identified Learning Patterns: ${analytics.learning_patterns.map(p => p.description).join('; ')}\n`;
     }
   }
   

@@ -307,3 +307,96 @@ Generated sources: esm/package.json [17B] index.cjs.js [14906B] package.json [86
 [debug] [2025-06-20T21:13:46.224Z] I0620 18:13:46.223972   50762 engine.go:170] [/emulator/skillix-db-service 349f] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
  {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:13:46.223972   50762 engine.go:170] [/emulator/skillix-db-service 349f] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
 [debug] [2025-06-20T21:14:04.133Z] [Firebase Plugin] Received emulators shutdown notification.
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[debug] [2025-06-20T21:26:54.298Z] [Firebase Plugin] Activating Firebase extension.
+[info] [Firebase Plugin] Checked firebase-tools, is up to date!
+[debug] [2025-06-20T21:26:55.609Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-06-20T21:26:55.609Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-20T21:26:55.609Z] > authorizing via signed-in user (lucamazza02@gmail.com)
+[debug] [2025-06-20T21:26:55.611Z] Checked if tokens are valid: true, expires at: 1750456489792
+[debug] [2025-06-20T21:26:55.611Z] Checked if tokens are valid: true, expires at: 1750456489792
+[debug] [2025-06-20T21:26:55.611Z] [Firebase Plugin] User found:  lucamazza02@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-06-20T21:26:55.611Z] Checked if tokens are valid: true, expires at: 1750456489792
+[debug] [2025-06-20T21:26:55.611Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-06-20T21:26:55.615Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.6.3) on port 50001
+[info] i  dataconnect: downloading dataconnect-emulator-2.6.3... {"metadata":{"emulator":{"name":"dataconnect"},"message":"downloading dataconnect-emulator-2.6.3..."}}
+[debug] [2025-06-20T21:26:56.147Z] >>> [apiv2][query] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-macos-v2.6.3 
+[debug] [2025-06-20T21:26:56.522Z] <<< [apiv2][status] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-macos-v2.6.3 200
+[debug] [2025-06-20T21:26:56.522Z] <<< [apiv2][body] GET https://storage.googleapis.com/firemat-preview-drop/emulator/dataconnect-emulator-macos-v2.6.3 [stream]
+[debug] [2025-06-20T21:26:56.714Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-06-20T21:26:56.714Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] i  dataconnect: Removing outdated emulator files: dataconnect-emulator-2.7.1 {"metadata":{"emulator":{"name":"dataconnect"},"message":"Removing outdated emulator files: dataconnect-emulator-2.7.1"}}
+[debug] [2025-06-20T21:26:59.671Z] I0620 18:26:59.620335   16146 control.go:73] [/emulator/skillix-db-service 4814] UpdateResources(): done
+Schema: sources: schema/schema.gql [14557B] 
+Connector "tovi-connector": sources: connector/mutations.gql [9166B] connector/queries.gql [4273B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:26:59.620335   16146 control.go:73] [/emulator/skillix-db-service 4814] UpdateResources(): done\nSchema: sources: schema/schema.gql [14557B] \nConnector \"tovi-connector\": sources: connector/mutations.gql [9166B] connector/queries.gql [4273B] \n"}}
+[debug] [2025-06-20T21:26:59.671Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-06-20T21:26:59.671Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-06-20T21:26:59.671Z] Starting Data Connect Emulator with command {"binary":"/Users/lucamazzarello_/.cache/firebase/emulators/dataconnect-emulator-2.6.3","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"/Users/lucamazzarello_/.cache/firebase/emulators/dataconnect-emulator-2.6.3\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to dataconnect-debug.log"}}
+[debug] [2025-06-20T21:26:59.814Z] I0620 18:26:59.812879   16148 load.go:37] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:26:59.812879   16148 load.go:37] Reloading schema and connectors...\n"}}
+[debug] [2025-06-20T21:26:59.945Z] I0620 18:26:59.945510   16148 control.go:73] [/emulator/skillix-db-service 0b35] UpdateResources(): done
+Schema: sources: schema/schema.gql [14557B] 
+Connector "tovi-connector": sources: connector/queries.gql [4273B] connector/mutations.gql [9166B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:26:59.945510   16148 control.go:73] [/emulator/skillix-db-service 0b35] UpdateResources(): done\nSchema: sources: schema/schema.gql [14557B] \nConnector \"tovi-connector\": sources: connector/queries.gql [4273B] connector/mutations.gql [9166B] \n"}}
+[debug] [2025-06-20T21:27:00.040Z] I0620 18:27:00.040453   16148 codegen.go:82] [connector "tovi-connector" javascriptSdk] Generating sources into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:27:00.040453   16148 codegen.go:82] [connector \"tovi-connector\" javascriptSdk] Generating sources into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector\"\n"}}
+[debug] [2025-06-20T21:27:00.060Z] I0620 18:27:00.060436   16148 collector.go:107] schema extensions wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema"
+Generated sources: prelude.gql [71531B] main/input.gql [283910B] main/relation.gql [151179B] main/query.gql [38876B] main/mutation.gql [106893B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:27:00.060436   16148 collector.go:107] schema extensions wrote into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema\"\nGenerated sources: prelude.gql [71531B] main/input.gql [283910B] main/relation.gql [151179B] main/query.gql [38876B] main/mutation.gql [106893B] \n"}}
+[debug] [2025-06-20T21:27:00.061Z] I0620 18:27:00.061413   16148 collector.go:107] connector "tovi-connector" javascriptSdk wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+Generated sources: index.d.ts [35398B] index.cjs.js [14906B] react/index.d.ts [15239B] react/package.json [472B] react/esm/package.json [17B] react/index.cjs.js [11484B] react/esm/index.esm.js [10739B] esm/index.esm.js [12771B] esm/package.json [17B] package.json [864B] README.md [150287B] react/README.md [153624B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:27:00.061413   16148 collector.go:107] connector \"tovi-connector\" javascriptSdk wrote into \"/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector\"\nGenerated sources: index.d.ts [35398B] index.cjs.js [14906B] react/index.d.ts [15239B] react/package.json [472B] react/esm/package.json [17B] react/index.cjs.js [11484B] react/esm/index.esm.js [10739B] esm/index.esm.js [12771B] esm/package.json [17B] package.json [864B] README.md [150287B] react/README.md [153624B] \n"}}
+[debug] [2025-06-20T21:27:00.062Z] I0620 18:27:00.062499   16148 installsdk.go:80] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:27:00.062499   16148 installsdk.go:80] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector\n"}}
+[debug] [2025-06-20T21:27:00.824Z] I0620 18:27:00.823963   16148 load.go:115] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:27:00.823963   16148 load.go:115] Finished reloading\n"}}
+[debug] [2025-06-20T21:27:00.828Z] I0620 18:27:00.828127   16148 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:27:00.828127   16148 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[debug] [2025-06-20T21:27:00.936Z] I0620 18:27:00.936007   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:27:00.936007   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-20T21:39:51.391Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-20T21:39:51.392Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-20T21:39:51.396Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-20T21:39:51.396Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":24212,"timeout":10000}}
+[debug] [2025-06-20T21:39:51.535Z] I0620 18:39:51.535677   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:39:51.535677   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-20T21:40:10.682Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-20T21:40:23.338Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-20T21:40:23.338Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-20T21:40:23.342Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-20T21:40:23.342Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":24457,"timeout":10000}}
+[debug] [2025-06-20T21:40:23.461Z] I0620 18:40:23.461812   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 18:40:23.461812   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-20T21:40:44.324Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-20T23:18:45.973Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-20T23:18:45.973Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-20T23:18:45.978Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-20T23:18:45.978Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":74952,"timeout":10000}}
+[debug] [2025-06-20T23:18:46.099Z] I0620 20:18:46.099484   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 20:18:46.099484   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-20T23:19:04.854Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-20T23:21:21.748Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-20T23:21:21.748Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-20T23:21:21.752Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-20T23:21:21.752Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":75208,"timeout":10000}}
+[debug] [2025-06-20T23:21:21.869Z] I0620 20:21:21.869358   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 20:21:21.869358   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-20T23:22:04.543Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-20T23:36:41.137Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-20T23:36:41.137Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-20T23:36:41.140Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-20T23:36:41.141Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":75546,"timeout":10000}}
+[debug] [2025-06-20T23:36:41.260Z] I0620 20:36:41.260078   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0620 20:36:41.260078   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-20T23:36:58.487Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-21T16:50:26.601Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-21T16:50:26.602Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-21T16:50:26.606Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-21T16:50:26.606Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":83399,"timeout":10000}}
+[debug] [2025-06-21T16:50:26.732Z] I0621 13:50:26.732865   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0621 13:50:26.732865   16148 engine.go:170] [/emulator/skillix-db-service 0b35] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-21T16:50:47.337Z] [Firebase Plugin] Received emulators shutdown notification.

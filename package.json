@@ -9,17 +9,21 @@
     "dev": "nodemon --watch src --ext ts --exec ts-node -r tsconfig-paths/register src/app.ts",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-    "test": "jest --runInBand",
+
+    "migrate:schema": "GOOGLE_APPLICATION_CREDENTIALS=./src/config/serviceAccountKey.json firebase emulators:exec --project=skillix-db \"firebase dataconnect:sql:migrate --force\"",
+    
     "start:test": "NODE_ENV=test ts-node -r tsconfig-paths/register src/app.ts",
-    "test:run": "start-server-and-test start:test http://localhost:8080 test",
-    "test:e2e": "firebase emulators:exec --project=skillix-db \"pnpm test:run\"",
-    "test:e2e:log": "firebase emulators:exec --project=skillix-db \"pnpm test:run\" 2>&1 | tee test-logs/test-$(date +%Y%m%d-%H%M%S).log",
-    "test:log": "jest --runInBand --verbose 2>&1 | tee test-logs/jest-$(date +%Y%m%d-%H%M%S).log",
-    "test:run:log": "start-server-and-test start:test http://localhost:8080 test:log",
-    "test:debug": "jest --runInBand --verbose --detectOpenHandles --forceExit 2>&1 | tee test-logs/debug-$(date +%Y%m%d-%H%M%S).log",
-    "simulate": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/simulation.ts",
-    "test:next-day": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/generateNextDay.ts",
-    "test:migrate": "GOOGLE_APPLICATION_CREDENTIALS=./src/config/serviceAccountKey.json firebase emulators:exec --project=skillix-db \"firebase dataconnect:sql:migrate --force\""
+    "test:e2e": "firebase emulators:exec --project=skillix-db \"start-server-and-test start:test http://localhost:8080 'jest --runInBand tests/api/'\"",
+    
+    "test:services": "jest --runInBand tests/services/",
+    "test:flows": "jest --runInBand tests/flows/",
+    "test:simulators": "jest --runInBand tests/simulators/",
+    "test:offline": "jest --runInBand tests/services/ tests/flows/ tests/simulators/",
+    
+    "test:all": "pnpm test:offline && pnpm test:e2e",
+    
+    "sim:journey": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/simulate-user-journey.ts",
+    "sim:performance": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/performance-test.ts"
   },
   "keywords": [],
   "author": "",

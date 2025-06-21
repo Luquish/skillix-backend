@@ -10,52 +10,6 @@ cp .env.example .env       # fill in the real values
 pnpm dev                   # start the API on http://localhost:8080
 ```
 
-## 🧪 Testing con Logs Automáticos
-
-Este proyecto incluye un sistema avanzado de logging para tests que permite guardar automáticamente todos los resultados para análisis posterior por OpenAI Codex u otros tools de análisis.
-
-### Comandos de Testing Disponibles:
-
-```bash
-# Tests E2E con logs automáticos (RECOMENDADO para debugging)
-npm run test:e2e:log
-
-# Tests unitarios con logs detallados
-npm run test:log
-
-# Tests en modo debug con información extra
-npm run test:debug
-
-# Scripts tradicionales (sin logs persistentes)
-npm run test:e2e
-npm run test
-```
-
-### Script Avanzado de Testing:
-
-```bash
-# Ejecutar tests E2E con logging avanzado
-./scripts/test-logger.sh e2e
-
-# Ver información de logs disponibles
-./scripts/test-logger.sh show
-
-# Ver el contenido del log más reciente
-./scripts/test-logger.sh latest
-
-# Limpiar logs antiguos
-./scripts/test-logger.sh clean
-```
-
-**💡 Beneficios del sistema de logs:**
-- Los logs se guardan automáticamente en `test-logs/` con timestamp único
-- Incluye stack traces completos, console output y estadísticas detalladas
-- Ideal para que OpenAI pueda analizar errores sin ejecutar tests directamente
-- Auto-cleanup mantiene solo los 10 logs más recientes
-- Formato legible tanto para humanos como para AI
-
-Ver `test-logs/README.md` para documentación completa del sistema de logging.
-
 ## Overview
 
 The backend is built with **Node.js**, **Express** and **TypeScript**. It is responsible for:
@@ -258,3 +212,231 @@ sequenceDiagram
     LC-->>-API: 201 response
     API-->>-C: learning plan ready
 ```
+
+---
+
+## Testing Strategy
+
+The project uses a **comprehensive multi-layer testing approach** designed for both rapid development and thorough validation. Our testing architecture is optimized for different environments including **OpenAI Codex** compatibility.
+
+### 🏗️ **Testing Architecture**
+
+```
+tests/
+├── services/     📱 Individual unit tests (No server required)
+├── api/          🌐 API integration tests (Server + Firebase required)
+├── flows/        🔄 End-to-end flow validation (No server required)
+├── simulators/   🎯 Complete simulation demos (No server required)
+├── cli/          ⚡ Interactive performance tools (No server required)
+└── helpers/      🛠️ Testing utilities
+```
+
+### 📱 **Individual Service Tests** (`tests/services/`)
+
+**Purpose:** Unit tests for services with specific individual logic that don't integrate with the main learning flow simulation.
+
+**Infrastructure:** No server required ✅ | **Time:** ~1 second | **OpenAI Codex:** ✅ Compatible
+
+**Services tested:**
+- **`openai.service.spec.ts`** - OpenAI API communication layer and error handling
+- **`chatOrchestrator.service.spec.ts`** - Real-time chat with context and history management
+- **`toviTheFox.service.spec.ts`** - Ski the Fox motivational messages and celebrations
+- **`notifications.service.spec.ts`** - Push notification system for reminders and achievements
+
+**When to use:**
+```bash
+# Quick validation during service development
+pnpm test:services
+
+# Debug specific service issues
+pnpm test:services -- --testNamePattern="ChatOrchestrator"
+
+# Watch mode for rapid iteration
+pnpm test:services -- --watch
+```
+
+### 🌐 **API Integration Tests** (`tests/api/`)
+
+**Purpose:** Full HTTP endpoint validation with complete infrastructure stack.
+
+**Infrastructure:** Firebase emulators + PostgreSQL + Express server ⚠️ | **Time:** ~15 seconds | **OpenAI Codex:** ❌ Not compatible
+
+**Endpoints tested:**
+- **`auth.spec.ts`** - Authentication flows and user profile synchronization
+- **`onboarding.spec.ts`** - Skill analysis and user onboarding process
+- **`learningPlan.spec.ts`** - Learning plan creation and management
+- **`content.spec.ts`** - Daily content generation and delivery
+- **`user.spec.ts`** - User stats, streaks, and XP management
+
+**When to use:**
+```bash
+# Full API validation (starts infrastructure automatically)
+pnpm test:e2e
+
+# Complete system validation (offline + API)
+pnpm test:all
+```
+
+### 🔄 **Flow Integration Tests** (`tests/flows/`)
+
+**Purpose:** End-to-end learning journey validation using the simulation system.
+
+**Infrastructure:** No server required ✅ | **Time:** ~1 second | **OpenAI Codex:** ✅ Compatible
+
+**Flows tested:**
+- **`complete-learning-journey.flow.spec.ts`** - Complete journey simulation from skill analysis to content generation
+- Journey validation for 1-100 day learning plans
+- Action Day logic validation (every 3rd day)
+- XP accumulation and progression verification
+- Multi-skill scenario testing
+- Edge cases and robustness validation
+
+**When to use:**
+```bash
+# Validate end-to-end journey integration
+pnpm test:flows
+
+# Debug journey flow issues
+pnpm test:flows -- --verbose
+```
+
+### 🎯 **Simulation System Tests** (`tests/simulators/`)
+
+**Purpose:** Comprehensive testing of the simulation system itself with detailed demos.
+
+**Infrastructure:** No server required ✅ | **Time:** ~1.5 seconds | **OpenAI Codex:** ✅ Compatible
+
+**Components:**
+- **`demo-simulation.spec.ts`** - Complete simulation demos with detailed logging
+- **`service-simulators.ts`** - Jest-compatible simulation engine
+- **`standalone-simulator.ts`** - CLI-compatible simulation engine
+
+**Simulation coverage:**
+- Journey simulation from skill analysis → plan creation → content generation
+- Performance testing with multiple concurrent journeys
+- Edge case validation (long skill names, very short/long journeys)
+- Content structure and XP validation
+- Ski message generation and variety
+
+**When to use:**
+```bash
+# Test simulation system functionality
+pnpm test:simulators
+
+# See detailed demo with logging
+pnpm test:simulators -- --verbose
+```
+
+### ⚡ **CLI Performance Tools** (`tests/cli/`)
+
+**Purpose:** Interactive tools for journey simulation and performance analysis.
+
+**Infrastructure:** No server required ✅ | **Time:** Variable | **OpenAI Codex:** ✅ Compatible
+
+**Tools available:**
+- **`simulate-user-journey.ts`** - Interactive journey simulation with rich output
+- **`performance-test.ts`** - Comprehensive performance testing with metrics
+
+**When to use:**
+```bash
+# Interactive journey simulation
+pnpm sim:journey --skill "Python" --days 7 --detailed
+pnpm sim:journey --skill "React" --days 3 --export "react-journey.json"
+
+# Performance analysis
+pnpm sim:performance --iterations 20 --concurrency 5
+pnpm sim:performance --skill "JavaScript" --days 10 --export "perf-results.json"
+```
+
+### 📜 **Complete Script Reference**
+
+#### **Development Scripts** (Fast feedback, no infrastructure)
+```bash
+# Individual service testing
+pnpm test:services          # Only service unit tests (~1s)
+pnpm test:flows             # Only end-to-end flow tests (~1s)
+pnpm test:simulators        # Only simulation system tests (~1.5s)
+pnpm test:offline           # All offline tests combined (~1s)
+
+# Interactive simulation
+pnpm sim:journey            # Journey simulation tool
+pnpm sim:performance        # Performance analysis tool
+```
+
+#### **Integration Scripts** (Full infrastructure required)
+```bash
+# Infrastructure management
+pnpm start:test             # Start Express server for testing
+pnpm migrate:schema         # Database schema migration
+
+# API testing
+pnpm test:e2e              # API tests with Firebase + PostgreSQL + Express (~15s)
+pnpm test:all              # Complete validation: offline + e2e (~16s)
+```
+
+### 🎯 **OpenAI Codex Compatibility Matrix**
+
+| Script | Infrastructure | Networking | Codex Compatible | Use Case |
+|--------|----------------|------------|------------------|----------|
+| `test:services` | None | None | ✅ Yes | Service debugging |
+| `test:flows` | None | None | ✅ Yes | Journey validation |
+| `test:simulators` | None | None | ✅ Yes | Simulation testing |
+| `test:offline` | None | None | ✅ Yes | **Primary development** |
+| `sim:journey` | None | None | ✅ Yes | Interactive testing |
+| `sim:performance` | None | None | ✅ Yes | Performance analysis |
+| `test:e2e` | Firebase + Express | HTTP | ❌ No | API validation |
+| `test:all` | Firebase + Express | HTTP | ❌ No | Complete validation |
+
+### 🚀 **Development Workflow**
+
+#### **Daily Development** (OpenAI Codex compatible)
+```bash
+# Primary development workflow - super fast feedback
+pnpm test:offline           # Complete offline validation
+
+# Specific debugging
+pnpm test:services          # Debug individual services
+pnpm test:flows            # Debug journey integration
+pnpm sim:journey           # Interactive journey testing
+```
+
+#### **Feature Validation** (Local environment)
+```bash
+# Complete system validation
+pnpm test:all              # Offline + API tests
+
+# Performance verification
+pnpm sim:performance       # Analyze system performance
+```
+
+#### **Pre-deployment** (CI/CD pipeline)
+```bash
+# Complete validation pipeline
+pnpm test:offline          # Fast offline validation
+pnpm test:e2e             # Infrastructure-dependent validation
+pnpm migrate:schema        # Database schema updates
+```
+
+### 🎯 **Benefits of This Architecture**
+
+**🏃‍♂️ Speed & Efficiency:**
+- Offline tests: ~1 second for complete validation
+- No OpenAI API costs during development
+- Instant feedback for most development tasks
+
+**🎯 Comprehensive Coverage:**
+- Unit tests for individual service logic
+- Integration tests for complete journey flows
+- API tests for HTTP contract validation
+- Performance tests for scalability verification
+
+**🔄 Environment Flexibility:**
+- OpenAI Codex: 80% of tests work without networking
+- Local development: Complete testing suite
+- CI/CD: Automated validation pipeline
+
+**🧠 Developer Experience:**
+- Interactive tools for exploration
+- Detailed simulation with rich logging
+- Performance analysis with actionable insights
+- Clear separation between fast/slow tests

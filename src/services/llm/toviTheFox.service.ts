@@ -59,7 +59,7 @@ export interface StreakCelebrationInput {
 export interface DailyMotivationInput {
   userName?: string;
   // Reemplazar userLearningPatterns con una estructura más rica de UserAnalytics
-  analyticsInfo: Pick<UserAnalytics, "optimal_learning_time" | "streak_maintenance_analysis" | "key_insights" | "overall_engagement_score"> & {
+  analyticsInfo: Pick<UserAnalytics, "optimal_learning_time_start" | "optimal_learning_time_end" | "streak_risk_level" | "streak_intervention_strategies" | "key_insights" | "overall_engagement_score"> & {
     // Podríamos añadir aquí datos de rendimiento del último día si no están ya en key_insights
     lastDayPerformance?: 'good' | 'average' | 'struggled'; // Ejemplo
   };

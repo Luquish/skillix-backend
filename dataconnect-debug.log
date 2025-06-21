@@ -1,16 +1,40 @@
-I0620 18:13:43.752920   67341 load.go:37] Reloading schema and connectors...
-I0620 18:13:43.885483   67341 control.go:84] [/emulator/skillix-db-service d9b4] UpdateResources(): done
+I0621 13:50:24.228409   83399 load.go:37] Reloading schema and connectors...
+I0621 13:50:24.358813   83399 control.go:84] [/emulator/skillix-db-service 0f34] UpdateResources(): done
 Schema: sources: schema/schema.gql [14557B] 
 Connector "tovi-connector": sources: connector/mutations.gql [9166B] connector/queries.gql [4273B] 
-I0620 18:13:43.983653   67341 codegen.go:82] [connector "tovi-connector" javascriptSdk] Generating sources into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
-I0620 18:13:44.003117   67341 collector.go:107] schema extensions wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema"
+I0621 13:50:24.453407   83399 codegen.go:82] [connector "tovi-connector" javascriptSdk] Generating sources into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+I0621 13:50:24.474125   83399 collector.go:107] schema extensions wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect/.dataconnect/schema"
 Generated sources: prelude.gql [71531B] main/input.gql [283910B] main/relation.gql [151179B] main/query.gql [38876B] main/mutation.gql [106893B] 
-I0620 18:13:44.004499   67341 collector.go:107] connector "tovi-connector" javascriptSdk wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
-Generated sources: react/esm/index.esm.js [10739B] index.d.ts [35398B] README.md [150406B] react/index.d.ts [15239B] react/package.json [472B] react/index.cjs.js [11484B] react/README.md [153738B] esm/index.esm.js [12771B] esm/package.json [17B] index.cjs.js [14906B] package.json [864B] react/esm/package.json [17B] 
-I0620 18:13:44.005303   67341 installsdk.go:86] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector
-I0620 18:13:44.669664   67341 load.go:115] Finished reloading
-I0620 18:13:44.672442   67341 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:9399
-I0620 18:13:44.673513   67341 dev.go:95] Listening on address (HTTP + gRPC): [::1]:9399
-I0620 18:13:46.036898   67341 control.go:84] [/emulator/skillix-db-service 642a] UpdateResources(): done
+I0621 13:50:24.475909   83399 collector.go:107] connector "tovi-connector" javascriptSdk wrote into "/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/dataconnect-generated/tovi-connector"
+Generated sources: react/esm/package.json [17B] index.d.ts [35398B] esm/package.json [17B] index.cjs.js [14906B] README.md [150406B] react/index.d.ts [15239B] react/package.json [472B] esm/index.esm.js [12771B] package.json [864B] react/index.cjs.js [11484B] react/esm/index.esm.js [10739B] react/README.md [153738B] 
+I0621 13:50:24.477392   83399 installsdk.go:86] Running command: /usr/local/bin/pnpm link ./dataconnect-generated/tovi-connector
+I0621 13:50:25.191607   83399 load.go:115] Finished reloading
+I0621 13:50:25.194995   83399 dev.go:95] Listening on address (HTTP + gRPC): 127.0.0.1:9399
+I0621 13:50:25.195879   83399 dev.go:95] Listening on address (HTTP + gRPC): [::1]:9399
+I0621 13:50:26.540179   83399 control.go:84] [/emulator/skillix-db-service 7301] UpdateResources(): done
 Schema: sources: schema/schema.gql [14557B] 
 Connector "tovi-connector": sources: connector/mutations.gql [9166B] connector/queries.gql [4273B] 
+I0621 13:50:31.370332   83399 prepare.go:135] [operation "GetUserByFirebaseUid" attempt 1] preparePlan succeeded
+I0621 13:50:31.370394   83399 prepare.go:126] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforePrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterPrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.372614   83399 executor.go:97] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforeRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.372756   83399 engine.go:170] [/emulator/skillix-db-service 7301] ExecuteGraphqlRead : succeeded. 
+I0621 13:50:31.486022   83399 prepare.go:135] [operation "GetUserByFirebaseUid" attempt 1] preparePlan succeeded
+I0621 13:50:31.486043   83399 prepare.go:126] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforePrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterPrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.486757   83399 executor.go:97] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforeRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.486785   83399 engine.go:170] [/emulator/skillix-db-service 7301] ExecuteGraphqlRead : succeeded. 
+I0621 13:50:31.510413   83399 prepare.go:135] [operation "GetUserByFirebaseUid" attempt 1] preparePlan succeeded
+I0621 13:50:31.510431   83399 prepare.go:126] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforePrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterPrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.511070   83399 executor.go:97] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforeRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.511085   83399 engine.go:170] [/emulator/skillix-db-service 7301] ExecuteGraphqlRead : succeeded. 
+I0621 13:50:31.518788   83399 prepare.go:135] [operation "DeleteUser" attempt 1] preparePlan succeeded
+I0621 13:50:31.518806   83399 prepare.go:126] [operation "DeleteUser" attempt 1] DBStats beforePrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterPrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.520219   83399 executor.go:97] [operation "DeleteUser" attempt 1] DBStats beforeRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.520239   83399 engine.go:170] [/emulator/skillix-db-service 7301] ExecuteGraphql : succeeded. 
+I0621 13:50:31.568100   83399 prepare.go:135] [operation "GetUserByFirebaseUid" attempt 1] preparePlan succeeded
+I0621 13:50:31.568121   83399 prepare.go:126] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforePrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterPrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.568835   83399 executor.go:97] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforeRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.568860   83399 engine.go:170] [/emulator/skillix-db-service 7301] ExecuteGraphqlRead : succeeded. 
+I0621 13:50:31.649496   83399 prepare.go:135] [operation "GetUserByFirebaseUid" attempt 1] preparePlan succeeded
+I0621 13:50:31.649516   83399 prepare.go:126] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforePrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterPrepare: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.650196   83399 executor.go:97] [operation "GetUserByFirebaseUid" attempt 1] DBStats beforeRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}, afterRun: sql.DBStats{MaxOpenConnections:1, OpenConnections:1, InUse:0, Idle:1, WaitCount:0, WaitDuration:0, MaxIdleClosed:0, MaxIdleTimeClosed:0, MaxLifetimeClosed:0}
+I0621 13:50:31.650212   83399 engine.go:170] [/emulator/skillix-db-service 7301] ExecuteGraphqlRead : succeeded. 
