@@ -9,12 +9,18 @@ After making ANY code changes, you MUST run these validation checks:
 ```bash
 # Core validation pipeline (REQUIRED)
 pnpm test:offline          # Must pass - tests core functionality
-pnpm lint:fix             # Must run - fixes code formatting
-pnpm typecheck            # Must pass - validates TypeScript
+pnpm lint                 # Must pass - validates code formatting
+npx tsc --noEmit          # Must pass - validates TypeScript types
 
 # Additional checks based on changes
 pnpm test:e2e             # If modifying API endpoints
 pnpm sim:journey          # If modifying LLM services
+```
+
+**Note:** If lint fails, you may need to set up ESLint configuration first:
+```bash
+# If ESLint config missing, create it:
+npm init @eslint/config
 ```
 
 ### **Git Workflow Requirements**
@@ -486,7 +492,7 @@ When considering new services:
 - **Security Check**: Review for security vulnerabilities
 - **Google Services**: Justify any non-Google service usage
 - **Tests Pass**: `pnpm test:offline` must pass
-- **Code Quality**: `pnpm lint:fix` and `pnpm typecheck` clean
+- **Code Quality**: `pnpm lint` and `npx tsc --noEmit` clean
 - **Test Coverage**: All new features need appropriate test coverage
 - **Documentation**: Update relevant documentation
 - **Performance**: No significant performance regressions
