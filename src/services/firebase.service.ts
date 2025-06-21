@@ -10,8 +10,10 @@ let dataConnectInstance: DataConnect | null = null;
 
 // --- CONSTANTES DE CONFIGURACIÓN ---
 const IS_EMULATOR = process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.NODE_ENV === 'test';
-const DATA_CONNECT_SERVICE_ID = 'skillix-db-service';
-const DATA_CONNECT_LOCATION = 'us-central1';
+// Use configuration values for Data Connect service to allow environment based
+// customization. Defaults are provided for local development.
+const DATA_CONNECT_SERVICE_ID = config.dataConnectServiceId || 'skillix-db-service';
+const DATA_CONNECT_LOCATION = config.dataConnectLocation || 'us-central1';
 
 function initialize() {
   // Inicializa la app de admin si no existe.
