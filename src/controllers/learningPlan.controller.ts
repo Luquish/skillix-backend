@@ -29,20 +29,35 @@ export const createLearningPlanController = async (req: AuthenticatedRequest, re
     // los dígitos para convertirlo a minutos y almacenarlo de forma numérica.
     const availableTimeMinutes = parseInt(onboardingPrefs.time?.replace(/\D/g, '') || '15', 10);
     
-    // Guardar las preferencias del usuario
-    await DataConnectService.createUserPreference({
-      userFirebaseUid: user.firebaseUid,
-      user: user,
-      skill: onboardingPrefs.skill,
-      experienceLevel: onboardingPrefs.experience,
-      motivation: onboardingPrefs.motivation,
-      availableTimeMinutes: availableTimeMinutes,
-      goal: onboardingPrefs.goal,
-      learningStyle: onboardingPrefs.learning_style,
-      preferredStudyTime: onboardingPrefs.preferred_study_time,
-      learningContext: onboardingPrefs.learning_context,
-      challengePreference: onboardingPrefs.challenge_preference,
-    });
+    // Guardar las preferencias del usuario (con manejo de duplicados)
+    try {
+      await DataConnectService.createUserPreference({
+        userFirebaseUid: user.firebaseUid,
+        user: user,
+        skill: onboardingPrefs.skill,
+        experienceLevel: onboardingPrefs.experience,
+        motivation: onboardingPrefs.motivation,
+        availableTimeMinutes: availableTimeMinutes,
+        goal: onboardingPrefs.goal,
+        learningStyle: onboardingPrefs.learning_style,
+        preferredStudyTime: onboardingPrefs.preferred_study_time,
+        learningContext: onboardingPrefs.learning_context,
+        challengePreference: onboardingPrefs.challenge_preference,
+      });
+      console.log(`✅ Preferencias de usuario creadas para ${user.firebaseUid}`);
+    } catch (preferenceError: unknown) {
+      // Si el error es por duplicación de preferencias, lo registramos pero continuamos
+      const errorMessage = preferenceError instanceof Error ? preferenceError.message : String(preferenceError);
+      if (errorMessage.includes('duplicate key value violates unique constraint') || 
+          errorMessage.includes('user_preferences_userFirebaseUid_uidx')) {
+        console.log(`⚠️ Usuario ${user.firebaseUid} ya tiene preferencias existentes. Continuando con la creación del plan...`);
+        console.log(`🔄 Para futuras mejoras: implementar lógica de actualización de preferencias`);
+      } else {
+        // Si es otro tipo de error, lo lanzamos
+        throw preferenceError;
+      }
+    }
+    
     const initialPlan = await llmService.generateLearningPlanWithOpenAI({
       onboardingData: {
         skill: onboardingPrefs.skill,
@@ -263,6 +278,115 @@ export const getLearningPlanByIdController = async (req: AuthenticatedRequest, r
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Error in getLearningPlanByIdController:', errorMessage);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
+/**
+ * ✅ NUEVO - Obtiene todas las inscripciones del usuario
+ */
+export const getUserEnrollmentsController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
+
+    const enrollments = await DataConnectService.getUserEnrollments(user.firebaseUid);
+
+    if (!enrollments) {
+      return res.status(404).json({ 
+        message: 'No enrollments found for user.' 
+      });
+    }
+
+    res.status(200).json({
+      message: 'User enrollments retrieved successfully.',
+      enrollments: enrollments,
+    });
+
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in getUserEnrollmentsController:', errorMessage);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
+/**
+ * ✅ NUEVO - Obtiene todos los planes de aprendizaje del usuario
+ */
+export const getUserLearningPlansController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
+
+    const learningPlans = await DataConnectService.getUserLearningPlans(user.firebaseUid);
+
+    if (!learningPlans) {
+      return res.status(404).json({ 
+        message: 'No learning plans found for user.' 
+      });
+    }
+
+    res.status(200).json({
+      message: 'User learning plans retrieved successfully.',
+      learningPlans: learningPlans,
+    });
+
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in getUserLearningPlansController:', errorMessage);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
+/**
+ * ✅ NUEVO - Crea una nueva inscripción para el usuario autenticado
+ */
+export const createEnrollmentController = async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
+
+    const { learningPlanId, status = 'ACTIVE' } = req.body;
+
+    if (!learningPlanId) {
+      return res.status(400).json({ message: 'Learning plan ID is required.' });
+    }
+
+    // Verificar que el plan existe y pertenece al usuario
+    const plan = await DataConnectService.getLearningPlanStructureById(learningPlanId);
+    if (!plan) {
+      return res.status(404).json({ message: 'Learning plan not found.' });
+    }
+
+    if (plan.userFirebaseUid !== user.firebaseUid) {
+      return res.status(403).json({ 
+        message: 'Access denied. You can only enroll in your own learning plans.' 
+      });
+    }
+
+    const enrollment = await DataConnectService.createEnrollmentUser({
+      learningPlanId,
+      status
+    });
+
+    if (!enrollment) {
+      return res.status(500).json({ message: 'Failed to create enrollment.' });
+    }
+
+    res.status(201).json({
+      message: 'Enrollment created successfully.',
+      enrollment: enrollment,
+    });
+
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in createEnrollmentController:', errorMessage);
     res.status(500).json({ message: 'Internal server error.' });
   }
 };

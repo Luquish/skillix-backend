@@ -2,7 +2,10 @@ import { Router } from 'express';
 import { 
   createLearningPlanController,
   getCurrentLearningPlanController,
-  getLearningPlanByIdController
+  getLearningPlanByIdController,
+  getUserEnrollmentsController,
+  getUserLearningPlansController,
+  createEnrollmentController
 } from '../controllers/learningPlan.controller';
 import { isAuthenticated } from '../middleware/auth.middleware';
 
@@ -28,5 +31,26 @@ router.get('/current', isAuthenticated, getCurrentLearningPlanController);
  * @access  Private (Requiere token de Firebase)
  */
 router.get('/:id', isAuthenticated, getLearningPlanByIdController);
+
+/**
+ * @route   GET /api/learning-plan/user/enrollments
+ * @desc    Obtiene todas las inscripciones del usuario autenticado.
+ * @access  Private (Requiere token de Firebase)
+ */
+router.get('/user/enrollments', isAuthenticated, getUserEnrollmentsController);
+
+/**
+ * @route   GET /api/learning-plan/user/plans
+ * @desc    Obtiene todos los planes de aprendizaje del usuario autenticado.
+ * @access  Private (Requiere token de Firebase)
+ */
+router.get('/user/plans', isAuthenticated, getUserLearningPlansController);
+
+/**
+ * @route   POST /api/learning-plan/enroll
+ * @desc    Crea una nueva inscripción para el usuario autenticado.
+ * @access  Private (Requiere token de Firebase)
+ */
+router.post('/enroll', isAuthenticated, createEnrollmentController);
 
 export default router;

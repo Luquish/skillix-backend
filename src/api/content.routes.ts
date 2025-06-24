@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../middleware/auth.middleware';
-import { generateNextDayContentController } from '../controllers/content.controller';
+import { 
+  generateNextDayContentController,
+  getDayContentController,
+  createActionStepController
+} from '../controllers/content.controller';
 
 const router = Router();
 
@@ -18,6 +22,30 @@ router.post(
   '/generate-next',
   isAuthenticated,
   generateNextDayContentController
+);
+
+/**
+ * @route   GET /api/content/day/:learningPlanId/:dayNumber
+ * @desc    Obtiene el contenido completo de un día específico.
+ * @access  Private
+ * @params  learningPlanId: string, dayNumber: number
+ */
+router.get(
+  '/day/:learningPlanId/:dayNumber',
+  isAuthenticated,
+  getDayContentController
+);
+
+/**
+ * @route   POST /api/content/action-step
+ * @desc    Crea un nuevo paso de acción para una tarea.
+ * @access  Private
+ * @body    { actionTaskItemId: string, stepNumber: number, description: string, estimatedTimeSeconds: number }
+ */
+router.post(
+  '/action-step',
+  isAuthenticated,
+  createActionStepController
 );
 
 export default router;

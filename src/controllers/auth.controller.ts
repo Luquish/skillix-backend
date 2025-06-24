@@ -25,7 +25,7 @@ export const syncProfileController = async (req: Request, res: Response) => {
     const decodedToken = await FirebaseService.verifyFirebaseIdToken(token);
     const { uid, email, name, picture, email_verified } = decodedToken;
 
-    // 2. Intentar obtener el usuario de nuestra base de datos.
+    // 2. Intentar obtener el usuario de nuestra base de datos usando SDK generado
     const existingUser = await DataConnectService.getUserByFirebaseUid(uid);
 
     if (existingUser) {
@@ -53,6 +53,7 @@ export const syncProfileController = async (req: Request, res: Response) => {
         return res.status(400).json({ message: 'Email not provided by authentication provider.' });
       }
 
+      // ✅ Usar SDK generado con tipos específicos
       const newUserInput: DbUser = {
         firebaseUid: uid,
         email: email,
@@ -61,7 +62,7 @@ export const syncProfileController = async (req: Request, res: Response) => {
         authProvider: authProvider,
         emailVerified: email_verified || false,
       };
-
+      
       const createdUserInDb = await DataConnectService.createUser(newUserInput);
 
       if (!createdUserInDb) {
@@ -71,9 +72,9 @@ export const syncProfileController = async (req: Request, res: Response) => {
       return res.status(201).json({
         message: 'User created successfully!',
         user: {
-          uid: newUserInput.firebaseUid,
-          email: newUserInput.email,
-          name: newUserInput.name,
+          uid: uid,
+          email: email,
+          name: name,
         }
       });
     }

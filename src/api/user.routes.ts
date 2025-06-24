@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { 
   getUserStatsController,
   getUserStreakController,
-  getUserXPController
+  getUserXPController,
+  getUserProgressController,
+  getUserAnalyticsController
 } from '../controllers/user.controller';
 import { isAuthenticated } from '../middleware/auth.middleware';
 
@@ -28,5 +30,19 @@ router.get('/streak', isAuthenticated, getUserStreakController);
  * @access  Private (Requiere token de Firebase)
  */
 router.get('/xp', isAuthenticated, getUserXPController);
+
+/**
+ * @route   GET /api/user/progress
+ * @desc    Obtiene el progreso completo del usuario (enrollments + streak)
+ * @access  Private (Requiere token de Firebase)
+ */
+router.get('/progress', isAuthenticated, getUserProgressController);
+
+/**
+ * @route   GET /api/user/analytics
+ * @desc    Obtiene los analytics del usuario
+ * @access  Private (Requiere token de Firebase)
+ */
+router.get('/analytics', isAuthenticated, getUserAnalyticsController);
 
 export default router; 

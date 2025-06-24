@@ -4,8 +4,8 @@ import learningPlanRoutes from './learningPlan.routes';
 import authRoutes from './auth.routes';
 import contentRoutes from './content.routes';
 import userRoutes from './user.routes';
-// Importa aquí las otras rutas a medida que las crees
-// import chatRoutes from './chat.routes';
+import toviRoutes from './tovi.routes';
+import chatRoutes from './chat.routes';
 
 const router = Router();
 
@@ -17,6 +17,7 @@ router.use('/learning-plan', learningPlanRoutes);
 router.use('/user', userRoutes);
 // router.use('/chat', chatRoutes);
 router.use('/content', contentRoutes);
-
+router.use('/tovi', toviRoutes);
+router.use('/chat', chatRoutes);
 
 export default router;

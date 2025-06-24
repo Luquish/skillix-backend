@@ -1,9 +1,3 @@
 connectorId: tovi-connector
 location: us-central1
 authMode: FIREBASE_AUTH
-generate:
-  javascriptSdk:
-    outputDir: ../../dataconnect-generated/tovi-connector
-    package: "@firebasegen/tovi-connector"
-    packageJsonDir: ../..
-    react: true

@@ -220,6 +220,15 @@ mutation CreateEnrollment($learningPlanId: UUID!, $status: String!) @auth(level:
   })
 }
 
+# Versión para backend (NO_ACCESS) que requiere userFirebaseUid explícito
+mutation CreateEnrollmentBackend($userFirebaseUid: String!, $learningPlanId: UUID!, $status: String!) @auth(level: NO_ACCESS) {
+  enrollment_insert(data: {
+      userFirebaseUid: $userFirebaseUid,
+      learningPlanId: $learningPlanId,
+      status: $status
+  })
+}
+
 mutation UpdateDayCompletionStatus($dayContentId: UUID!, $status: String!) @auth(level: USER) {
   dayContent_update(
     key: { id: $dayContentId },

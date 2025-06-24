@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
-import { DataConnect, getDataConnect } from 'firebase-admin/data-connect';
-import { getConfig } from '../config'; // Ajustada la ruta de importación
+import { DataConnect, getDataConnect as getDataConnectAdmin } from 'firebase-admin/data-connect';
+import { getConfig } from '../config';
 import * as path from 'path';
 import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
 
@@ -9,42 +9,85 @@ import logger from '../utils/logger';
 let dataConnectInstance: DataConnect | null = null;
 
 // --- CONSTANTES DE CONFIGURACIÓN ---
-const IS_EMULATOR = process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.NODE_ENV === 'test';
+const IS_EMULATOR = !!(process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.NODE_ENV === 'test');
+const AUTH_EMULATOR_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+
 // Use configuration values for Data Connect service to allow environment based
 // customization. Defaults are provided for local development.
 const DATA_CONNECT_SERVICE_ID = config.dataConnectServiceId || 'skillix-db-service';
 const DATA_CONNECT_LOCATION = config.dataConnectLocation || 'us-central1';
 
 function initialize() {
+  // DEBUG: Mostrar variables de entorno
+  console.log('🔍 DEBUG - Environment Variables:');
+  console.log('- NODE_ENV:', process.env.NODE_ENV);
+  console.log('- FIREBASE_AUTH_EMULATOR_HOST:', process.env.FIREBASE_AUTH_EMULATOR_HOST);
+  console.log('- FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID);
+  console.log('- IS_EMULATOR:', IS_EMULATOR);
+  console.log('- AUTH_EMULATOR_HOST:', AUTH_EMULATOR_HOST);
+  
   // Inicializa la app de admin si no existe.
   if (admin.apps.length === 0) {
     try {
-      const serviceAccountPath = path.resolve(process.cwd(), config.firebaseServiceAccountPath);
-      logger.info(`Firebase Admin SDK: Initializing with service account file from path: ${serviceAccountPath}`);
-      const credential = admin.credential.cert(serviceAccountPath);
-      admin.initializeApp({ credential });
-      logger.info('Firebase Admin App initialized successfully (default app)');
+      // Configuración específica para emuladores vs producción
+      if (IS_EMULATOR) {
+        logger.info('🧪 Firebase Admin SDK: Initializing for EMULATOR environment');
+        
+        // En entorno de emulador, podemos usar credenciales simplificadas
+        admin.initializeApp({
+          projectId: config.firebaseProjectId || 'skillix-db',
+          // No necesitamos service account en emulador
+        });
+        
+        // Configurar emulador de auth si está disponible
+        if (AUTH_EMULATOR_HOST) {
+          logger.info(`🧪 Firebase Auth Emulator detected at: ${AUTH_EMULATOR_HOST}`);
+          // Firebase Admin SDK detecta automáticamente el emulador por la variable de entorno
+        }
+        
+        logger.info('✅ Firebase Admin App initialized successfully for EMULATOR (default app)');
+      } else {
+        logger.info('🚀 Firebase Admin SDK: Initializing for PRODUCTION environment');
+        
+        const serviceAccountPath = path.resolve(process.cwd(), config.firebaseServiceAccountPath);
+        logger.info(`🔑 Using service account file from path: ${serviceAccountPath}`);
+        
+        const credential = admin.credential.cert(serviceAccountPath);
+        admin.initializeApp({ 
+          credential,
+          projectId: config.firebaseProjectId 
+        });
+        
+        logger.info('✅ Firebase Admin App initialized successfully for PRODUCTION (default app)');
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('CRITICAL: Failed to initialize Firebase Admin SDK', { error: errorMessage });
+      logger.error('❌ CRITICAL: Failed to initialize Firebase Admin SDK', { 
+        error: errorMessage,
+        isEmulator: IS_EMULATOR,
+        authEmulatorHost: AUTH_EMULATOR_HOST 
+      });
       return; // No continuar si falla la inicialización de admin
     }
   }
 
-  // Una vez que la app de admin está garantizada, inicializamos DataConnect si no lo hemos hecho ya.
+  // Inicializar Firebase Data Connect usando Admin SDK
   if (!dataConnectInstance) {
     try {
-      dataConnectInstance = getDataConnect({
+      dataConnectInstance = getDataConnectAdmin({
         serviceId: DATA_CONNECT_SERVICE_ID,
         location: DATA_CONNECT_LOCATION,
       });
-      logger.info(`Firebase Data Connect SDK initialized for service: ${DATA_CONNECT_SERVICE_ID} in ${DATA_CONNECT_LOCATION}`);
+      
+      logger.info(`✅ Firebase Data Connect Admin SDK initialized for service: ${DATA_CONNECT_SERVICE_ID} in ${DATA_CONNECT_LOCATION}`);
       if (IS_EMULATOR) {
-        logger.info('Firebase Data Connect: Emulator detected. The SDK will connect to the emulator');
+        logger.info('🧪 Firebase Data Connect: Emulator mode detected. The SDK will connect to the emulator automatically.');
+      } else {
+        logger.info('🚀 Firebase Data Connect: Production mode - connecting to live service');
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Failed to initialize Firebase Data Connect SDK:', errorMessage);
+      logger.error('❌ Failed to initialize Firebase Data Connect Admin SDK:', errorMessage);
     }
   }
 }
@@ -67,16 +110,32 @@ export function getDb(): DataConnect {
 }
 
 /**
+ * Alias para getDb() - Obtiene la instancia de DataConnect.
+ * @returns La instancia de DataConnect.
+ * @throws Error si la instancia no ha sido inicializada.
+ */
+export function getDataConnect(): DataConnect {
+  return getDb();
+}
+
+/**
  * Verifica un Firebase ID Token.
  * @param idToken El token JWT enviado por el cliente.
  * @returns Una promesa que se resuelve con el DecodedIdToken si es válido.
  */
 export async function verifyFirebaseIdToken(idToken: string): Promise<DecodedIdToken> {
   try {
+    console.log('🔍 DEBUG - Token verification:');
+    console.log('- Token (first 50 chars):', idToken?.substring(0, 50));
+    console.log('- Is Emulator Mode:', IS_EMULATOR);
+    console.log('- Auth Emulator Host:', AUTH_EMULATOR_HOST);
+    
     const decodedToken = await admin.auth().verifyIdToken(idToken);
+    console.log('✅ Token verified successfully');
     return decodedToken;
   } catch (error: unknown) {
     const err = error as { code?: string; message?: string };
+    console.log('❌ Token verification failed:', err.code, err.message);
     logger.warn(`Error verificando Firebase ID Token: ${err.code} - ${err.message}`);
     throw error;
   }

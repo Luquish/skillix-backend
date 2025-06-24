@@ -9,29 +9,20 @@
     "dev": "nodemon --watch src --ext ts --exec ts-node -r tsconfig-paths/register src/app.ts",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
-
     "migrate:schema": "GOOGLE_APPLICATION_CREDENTIALS=./src/config/serviceAccountKey.json firebase emulators:exec --project=skillix-db \"firebase dataconnect:sql:migrate --force\"",
-    
     "start:test": "NODE_ENV=test ts-node -r tsconfig-paths/register src/app.ts",
     "test:e2e": "firebase emulators:exec --project=skillix-db \"start-server-and-test start:test http://localhost:8080 'jest --runInBand tests/api/'\"",
-    
     "test:services": "jest --runInBand tests/services/",
     "test:flows": "jest --runInBand tests/flows/",
     "test:simulators": "jest --runInBand tests/simulators/",
     "test:offline": "jest --runInBand tests/services/ tests/flows/ tests/simulators/",
-    
     "test:all": "pnpm test:offline && pnpm test:e2e",
-    
     "sim:journey": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/simulate-user-journey.ts",
     "sim:performance": "NODE_ENV=test ts-node -r tsconfig-paths/register tests/cli/performance-test.ts"
   },
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@firebase/data-connect": "^0.1.3",
-    "@firebasegen/default-connector": "link:dataconnect-generated/js/default-connector",
-    "@firebasegen/tovi-connector": "link:dataconnect-generated/js/tovi-connector",
-    "@firebasegen/tovi-connector-connector": "link:dataconnect-generated/js/tovi-connector-connector",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
@@ -67,12 +58,5 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "@firebasegen/tovi-connector-connector": "link:dataconnect-generated/js/tovi-connector-connector",
-      "@firebasegen/default-connector": "link:dataconnect-generated/js/default-connector",
-      "@firebasegen/tovi-connector": "link:dataconnect-generated/tovi-connector"
-    }
   }
 }

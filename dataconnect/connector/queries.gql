@@ -188,3 +188,217 @@ query GetUserByFirebaseUid($firebaseUid: String!) @auth(level: NO_ACCESS) {
     emailVerified
   }
 }
+
+# Obtiene la estructura completa de un plan de aprendizaje por su ID.
+# Se usa internamente por el backend, por eso no tiene @auth.
+query GetLearningPlanStructure($learningPlanId: UUID!) @auth(level: NO_ACCESS) {
+  learningPlans(where: { id: { eq: $learningPlanId } }) {
+    id
+    userFirebaseUid
+    skillName
+    sections: planSections_on_learningPlan {
+      id
+      title
+      order
+      days: dayContents_on_section {
+        id
+        dayNumber
+        title
+        focusArea
+        isActionDay
+        objectives
+        completionStatus
+      }
+    }
+    skillAnalysis: skillAnalysis_on_learningPlan {
+      skillCategory
+      marketDemand
+      isSkillValid
+      learningPathRecommendation
+      realWorldApplications
+      complementarySkills
+      components: skillComponentDatas_on_skillAnalysis {
+        name
+        description
+        difficultyLevel
+        prerequisitesText
+        estimatedLearningHours
+        practicalApplications
+        order
+      }
+    }
+  }
+}
+
+# Obtiene los tokens FCM de un usuario.
+# Se usa internamente por el backend para notificaciones.
+query GetUserFcmTokens($firebaseUid: String!) @auth(level: NO_ACCESS) {
+  user(key: { firebaseUid: $firebaseUid }) {
+    fcmTokens
+  }
+}
+
+# Obtiene el plan de aprendizaje activo más reciente del usuario.
+# Se usa internamente por el backend, por eso no tiene @auth.
+query GetCurrentUserLearningPlan($userFirebaseUid: String!) @auth(level: NO_ACCESS) {
+  learningPlans(
+    where: { 
+      userFirebaseUid: { eq: $userFirebaseUid }
+    }
+    orderBy: { generatedAt: DESC }
+    limit: 1
+  ) {
+    id
+    userFirebaseUid
+    skillName
+    generatedAt
+    totalDurationWeeks
+    dailyTimeMinutes
+    skillLevelTarget
+    milestones
+    progressMetrics
+    flexibilityOptions
+    sections: planSections_on_learningPlan {
+      id
+      title
+      order
+      days: dayContents_on_section {
+        id
+        dayNumber
+        title
+        focusArea
+        isActionDay
+        objectives
+        completionStatus
+      }
+    }
+    skillAnalysis: skillAnalysis_on_learningPlan {
+      skillCategory
+      marketDemand
+      isSkillValid
+      learningPathRecommendation
+      realWorldApplications
+      complementarySkills
+      components: skillComponentDatas_on_skillAnalysis {
+        name
+        description
+        difficultyLevel
+        prerequisitesText
+        estimatedLearningHours
+        practicalApplications
+        order
+      }
+    }
+  }
+}
+
+# Obtiene los datos de streak del usuario.
+# Se usa internamente por el backend, por eso no tiene @auth.
+query GetUserStreak($userFirebaseUid: String!) @auth(level: NO_ACCESS) {
+  streakData(key: { userFirebaseUid: $userFirebaseUid }) {
+    currentStreak
+    longestStreak
+    lastContributionDate
+  }
+}
+
+# Calcula el XP total del usuario basado en contenidos completados.
+# Se usa internamente por el backend, por eso no tiene @auth.
+query CalculateUserXP($userFirebaseUid: String!) @auth(level: NO_ACCESS) {
+  # XP de MainContent completado
+  mainContentItems(
+    where: { 
+      dayContent: { 
+        section: { 
+          learningPlan: { 
+            userFirebaseUid: { eq: $userFirebaseUid }
+          }
+        },
+        completionStatus: { eq: "COMPLETED" }
+      }
+    }
+  ) {
+    xp
+  }
+  
+  # XP de ActionTasks completadas
+  actionTaskItems(
+    where: { 
+      dayContent: { 
+        section: { 
+          learningPlan: { 
+            userFirebaseUid: { eq: $userFirebaseUid }
+          }
+        },
+        completionStatus: { eq: "COMPLETED" }
+      }
+    }
+  ) {
+    xp
+  }
+  
+  # XP de ContentBlocks completados
+  contentBlockItems(
+    where: { 
+      dayContent: { 
+        section: { 
+          learningPlan: { 
+            userFirebaseUid: { eq: $userFirebaseUid }
+          }
+        },
+        completionStatus: { eq: "COMPLETED" }
+      }
+    }
+  ) {
+    xp
+  }
+}
+
+# Obtiene el desglose detallado de XP del usuario.
+# Se usa internamente por el backend, por eso no tiene @auth.
+query GetUserXPBreakdown($userFirebaseUid: String!) @auth(level: NO_ACCESS) {
+  mainContentItems(
+    where: { 
+      dayContent: { 
+        section: { 
+          learningPlan: { 
+            userFirebaseUid: { eq: $userFirebaseUid }
+          }
+        },
+        completionStatus: { eq: "COMPLETED" }
+      }
+    }
+  ) {
+    xp
+  }
+  
+  actionTaskItems(
+    where: { 
+      dayContent: { 
+        section: { 
+          learningPlan: { 
+            userFirebaseUid: { eq: $userFirebaseUid }
+          }
+        },
+        completionStatus: { eq: "COMPLETED" }
+      }
+    }
+  ) {
+    xp
+  }
+  
+  contentBlockItems(
+    where: { 
+      dayContent: { 
+        section: { 
+          learningPlan: { 
+            userFirebaseUid: { eq: $userFirebaseUid }
+          }
+        },
+        completionStatus: { eq: "COMPLETED" }
+      }
+    }
+  ) {
+    xp
+  }
+}

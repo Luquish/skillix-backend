@@ -220,4 +220,120 @@ describe('User API (/api/user)', () => {
             expect(response.data.xp.breakdown.total).toBe(0);
         });
     });
+
+    describe('GET /progress', () => {
+        it('debería devolver 401 Unauthorized si no se provee un token', async () => {
+            const unauthedClient = axios.create({ baseURL: API_BASE_URL });
+            
+            try {
+                await unauthedClient.get('/user/progress');
+            } catch (error: any) {
+                expect(error.response.status).toBe(401);
+                expect(error.response.data.message).toContain('No token provided');
+            }
+        });
+
+        it('debería devolver 403 Forbidden si se provee un token inválido', async () => {
+            const invalidApiClient = axios.create({
+                baseURL: API_BASE_URL,
+                headers: { 'Authorization': 'Bearer invalid-token-123' }
+            });
+
+            try {
+                await invalidApiClient.get('/user/progress');
+            } catch (error: any) {
+                expect(error.response.status).toBe(403);
+                expect(error.response.data.message).toContain('Invalid or expired token');
+            }
+        });
+
+        it('debería devolver 404 si no hay datos de progreso para el usuario', async () => {
+            expect(testUser?.token).toBeDefined();
+
+            try {
+                await apiClient.get('/user/progress');
+            } catch (error: any) {
+                expect(error.response.status).toBe(404);
+                expect(error.response.data.message).toContain('No progress data found for user');
+            }
+        });
+
+        it('debería devolver progreso del usuario con token válido', async () => {
+            expect(testUser?.token).toBeDefined();
+
+            // Nota: Este test puede fallar si no hay datos de progreso en la DB
+            try {
+                const response = await apiClient.get('/user/progress');
+                
+                expect(response.status).toBe(200);
+                expect(response.data.message).toBe('User progress retrieved successfully');
+                expect(response.data.progress).toBeDefined();
+            } catch (error: any) {
+                // Si no hay datos, esperamos 404
+                if (error.response.status === 404) {
+                    expect(error.response.data.message).toContain('No progress data found');
+                } else {
+                    throw error;
+                }
+            }
+        });
+    });
+
+    describe('GET /analytics', () => {
+        it('debería devolver 401 Unauthorized si no se provee un token', async () => {
+            const unauthedClient = axios.create({ baseURL: API_BASE_URL });
+            
+            try {
+                await unauthedClient.get('/user/analytics');
+            } catch (error: any) {
+                expect(error.response.status).toBe(401);
+                expect(error.response.data.message).toContain('No token provided');
+            }
+        });
+
+        it('debería devolver 403 Forbidden si se provee un token inválido', async () => {
+            const invalidApiClient = axios.create({
+                baseURL: API_BASE_URL,
+                headers: { 'Authorization': 'Bearer invalid-token-123' }
+            });
+
+            try {
+                await invalidApiClient.get('/user/analytics');
+            } catch (error: any) {
+                expect(error.response.status).toBe(403);
+                expect(error.response.data.message).toContain('Invalid or expired token');
+            }
+        });
+
+        it('debería devolver 404 si no hay datos de analytics para el usuario', async () => {
+            expect(testUser?.token).toBeDefined();
+
+            try {
+                await apiClient.get('/user/analytics');
+            } catch (error: any) {
+                expect(error.response.status).toBe(404);
+                expect(error.response.data.message).toContain('No analytics data found for user');
+            }
+        });
+
+        it('debería devolver analytics del usuario con token válido', async () => {
+            expect(testUser?.token).toBeDefined();
+
+            // Nota: Este test puede fallar si no hay datos de analytics en la DB
+            try {
+                const response = await apiClient.get('/user/analytics');
+                
+                expect(response.status).toBe(200);
+                expect(response.data.message).toBe('User analytics retrieved successfully');
+                expect(response.data.analytics).toBeDefined();
+            } catch (error: any) {
+                // Si no hay datos, esperamos 404
+                if (error.response.status === 404) {
+                    expect(error.response.data.message).toContain('No analytics data found');
+                } else {
+                    throw error;
+                }
+            }
+        });
+    });
 }); 

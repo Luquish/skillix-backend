@@ -57,4 +57,4 @@ dataconnect/.dataconnect
 dataconnect-generated/
 
 # Exports from simulation scripts
-exports/
+exports/dataconnect-debug.log

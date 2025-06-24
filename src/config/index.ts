@@ -17,6 +17,7 @@ interface AppConfig {
   openaiModel: string;
   llmModelConfig: LlmModelConfig;
   firebaseServiceAccountPath: string;
+  firebaseProjectId: string;
   dataConnectServiceId: string;
   dataConnectLocation: string;
 }
@@ -34,6 +35,7 @@ const config: AppConfig = {
     presence_penalty: parseFloat(process.env.LLM_PRESENCE_PENALTY || '0'),
   },
   firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '',
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'skillix-db',
   dataConnectServiceId: process.env.DATA_CONNECT_SERVICE_ID,
   dataConnectLocation: process.env.DATA_CONNECT_LOCATION,
 };
