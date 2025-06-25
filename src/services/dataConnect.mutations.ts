@@ -4,50 +4,41 @@
 import { getDataConnect } from './firebase.service';
 import logger from '../utils/logger';
 import * as Types from './dataConnect.types';
+import * as AdminQueries from './dataConnect.queries';
 
 // --- MUTATION FUNCTIONS ---
 
 /**
  * CreateUser - Crea un nuevo usuario
  */
-export const createUser = async (input: {
-  firebaseUid: string;
-  email: string;
-  name?: string | null;
-  authProvider: string;
-  platform?: string | null;
-  photoUrl?: string | null;
-  emailVerified?: boolean | null;
-  appleUserIdentifier?: string | null;
-}): Promise<any> => {
-  try {
-    logger.info(`[Admin SDK] Creating user: ${input.email}`);
-    
-    const dc = getDataConnect();
-    const mutation = `
-      mutation CreateUser(
-        $firebaseUid: String!, $email: String!, $name: String, $authProvider: String!,
-        $platform: String, $photoUrl: String, $emailVerified: Boolean, $appleUserIdentifier: String
-      ) {
-        user_insert(data: {
-          firebaseUid: $firebaseUid, 
-          email: $email,
-          name: $name, 
-          authProvider: $authProvider,
-          platform: $platform,
-          photoUrl: $photoUrl, 
-          emailVerified: $emailVerified,
-          appleUserIdentifier: $appleUserIdentifier
-        })
-      }`;
-    
-    const response = await dc.executeGraphql(mutation, { variables: input });
-    return (response as any).data.user_insert;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error creating user: ${errorMessage}`);
-    throw error;
-  }
+export const createUser = async (
+  userData: Omit<Types.DbUser, 'id' | 'createdAt'>
+): Promise<{ user_insert: Types.User_KeyOutput } | null> => {
+  const dataConnect = getDataConnect();
+  logger.info(`[Mutation] Creating new user for UID: ${userData.firebaseUid}`);
+
+  const mutation = `
+    mutation CreateUser(
+      $firebaseUid: String!, $email: String!, $name: String, $authProvider: String,
+      $platform: String, $photoUrl: String, $emailVerified: Boolean, $appleUserIdentifier: String
+    ) {
+      user_insert(data: {
+        firebaseUid: $firebaseUid,
+        email: $email,
+        name: $name,
+        authProvider: $authProvider,
+        platform: $platform,
+        photoUrl: $photoUrl,
+        emailVerified: $emailVerified,
+        appleUserIdentifier: $appleUserIdentifier
+      }) {
+        id
+      }
+    }
+  `;
+
+  const response = await dataConnect.executeGraphql(mutation, { variables: userData });
+  return (response as any).data;
 };
 
 /**
@@ -94,7 +85,7 @@ export const createUserPreference = async (input: {
 };
 
 /**
- * CreateLearningPlanBase - Crea la base de un plan de aprendizaje
+ * Crea la entidad base de un plan de aprendizaje.
  */
 export const createLearningPlanBase = async (input: {
   userFirebaseUid: string;
@@ -108,31 +99,34 @@ export const createLearningPlanBase = async (input: {
   progressMetrics: string[];
   flexibilityOptions?: string[] | null;
 }): Promise<any> => {
-  try {
-    logger.info(`[Admin SDK] Creating learning plan base: ${input.skillName}`);
-    
-    const dc = getDataConnect();
-    const mutation = `
-      mutation CreateLearningPlanBase(
-        $userFirebaseUid: String!, $skillName: String!, $generatedBy: String!, $generatedAt: Timestamp!,
-        $totalDurationWeeks: Int!, $dailyTimeMinutes: Int!, $skillLevelTarget: String!,
-        $milestones: [String!]!, $progressMetrics: [String!]!, $flexibilityOptions: [String!]
-      ) {
-        learningPlan_insert(data: {
-          userFirebaseUid: $userFirebaseUid, skillName: $skillName, generatedBy: $generatedBy, generatedAt: $generatedAt,
-          totalDurationWeeks: $totalDurationWeeks, dailyTimeMinutes: $dailyTimeMinutes, 
-          skillLevelTarget: $skillLevelTarget,
-          milestones: $milestones, progressMetrics: $progressMetrics, flexibilityOptions: $flexibilityOptions
-        })
-      }`;
-    
-    const response = await dc.executeGraphql(mutation, { variables: input });
-    return (response as any).data.learningPlan_insert;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error creating learning plan base: ${errorMessage}`);
-    throw error;
-  }
+  const dataConnect = getDataConnect();
+  logger.info(`[Mutation] Creating learning plan base for user ${input.userFirebaseUid}`);
+
+  const mutation = `
+    mutation CreateLearningPlanBase(
+      $userFirebaseUid: String!, $skillName: String!, 
+      $generatedBy: String, $totalDurationWeeks: Int, $dailyTimeMinutes: Int, 
+      $skillLevelTarget: String, $milestones: [String!], 
+      $progressMetrics: [String!], $flexibilityOptions: [String!]
+    ) {
+      learningPlan_insert(data: {
+        userFirebaseUid: $userFirebaseUid,
+        skillName: $skillName,
+        generatedBy: $generatedBy,
+        totalDurationWeeks: $totalDurationWeeks,
+        dailyTimeMinutes: $dailyTimeMinutes,
+        skillLevelTarget: $skillLevelTarget,
+        milestones: $milestones,
+        progressMetrics: $progressMetrics,
+        flexibilityOptions: $flexibilityOptions
+      }) {
+        id
+      }
+    }
+  `;
+
+  const response = await dataConnect.executeGraphql(mutation, { variables: input });
+  return (response as any).data.learningPlan_insert;
 };
 
 /**
@@ -316,73 +310,59 @@ export const createActionStepItem = async (input: {
   description: string;
   estimatedTimeSeconds: number;
 }): Promise<any> => {
-  try {
-    logger.info(`[Admin SDK] Creating action step item: Step ${input.stepNumber}`);
-    
-    const dc = getDataConnect();
-    const mutation = `
-      mutation CreateActionStepItem(
-        $actionTaskItemId: UUID!, $stepNumber: Int!, $description: String!, $estimatedTimeSeconds: Int!
-      ) {
-        actionStepItem_insert(data: {
-          actionTaskItemId: $actionTaskItemId, stepNumber: $stepNumber,
-          description: $description, estimatedTimeSeconds: $estimatedTimeSeconds
-        })
-      }`;
-    
-    const response = await dc.executeGraphql(mutation, { variables: input });
-    return (response as any).data.actionStepItem_insert;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error creating action step item: ${errorMessage}`);
-    throw error;
-  }
+  const dataConnect = getDataConnect();
+  logger.info(`[Mutation] Creating action step for task: ${input.actionTaskItemId}`);
+
+  const mutation = `
+    mutation CreateActionStepItem(
+      $actionTaskItemId: UUID!, $stepNumber: Int!, $description: String!, $estimatedTimeSeconds: Int!
+    ) {
+      actionStepItem_insert(data: {
+        actionTaskItemId: $actionTaskItemId,
+        stepNumber: $stepNumber,
+        description: $description,
+        estimatedTimeSeconds: $estimatedTimeSeconds
+      }) {
+        id
+      }
+    }
+  `;
+
+  const response = await dataConnect.executeGraphql(mutation, { variables: input });
+  return (response as any).data.actionStepItem_insert;
 };
 
 /**
- * CreateSkillAnalysis - Crea análisis de habilidad
+ * CreateSkillAnalysis - Crea una entrada de SkillAnalysis vinculada a un plan de aprendizaje.
  */
-export const createSkillAnalysis = async (input: {
-  learningPlanId: string;
-  skillCategory: string;
-  marketDemand: string;
-  learningPathRecommendation: string;
-  realWorldApplications: string[];
-  complementarySkills: string[];
-  isSkillValid: boolean;
-  viabilityReason?: string | null;
-  generatedBy: string;
-}): Promise<any> => {
-  try {
-    logger.info(`[Admin SDK] Creating skill analysis for plan: ${input.learningPlanId}`);
-    
-    const dc = getDataConnect();
-    const mutation = `
-      mutation CreateSkillAnalysis(
-        $learningPlanId: UUID!, $skillCategory: String!, $marketDemand: String!,
-        $learningPathRecommendation: String!, $realWorldApplications: [String!]!,
-        $complementarySkills: [String!]!, $isSkillValid: Boolean!, $viabilityReason: String, $generatedBy: String!
-      ) {
-        skillAnalysis_insert(data: {
-          learningPlanId: $learningPlanId, 
-          skillCategory: $skillCategory, 
-          marketDemand: $marketDemand,
-          learningPathRecommendation: $learningPathRecommendation, 
-          realWorldApplications: $realWorldApplications,
-          complementarySkills: $complementarySkills, 
-          isSkillValid: $isSkillValid, 
-          viabilityReason: $viabilityReason, 
-          generatedBy: $generatedBy
-        })
-      }`;
-    
-    const response = await dc.executeGraphql(mutation, { variables: input });
-    return (response as any).data.skillAnalysis_insert;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error creating skill analysis: ${errorMessage}`);
-    throw error;
-  }
+export const createSkillAnalysis = async (input: any): Promise<any> => {
+  const dataConnect = getDataConnect();
+  logger.info(`[Mutation] Creating skill analysis for plan ${input.learningPlanId}`);
+
+  const mutation = `
+    mutation CreateSkillAnalysis(
+      $learningPlanId: UUID!, $skillCategory: String, $marketDemand: String, 
+      $isSkillValid: Boolean, $viabilityReason: String, $learningPathRecommendation: String, 
+      $realWorldApplications: [String!], $complementarySkills: [String!], $generatedBy: String
+    ) {
+      skillAnalysis_insert(data: {
+        learningPlanId: $learningPlanId,
+        skillCategory: $skillCategory,
+        marketDemand: $marketDemand,
+        isSkillValid: $isSkillValid,
+        viabilityReason: $viabilityReason,
+        learningPathRecommendation: $learningPathRecommendation,
+        realWorldApplications: $realWorldApplications,
+        complementarySkills: $complementarySkills,
+        generatedBy: $generatedBy
+      }) {
+        id
+      }
+    }
+  `;
+
+  const response = await dataConnect.executeGraphql(mutation, { variables: input });
+  return (response as any).data.skillAnalysis_insert;
 };
 
 /**
@@ -398,29 +378,25 @@ export const createSkillComponentData = async (input: {
   practicalApplications: string[];
   order: number;
 }): Promise<any> => {
-  try {
-    logger.info(`[Admin SDK] Creating skill component: ${input.name}`);
-    
-    const dc = getDataConnect();
-    const mutation = `
-      mutation CreateSkillComponentData(
-        $skillAnalysisId: UUID!, $name: String!, $description: String!, $difficultyLevel: String!,
-        $prerequisitesText: [String!]!, $estimatedLearningHours: Int!, $practicalApplications: [String!]!, $order: Int!
-      ) {
-        skillComponentData_insert(data: {
-          skillAnalysisId: $skillAnalysisId, name: $name, description: $description, difficultyLevel: $difficultyLevel,
-          prerequisitesText: $prerequisitesText, estimatedLearningHours: $estimatedLearningHours,
-          practicalApplications: $practicalApplications, order: $order
-        })
-      }`;
-    
-    const response = await dc.executeGraphql(mutation, { variables: input });
-    return (response as any).data.skillComponentData_insert;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error creating skill component: ${errorMessage}`);
-    throw error;
-  }
+  const dataConnect = getDataConnect();
+  logger.info(`[Mutation] Creating skill component: ${input.name}`);
+  
+  const mutation = `
+    mutation CreateSkillComponentData(
+      $skillAnalysisId: UUID!, $name: String!, $description: String!, $difficultyLevel: String!,
+      $prerequisitesText: [String!]!, $estimatedLearningHours: Int!, $practicalApplications: [String!]!, $order: Int!
+    ) {
+      skillComponentData_insert(data: {
+        skillAnalysisId: $skillAnalysisId, name: $name, description: $description, difficultyLevel: $difficultyLevel,
+        prerequisitesText: $prerequisitesText, estimatedLearningHours: $estimatedLearningHours,
+        practicalApplications: $practicalApplications, order: $order
+      }) {
+        id
+      }
+    }`;
+  
+  const response = await dataConnect.executeGraphql(mutation, { variables: input });
+  return (response as any).data.skillComponentData_insert;
 };
 
 /**
@@ -744,49 +720,69 @@ export const createLearningObjectiveData = async (input: {
  * CreateEnrollment - Crea una inscripción (versión USER con auth)
  */
 export const createEnrollment = async (input: {
+  userFirebaseUid: string;
   learningPlanId: string;
   status: string;
 }): Promise<any> => {
-  try {
-    logger.info(`[Admin SDK] Creating enrollment (USER auth): ${input.learningPlanId}`);
-    
-    const dc = getDataConnect();
-    const mutation = `
-      mutation CreateEnrollment($learningPlanId: UUID!, $status: String!) {
-        enrollment_insert(data: {
-            userFirebaseUid_expr: "auth.uid",
-            learningPlanId: $learningPlanId,
-            status: $status
-        })
-      }`;
-    
-    const response = await dc.executeGraphql(mutation, { variables: input });
-    return (response as any).data.enrollment_insert;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error creating enrollment (USER auth): ${errorMessage}`);
-    throw error;
-  }
+  const dataConnect = getDataConnect();
+  logger.info(`[Mutation] Creating enrollment for user ${input.userFirebaseUid} in plan ${input.learningPlanId}`);
+
+  const mutation = `
+    mutation CreateEnrollment(
+      $userFirebaseUid: String!, $learningPlanId: UUID!, $status: String!
+    ) {
+      enrollment_insert(data: {
+        userFirebaseUid: $userFirebaseUid,
+        learningPlanId: $learningPlanId,
+        status: $status
+      })
+    }
+  `;
+
+  const response = await dataConnect.executeGraphql(mutation, { variables: input });
+  return (response as any).data.enrollment_insert;
 };
 
 /**
- * DeleteUser - Elimina un usuario
+ * Actualiza el perfil de un usuario en la base de datos.
+ * Después de actualizar, vuelve a buscar al usuario para devolver el objeto completo.
+ */
+export const updateUser = async (
+  firebaseUid: string,
+  data: Partial<Pick<Types.DbUser, 'name' | 'language' | 'learningObjective'>>
+): Promise<Types.DbUser | null> => {
+  const dataConnect = getDataConnect();
+  logger.info(`[Mutation] Starting user profile update for UID: ${firebaseUid}`);
+
+  const mutation = `
+    mutation UpdateUser(
+      $firebaseUid: String!, $name: String, $language: String, $learningObjective: String
+    ) {
+      user_update(
+        key: { firebaseUid: $firebaseUid },
+        data: { name: $name, language: $language, learningObjective: $learningObjective }
+      )
+    }
+  `;
+  
+  await dataConnect.executeGraphql(mutation, { variables: { firebaseUid, ...data } });
+  logger.info(`[Mutation] Update operation completed for UID: ${firebaseUid}. Fetching updated profile.`);
+  
+  const updatedUser = await AdminQueries.getUserByFirebaseUid(firebaseUid);
+  return updatedUser;
+};
+
+/**
+ * Elimina un usuario de la base de datos por su Firebase UID.
  */
 export const deleteUser = async (firebaseUid: string): Promise<boolean> => {
-  try {
-    logger.info(`[Admin SDK] Deleting user: ${firebaseUid}`);
-    
-    const dc = getDataConnect();
-    const mutation = `
-      mutation DeleteUser($firebaseUid: String!) {
-          user_delete(key: { firebaseUid: $firebaseUid })
-      }`;
-    
-    const response = await dc.executeGraphql(mutation, { variables: { firebaseUid } });
-    return !!(response as any).data.user_delete;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error deleting user: ${errorMessage}`);
-    throw error;
-  }
-}; 
+  const dataConnect = getDataConnect();
+  logger.info(`[Mutation] Deleting user from DB for UID: ${firebaseUid}`);
+  
+  const mutation = 'mutation DeleteUser($firebaseUid: String!) { user_delete(key: { firebaseUid: $firebaseUid }) }';
+  
+  await dataConnect.executeGraphql(mutation, { variables: { firebaseUid } });
+  
+  logger.info(`[Mutation] User deleted from DB successfully for UID: ${firebaseUid}`);
+  return true;
+};

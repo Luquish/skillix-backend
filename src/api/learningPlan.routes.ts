@@ -1,13 +1,7 @@
 import { Router } from 'express';
-import { 
-  createLearningPlanController,
-  getCurrentLearningPlanController,
-  getLearningPlanByIdController,
-  getUserEnrollmentsController,
-  getUserLearningPlansController,
-  createEnrollmentController
-} from '../controllers/learningPlan.controller';
+import * as LearningPlanController from '../controllers/learningPlan.controller';
 import { isAuthenticated } from '../middleware/auth.middleware';
+import { asyncHandler } from '../utils/errorHandler';
 
 const router = Router();
 
@@ -16,41 +10,41 @@ const router = Router();
  * @desc    Crea un nuevo plan de aprendizaje completo para el usuario autenticado.
  * @access  Private (Requiere token de Firebase)
  */
-router.post('/create', isAuthenticated, createLearningPlanController);
+router.post('/create', isAuthenticated, asyncHandler(LearningPlanController.createLearningPlanController));
 
 /**
  * @route   GET /api/learning-plan/current
  * @desc    Obtiene el plan de aprendizaje actual del usuario autenticado.
  * @access  Private (Requiere token de Firebase)
  */
-router.get('/current', isAuthenticated, getCurrentLearningPlanController);
+router.get('/current', isAuthenticated, asyncHandler(LearningPlanController.getCurrentLearningPlanController));
 
 /**
  * @route   GET /api/learning-plan/:id
  * @desc    Obtiene un plan de aprendizaje específico por ID.
  * @access  Private (Requiere token de Firebase)
  */
-router.get('/:id', isAuthenticated, getLearningPlanByIdController);
+router.get('/:id', isAuthenticated, asyncHandler(LearningPlanController.getLearningPlanByIdController));
 
 /**
  * @route   GET /api/learning-plan/user/enrollments
  * @desc    Obtiene todas las inscripciones del usuario autenticado.
  * @access  Private (Requiere token de Firebase)
  */
-router.get('/user/enrollments', isAuthenticated, getUserEnrollmentsController);
+router.get('/user/enrollments', isAuthenticated, asyncHandler(LearningPlanController.getUserEnrollmentsController));
 
 /**
  * @route   GET /api/learning-plan/user/plans
  * @desc    Obtiene todos los planes de aprendizaje del usuario autenticado.
  * @access  Private (Requiere token de Firebase)
  */
-router.get('/user/plans', isAuthenticated, getUserLearningPlansController);
+router.get('/user/plans', isAuthenticated, asyncHandler(LearningPlanController.getUserLearningPlansController));
 
 /**
  * @route   POST /api/learning-plan/enroll
  * @desc    Crea una nueva inscripción para el usuario autenticado.
  * @access  Private (Requiere token de Firebase)
  */
-router.post('/enroll', isAuthenticated, createEnrollmentController);
+router.post('/enroll', isAuthenticated, asyncHandler(LearningPlanController.enrollInLearningPlanController));
 
 export default router;

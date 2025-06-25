@@ -19,6 +19,8 @@ type User @table(name: "users", key: "firebaseUid") {
   isDeleted: Boolean @default(expr: "false") @col(name: "is_deleted")
   createdAt: Timestamp @default(expr: "request.time") @col(name: "created_at")
   updatedAt: Timestamp @default(expr: "request.time") @col(name: "updated_at")
+  language: String
+  learningObjective: String
 }
 
 type UserPreference @table(name: "user_preferences") {

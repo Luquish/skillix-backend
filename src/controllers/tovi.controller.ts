@@ -1,77 +1,65 @@
 import { Response } from 'express';
+import { z } from 'zod';
+import { getSkiMotivationalMessage } from '../services/llm/toviTheFox.service';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
-import * as DataConnectService from '../services/dataConnect.service';
+import { createError } from '../utils/errorHandler';
 
-/**
- * ✅ NUEVO - Obtiene los mensajes de Tovi para una situación específica
- */
-export const getToviMessagesController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
-
-    const { situation } = req.params;
-
-    if (!situation) {
-      return res.status(400).json({ message: 'Situation parameter is required.' });
-    }
-
-    const toviMessages = await DataConnectService.getToviMessages(user.firebaseUid, situation);
-
-    if (!toviMessages || toviMessages.length === 0) {
-      return res.status(404).json({ 
-        message: `No Tovi messages found for situation: ${situation}` 
-      });
-    }
-
-    res.status(200).json({
-      message: 'Tovi messages retrieved successfully.',
-      situation: situation,
-      messages: toviMessages,
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in getToviMessagesController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
+// Helper unificado para obtener el mensaje
+const getMessageForSituation = async (situation: string, user: AuthenticatedRequest['user']) => {
+  if (!user) {
+    throw createError('User not authenticated.', 401);
   }
+
+  const messages = await getSkiMotivationalMessage({
+    userContext: { name: user.name || 'Learner' },
+    situation: situation as any, 
+  });
+
+  if (!messages) {
+    throw createError(`No Tovi messages found for situation: ${situation}`, 404);
+  }
+  
+  return messages;
 };
 
 /**
- * ✅ NUEVO - Obtiene los mensajes de Tovi sin situación específica (query param)
+ * Maneja GET /api/tovi/messages/:situation (parámetro de ruta)
  */
-export const getToviMessagesBySituationController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
+export const getToviMessageFromPath = async (req: AuthenticatedRequest, res: Response) => {
+  const { situation } = req.params;
 
-    const { situation } = req.query;
+  // La validación es implícita por la definición de la ruta.
+  // Express no llamará a este controlador si :situation está ausente.
 
-    if (!situation || typeof situation !== 'string') {
-      return res.status(400).json({ message: 'Situation query parameter is required and must be a string.' });
-    }
+  const messages = await getMessageForSituation(situation, req.user);
 
-    const toviMessages = await DataConnectService.getToviMessages(user.firebaseUid, situation);
+  res.status(200).json({
+    message: 'Tovi messages retrieved successfully.',
+    data: messages,
+  });
+};
 
-    if (!toviMessages || toviMessages.length === 0) {
-      return res.status(404).json({ 
-        message: `No Tovi messages found for situation: ${situation}` 
-      });
-    }
+/**
+ * Maneja GET /api/tovi/messages (query param)
+ */
+export const getToviMessageFromQuery = async (req: AuthenticatedRequest, res: Response) => {
+  const SituationQuerySchema = z.object({
+    situation: z.string().min(1, 'Situation query parameter is required and cannot be empty.'),
+  });
+  
+  const validationResult = SituationQuerySchema.safeParse(req.query);
 
-    res.status(200).json({
-      message: 'Tovi messages retrieved successfully.',
-      situation: situation,
-      messages: toviMessages,
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in getToviMessagesBySituationController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
+  if (!validationResult.success) {
+    // Usar el primer error para el mensaje
+    const firstError = validationResult.error.errors[0];
+    throw createError(firstError.message, 400);
   }
+
+  const { situation } = validationResult.data;
+  const messages = await getMessageForSituation(situation, req.user);
+
+  res.status(200).json({
+    message: 'Tovi messages retrieved successfully.',
+    data: messages,
+  });
 }; 

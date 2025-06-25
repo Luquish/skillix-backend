@@ -20,11 +20,20 @@ describe('User API (/api/user)', () => {
         const password = 'password123';
         const { uid, token } = await createTestUserAndGetToken(email, password);
         testUser = { uid, email, token };
-        await axios.post(
-            `${API_BASE_URL}/auth/sync-profile`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
+        
+        // ✅ Capturar cualquier error en sync-profile para debugging
+        try {
+            console.log('🧪 [TEST] Calling /auth/sync-profile with token length:', token?.length);
+            const syncResponse = await axios.post(
+                `${API_BASE_URL}/auth/sync-profile`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            console.log('🧪 [TEST] sync-profile response:', syncResponse.status, syncResponse.data.message);
+        } catch (syncError: any) {
+            console.error('❌ [TEST] sync-profile failed:', syncError.response?.status, syncError.response?.data || syncError.message);
+            // No lanzar error aquí para ver si el problema viene después
+        }
 
         // 3. Configurar cliente HTTP autenticado
         apiClient = axios.create({ 
@@ -89,8 +98,10 @@ describe('User API (/api/user)', () => {
             const unauthedClient = axios.create({ baseURL: API_BASE_URL });
             
             try {
+                console.log('🧪 [TEST] Making request without token to /user/stats');
                 await unauthedClient.get('/user/stats');
             } catch (error: any) {
+                console.log('🧪 [TEST] Unauthed request response:', error.response?.status, error.response?.data);
                 expect(error.response.status).toBe(401);
                 expect(error.response.data.message).toContain('No token provided');
             }
@@ -111,8 +122,14 @@ describe('User API (/api/user)', () => {
         });
 
         it('debería devolver estadísticas completas del usuario con token válido', async () => {
+            console.log('🧪 [TEST] testUser token status:', { 
+                exists: !!testUser?.token, 
+                length: testUser?.token?.length,
+                uid: testUser?.uid 
+            });
             expect(testUser?.token).toBeDefined();
 
+            console.log('🧪 [TEST] Making authenticated request to /user/stats');
             const response = await apiClient.get('/user/stats');
             
             expect(response.status).toBe(200);

@@ -1,14 +1,18 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+console.log('Intentando cargar variables de entorno...');
+console.log('Valor de PORT desde .env:', process.env.PORT);
+console.log('API Key de OpenAI cargada:', !!process.env.OPENAI_API_KEY);
+
+
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 
 // Importar el router principal de la API (asumiendo que hay un index.ts en api/)
 import apiRouter from './api';
 import { errorHandler, notFoundHandler } from './utils/errorHandler';
 import logger from './utils/logger';
-
-// Cargar variables de entorno
-dotenv.config();
 
 const app: Application = express();
 const PORT = process.env.PORT || 3000;

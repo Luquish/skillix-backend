@@ -1,57 +1,27 @@
 import { Response } from 'express';
+import { z } from 'zod';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
+import { createError } from '../utils/errorHandler';
+
+const ChatMessageSchema = z.object({
+  message: z.string().min(1, 'Message content cannot be empty.'),
+});
 
 /**
- * 🚧 PLACEHOLDER - Controlador para iniciar una conversación de chat
- * TODO: Implementar lógica de chat cuando esté disponible
+ * @description Inicia una nueva sesión de chat.
+ * @status 🚧 PLACEHOLDER - No implementado aún
  */
-export const startChatController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
-
-    // TODO: Implementar lógica de chat
-    res.status(501).json({
-      message: 'Chat functionality not implemented yet.',
-      status: 'placeholder'
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in startChatController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
-  }
+export const startChatSession = async (req: AuthenticatedRequest, res: Response) => {
+  // Lógica futura: crear un nuevo hilo/sesión de chat en la base de datos
+  throw createError('Not Implemented', 501);
 };
 
 /**
- * 🚧 PLACEHOLDER - Controlador para enviar un mensaje en el chat
- * TODO: Implementar lógica de envío de mensajes cuando esté disponible
+ * @description Envía un mensaje en una sesión de chat existente.
+ * @status 🚧 PLACEHOLDER - No implementado aún
  */
-export const sendMessageController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
-
-    const { message } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ message: 'Message content is required.' });
-    }
-
-    // TODO: Implementar lógica de envío de mensajes
-    res.status(501).json({
-      message: 'Send message functionality not implemented yet.',
-      status: 'placeholder',
-      receivedMessage: message
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in sendMessageController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
-  }
+export const postChatMessage = async (req: AuthenticatedRequest, res: Response) => {
+  ChatMessageSchema.parse(req.body);
+  // Lógica futura: recibir el mensaje, procesarlo con el LLM y devolver la respuesta
+  throw createError('Not Implemented', 501);
 };

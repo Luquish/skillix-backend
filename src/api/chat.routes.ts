@@ -1,9 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../middleware/auth.middleware';
-import { 
-  startChatController,
-  sendMessageController
-} from '../controllers/chat.controller';
+import * as ChatController from '../controllers/chat.controller';
+import { asyncHandler } from '../utils/errorHandler';
 
 const router = Router();
 
@@ -13,7 +11,11 @@ const router = Router();
  * @access  Private (Requiere token de Firebase)
  * @status  🚧 PLACEHOLDER - No implementado aún
  */
-router.post('/start', isAuthenticated, startChatController);
+router.post(
+  '/start', 
+  isAuthenticated, 
+  asyncHandler(ChatController.startChatSession)
+);
 
 /**
  * @route   POST /api/chat/message
@@ -22,6 +24,10 @@ router.post('/start', isAuthenticated, startChatController);
  * @body    { message: string }
  * @status  🚧 PLACEHOLDER - No implementado aún
  */
-router.post('/message', isAuthenticated, sendMessageController);
+router.post(
+  '/message', 
+  isAuthenticated, 
+  asyncHandler(ChatController.postChatMessage)
+);
 
 export default router;

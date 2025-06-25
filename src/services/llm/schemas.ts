@@ -509,16 +509,6 @@ const SkillComponentSchemaRaw = z.object({
   practical_applications: z.array(z.string().min(1)).optional(),
   practicalApplications: z.array(z.string().min(1)).optional(),
   order: z.number().int().optional(),
-}).refine((data) => {
-  // Validar que al menos una versión de cada campo requerido esté presente
-  const hasDifficultyLevel = data.difficulty_level || data.difficultyLevel;
-  const hasPrerequisites = data.prerequisites || data.prerequisitesText;
-  const hasEstimatedHours = data.estimated_learning_hours || data.estimatedLearningHours;
-  const hasPracticalApplications = data.practical_applications || data.practicalApplications;
-  
-  return hasDifficultyLevel && hasPrerequisites && hasEstimatedHours && hasPracticalApplications;
-}, {
-  message: "Los campos requeridos del componente de skill deben estar presentes en alguna de sus variantes."
 });
 
 export const SkillComponentSchema = SkillComponentSchemaRaw.transform((data) => {
@@ -561,16 +551,6 @@ const SkillAnalysisSchemaRaw = z.object({
   components: z.array(SkillComponentSchemaRaw).nullable().optional(),
   generated_by: z.string().optional(),
   generatedBy: z.string().optional(),
-}).refine((data) => {
-  // Validar que al menos una versión de cada campo requerido esté presente
-  const hasSkillName = data.skill_name || data.skillName;
-  const hasSkillCategory = data.skill_category || data.skillCategory;
-  const hasMarketDemand = data.market_demand || data.marketDemand;
-  const hasIsSkillValid = data.is_skill_valid !== undefined || data.isSkillValid !== undefined;
-  
-  return hasSkillName && hasSkillCategory && hasMarketDemand && hasIsSkillValid;
-}, {
-  message: "Los campos requeridos (skill_name/skillName, skill_category/skillCategory, market_demand/marketDemand, is_skill_valid/isSkillValid) deben estar presentes en alguna de sus variantes."
 });
 
 export const SkillAnalysisSchema = SkillAnalysisSchemaRaw.transform((data) => {
@@ -683,13 +663,13 @@ export const LearningPlanSchema = LearningPlanSchemaRaw.transform((data) => {
       dayNumber: index + 1,
       title: milestone,
       focusArea: milestone,
-      isActionDay: false, 
+      isActionDay: false,
       objectives: [`Complete milestone: ${milestone}`],
       completionStatus: 'PENDING' as const,
       order: index + 1,
     }));
     sections = [{
-      title: 'Learning Journey',
+      title: "Main Section",
       description: 'Main learning path section.',
       order: 1,
       days: days,
@@ -816,4 +796,25 @@ export type SkillAnalysis = z.infer<typeof SkillAnalysisSchema>;
 
 export type SkiMessage = z.infer<typeof SkiMessageSchema>;
 export type StreakCelebration = z.infer<typeof StreakCelebrationSchema>;
-export type DailyMotivation = z.infer<typeof DailyMotivationSchema>; 
+export type DailyMotivation = z.infer<typeof DailyMotivationSchema>;
+
+export { SkillAnalysisSchemaRaw };
+
+// --- Content Generation Schemas ---
+export const GenerateNextDayContentInputSchema = z.object({
+  learningPlanId: z.string().min(1),
+  completedDayNumber: z.number().int(),
+  performanceSummary: z.string().optional(), // Puede ser opcional
+});
+
+export const GetDayContentParamsSchema = z.object({
+  learningPlanId: z.string().min(1),
+  dayNumber: z.string().regex(/^\d+$/, "Day number must be a string containing only digits."),
+});
+
+export const CreateActionStepInputSchema = z.object({
+  actionTaskItemId: z.string().min(1),
+  stepNumber: z.number().int().positive(),
+  description: z.string().min(1),
+  estimatedTimeSeconds: z.number().int().positive(),
+}); 

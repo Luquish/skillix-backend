@@ -1,7 +1,8 @@
 import axios from 'axios';
-import * as admin from 'firebase-admin';
-import { deleteUserByFirebaseUid } from '../../src/services/dataConnect.service';
+import { admin as firebaseAdmin } from '../../src/services/firebase.service';
+import app from '../../src/app';
 import { createTestUserAndGetToken } from '../helpers/auth.helper';
+import { deleteUser } from '../../src/services/dataConnect.service';
 
 const API_BASE_URL = `http://localhost:${process.env.PORT || 8080}/api`;
 
@@ -10,18 +11,36 @@ const generateRandomEmail = () => {
   return `test.user.${randomString}@skillix.com`;
 };
 
+let server: any;
 let createdUserUid: string | null = null;
 let authToken: string | null = null;
 
 describe('Auth API (/api/auth)', () => {
-  afterAll(async () => {
+
+  beforeAll((done) => {
+    server = app.listen(0, () => {
+      const port = (server.address() as any).port;
+      process.env.PORT = String(port); // Make port available to tests
+      console.log(`Test server running on http://localhost:${port}`);
+      done();
+    });
+  });
+
+  afterAll((done) => {
+    server.close(done);
+  });
+  
+  // Limpieza después de cada test
+  afterEach(async () => {
     if (createdUserUid) {
       try {
-        await admin.auth().deleteUser(createdUserUid);
-        await deleteUserByFirebaseUid(createdUserUid);
+        await firebaseAdmin.auth().deleteUser(createdUserUid);
+        await deleteUser(createdUserUid);
       } catch (error) {
         console.error(`[Test Cleanup] Error removing user ${createdUserUid}:`, error);
       }
+      createdUserUid = null;
+      authToken = null;
     }
   });
 

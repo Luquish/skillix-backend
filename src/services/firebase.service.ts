@@ -18,15 +18,7 @@ const DATA_CONNECT_SERVICE_ID = config.dataConnectServiceId || 'skillix-db-servi
 const DATA_CONNECT_LOCATION = config.dataConnectLocation || 'us-central1';
 
 function initialize() {
-  // DEBUG: Mostrar variables de entorno
-  console.log('🔍 DEBUG - Environment Variables:');
-  console.log('- NODE_ENV:', process.env.NODE_ENV);
-  console.log('- FIREBASE_AUTH_EMULATOR_HOST:', process.env.FIREBASE_AUTH_EMULATOR_HOST);
-  console.log('- FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID);
-  console.log('- IS_EMULATOR:', IS_EMULATOR);
-  console.log('- AUTH_EMULATOR_HOST:', AUTH_EMULATOR_HOST);
-  
-  // Inicializa la app de admin si no existe.
+    // Inicializa la app de admin si no existe.
   if (admin.apps.length === 0) {
     try {
       // Configuración específica para emuladores vs producción
@@ -130,12 +122,25 @@ export async function verifyFirebaseIdToken(idToken: string): Promise<DecodedIdT
     console.log('- Is Emulator Mode:', IS_EMULATOR);
     console.log('- Auth Emulator Host:', AUTH_EMULATOR_HOST);
     
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    // ✅ En modo emulador, Firebase Admin SDK debe aceptar tanto ID tokens como custom tokens
+    // checkRevoked = false para emulador permite custom tokens
+    const decodedToken = await admin.auth().verifyIdToken(idToken, !IS_EMULATOR);
     console.log('✅ Token verified successfully');
+    console.log('- Token UID:', decodedToken.uid);
+    console.log('- Token audience:', decodedToken.aud);
+    console.log('- Token issuer:', decodedToken.iss);
     return decodedToken;
   } catch (error: unknown) {
     const err = error as { code?: string; message?: string };
     console.log('❌ Token verification failed:', err.code, err.message);
+    
+    // ✅ En modo emulador, dar más información de debug para custom tokens
+    if (IS_EMULATOR) {
+      console.log('🧪 [EMULATOR] Additional debug info:');
+      console.log('- Token appears to be:', idToken?.includes('ey') ? 'JWT format' : 'Unknown format');
+      console.log('- Expected project ID:', config.firebaseProjectId);
+    }
+    
     logger.warn(`Error verificando Firebase ID Token: ${err.code} - ${err.message}`);
     throw error;
   }
@@ -216,6 +221,27 @@ export async function sendFcmNotification(
       logger.info(`Token FCM inválido o no registrado: ${deviceToken}. Debería ser eliminado de la base de datos.`);
     }
     return false;
+  }
+}
+
+/**
+ * Elimina un usuario de Firebase Authentication por su UID.
+ * @param uid El UID del usuario a eliminar.
+ * @returns Una promesa que se resuelve cuando el usuario es eliminado.
+ */
+export async function deleteFirebaseUser(uid: string): Promise<void> {
+  try {
+    await admin.auth().deleteUser(uid);
+    logger.info(`Usuario con UID ${uid} eliminado de Firebase Auth exitosamente.`);
+  } catch (error: unknown) {
+    const err = error as { code?: string; message?: string };
+    logger.error(`Error eliminando usuario de Firebase Auth con UID ${uid}: ${err.code} - ${err.message}`);
+    // No relanzar el error si el usuario no existe, ya que el objetivo es que no esté.
+    if (err.code === 'auth/user-not-found') {
+      logger.warn(`Intento de eliminar usuario no encontrado en Firebase Auth (UID: ${uid}). Se considera exitoso.`);
+      return;
+    }
+    throw error;
   }
 }
 

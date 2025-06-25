@@ -1,392 +1,245 @@
 import { Response } from 'express';
 import { z } from 'zod';
-import { LearningPlan, SkillAnalysisSchema, OnboardingPreferencesSchema } from '../services/llm/schemas';
+import { LearningPlan, SkillAnalysisSchema, OnboardingPreferencesSchema, SkillAnalysisSchemaRaw } from '../services/llm/schemas';
 import * as DataConnectService from '../services/dataConnect.service';
 import * as llmService from '../services/llm/learningPlanner.service';
 import * as pedagogicalExpert from '../services/llm/pedagogicalExpert.service';
 import { AuthenticatedRequest } from '../middleware/auth.middleware';
 import * as ContentOrchestrator from '../services/contentOrchestrator.service';
+import { createError } from '../utils/errorHandler';
 
-// Esquema de validación para la creación del plan (copiado de onboarding.controller.ts)
+// Esquema de validación para la CREACIÓN (usando el schema RAW)
 const CreatePlanInputSchema = z.object({
   onboardingPrefs: OnboardingPreferencesSchema,
-  skillAnalysis: SkillAnalysisSchema,
+  skillAnalysis: SkillAnalysisSchemaRaw, // Usar el schema RAW para validación
 });
 
+// Esquema para la inscripción
+const EnrollInputSchema = z.object({
+  learningPlanId: z.string().min(1, 'learningPlanId is required.'),
+});
 
 /**
- * Controlador para crear un nuevo plan de aprendizaje completo.
+ * Controlador para crear un nuevo plan de aprendizaje.
  */
 export const createLearningPlanController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { onboardingPrefs, skillAnalysis } = CreatePlanInputSchema.parse(req.body);
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
+  const { onboardingPrefs, skillAnalysis: rawSkillAnalysis } = CreatePlanInputSchema.parse(req.body);
+  const skillAnalysis = SkillAnalysisSchema.parse(rawSkillAnalysis);
 
-    // `onboardingPrefs.time` llega como '30 minutes', '1h', etc.  Extraemos
-    // los dígitos para convertirlo a minutos y almacenarlo de forma numérica.
-    const availableTimeMinutes = parseInt(onboardingPrefs.time?.replace(/\D/g, '') || '15', 10);
-    
-    // Guardar las preferencias del usuario (con manejo de duplicados)
-    try {
-      await DataConnectService.createUserPreference({
-        userFirebaseUid: user.firebaseUid,
-        user: user,
-        skill: onboardingPrefs.skill,
-        experienceLevel: onboardingPrefs.experience,
-        motivation: onboardingPrefs.motivation,
-        availableTimeMinutes: availableTimeMinutes,
-        goal: onboardingPrefs.goal,
-        learningStyle: onboardingPrefs.learning_style,
-        preferredStudyTime: onboardingPrefs.preferred_study_time,
-        learningContext: onboardingPrefs.learning_context,
-        challengePreference: onboardingPrefs.challenge_preference,
-      });
-      console.log(`✅ Preferencias de usuario creadas para ${user.firebaseUid}`);
-    } catch (preferenceError: unknown) {
-      // Si el error es por duplicación de preferencias, lo registramos pero continuamos
-      const errorMessage = preferenceError instanceof Error ? preferenceError.message : String(preferenceError);
-      if (errorMessage.includes('duplicate key value violates unique constraint') || 
-          errorMessage.includes('user_preferences_userFirebaseUid_uidx')) {
-        console.log(`⚠️ Usuario ${user.firebaseUid} ya tiene preferencias existentes. Continuando con la creación del plan...`);
-        console.log(`🔄 Para futuras mejoras: implementar lógica de actualización de preferencias`);
-      } else {
-        // Si es otro tipo de error, lo lanzamos
-        throw preferenceError;
-      }
-    }
-    
-    const initialPlan = await llmService.generateLearningPlanWithOpenAI({
+  const user = req.user;
+  if (!user) {
+    throw createError('User not authenticated.', 401);
+  }
+  
+  if (!onboardingPrefs.skill || !onboardingPrefs.experience || !onboardingPrefs.time || !onboardingPrefs.goal) {
+    throw createError('Incomplete onboarding preferences: skill, experience, time, and goal are required.', 400);
+  }
+
+  const initialPlan = await llmService.generateLearningPlanWithOpenAI({
+    onboardingData: {
+      skill: onboardingPrefs.skill,
+      experience: onboardingPrefs.experience,
+      time: onboardingPrefs.time,
+      goal: onboardingPrefs.goal,
+      learning_style: onboardingPrefs.learning_style || 'visual',
+      preferred_study_time: onboardingPrefs.preferred_study_time || 'flexible',
+      learning_context: onboardingPrefs.learning_context || 'personal_growth',
+      challenge_preference: onboardingPrefs.challenge_preference || 'balanced',
+    },
+    skillAnalysis: skillAnalysis,
+  });
+
+  if (!initialPlan) {
+    throw createError('Failed to generate the learning plan.', 500);
+  }
+  initialPlan.skillName = onboardingPrefs.skill;
+
+  const pedagogicalAnalysis = await pedagogicalExpert.analyzePlanPedagogically({
+    learningPlan: initialPlan,
+    userContext: {
+      skill: onboardingPrefs.skill,
+      experience: onboardingPrefs.experience,
+      goal: onboardingPrefs.goal,
+      time: onboardingPrefs.time,
+    },
+  });
+
+  let finalPlan: LearningPlan = initialPlan;
+  if (pedagogicalAnalysis) {
+    const refinedPlanAttempt = await llmService.generateLearningPlanWithOpenAI({
       onboardingData: {
         skill: onboardingPrefs.skill,
         experience: onboardingPrefs.experience,
         time: onboardingPrefs.time,
         goal: onboardingPrefs.goal,
-        learning_style: onboardingPrefs.learning_style,
-        preferred_study_time: onboardingPrefs.preferred_study_time,
-        learning_context: onboardingPrefs.learning_context,
-        challenge_preference: onboardingPrefs.challenge_preference,
+        learning_style: onboardingPrefs.learning_style || 'visual',
+        preferred_study_time: onboardingPrefs.preferred_study_time || 'flexible',
+        learning_context: onboardingPrefs.learning_context || 'personal_growth',
+        challenge_preference: onboardingPrefs.challenge_preference || 'balanced',
       },
-      skillAnalysis: skillAnalysis,
-    });
-
-    if (!initialPlan) {
-      console.error('Learning plan generation from LLM failed.');
-      return res.status(500).json({ message: 'Failed to generate the learning plan.' });
-    }
-
-    // Asegurar que el skillName esté presente (el LLM a veces no lo incluye)
-    initialPlan.skillName = onboardingPrefs.skill;
-    const pedagogicalAnalysis = await pedagogicalExpert.analyzePlanPedagogically({
-      learningPlan: initialPlan,
-      userContext: {
-        skill: onboardingPrefs.skill,
-        experience: onboardingPrefs.experience,
-        time: onboardingPrefs.time,
-        goal: onboardingPrefs.goal,
-        learning_style: onboardingPrefs.learning_style,
-        preferred_study_time: onboardingPrefs.preferred_study_time,
-        learning_context: onboardingPrefs.learning_context,
-        challenge_preference: onboardingPrefs.challenge_preference,
-      },
-    });
-
-    if (!pedagogicalAnalysis) {
-      // No es un error fatal, el plan sigue siendo útil.
-      console.warn(`Pedagogical analysis failed for plan on skill "${onboardingPrefs.skill}". Proceeding without it.`);
-    } else {
-      console.log(`Pedagogical analysis completed for skill: ${onboardingPrefs.skill}`);
-    }
-
-    // 4. NEW: Refinar el plan utilizando el análisis pedagógico
-    let finalPlan: LearningPlan = initialPlan; // Usar el plan inicial como fallback
-    if (pedagogicalAnalysis) {
-      const refinedPlanAttempt = await llmService.generateLearningPlanWithOpenAI({
-        onboardingData: {
-          skill: onboardingPrefs.skill,
-          experience: onboardingPrefs.experience,
-          time: onboardingPrefs.time,
-          goal: onboardingPrefs.goal,
-          learning_style: onboardingPrefs.learning_style,
-          preferred_study_time: onboardingPrefs.preferred_study_time,
-          learning_context: onboardingPrefs.learning_context,
-          challenge_preference: onboardingPrefs.challenge_preference,
-        },
-        skillAnalysis: skillAnalysis,
-        pedagogicalAnalysis: pedagogicalAnalysis, // Incluir el análisis para el refinamiento
-      });
-
-      if (refinedPlanAttempt) {
-        finalPlan = refinedPlanAttempt;
-        // Asegurar que el skillName esté presente también en el plan refinado
-        finalPlan.skillName = onboardingPrefs.skill;
-
-      } else {
-        console.warn('LLM plan refinement failed. Proceeding with the initial plan.');
-      }
-    }
-
-    // Mapear y guardar el plan completo en Data Connect
-    const createdPlanResponse = await DataConnectService.createFullLearningPlanInDB(
-      user.firebaseUid,
-      finalPlan,
-      skillAnalysis,
-      pedagogicalAnalysis
-    );
-
-    const createdPlan = createdPlanResponse?.data?.learningPlan;
-
-    if (!createdPlan || !createdPlan.id) {
-        return res.status(500).json({ message: "Failed to save the learning plan to the database." });
-    }
-    // Crear la inscripción (enrollment) para el usuario en este plan
-    const enrollment = await DataConnectService.createEnrollment({
-      userFirebaseUid: user.firebaseUid,
-      learningPlanId: createdPlan.id,
-      status: 'ACTIVE',
-    });
-
-    if (!enrollment) {
-      console.error(`Failed to create enrollment for user ${user.firebaseUid} in plan ${createdPlan.id}.`);
-      // No devolvemos un error fatal aquí, pero es una advertencia importante.
-    } else {
-      console.log(`Enrollment created successfully for user ${user.firebaseUid} in plan ${createdPlan.id}.`);
-    }
-
-    // Generar el contenido para el Día 1 usando el orquestador
-    const day1Result = await ContentOrchestrator.generateAndSaveContentForDay({
-      userId: user.firebaseUid,
-      learningPlanId: createdPlan.id,
-      dayNumber: 1,
-    });
-
-    if (!day1Result.success) {
-      // Si la generación del día 1 falla, no hacemos fallar toda la solicitud,
-      // pero sí lo registramos como un error crítico. El usuario aún tiene su plan.
-      // Se podría reintentar más tarde.
-      console.error(`CRITICAL: Learning plan ${createdPlan.id} was created, but content generation for Day 1 failed: ${day1Result.message}`);
-    } else {
-      console.log(`Content for Day 1 of plan ${createdPlan.id} generated successfully.`);
-    }
-
-    // 7. Devolver la respuesta final al cliente
-    res.status(201).json({
-      message: 'Learning plan created successfully!',
-      planId: createdPlan.id,
       skillAnalysis: skillAnalysis,
       pedagogicalAnalysis: pedagogicalAnalysis,
-      initialContent: day1Result.success ? day1Result.data : null,
     });
-
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      // 🔍 DEBUG: Logs detallados de errores de validación Zod
-      console.error('❌ BACKEND - Error de validación Zod:', JSON.stringify(error.errors, null, 2));
-      error.errors.forEach((err, index) => {
-        console.error(`❌ Error ${index + 1}:`, {
-          path: err.path.join('.'),
-          message: err.message,
-          code: err.code,
-          fullError: err
-        });
-      });
-      return res.status(400).json({ 
-        message: 'Invalid input data for plan creation.', 
-        errors: error.errors,
-        details: error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message,
-          code: err.code
-        }))
-      });
+    if (refinedPlanAttempt) {
+      finalPlan = refinedPlanAttempt;
+      finalPlan.skillName = onboardingPrefs.skill;
     }
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in createLearningPlanController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
   }
+
+  const createdPlanResponse = await DataConnectService.createFullLearningPlanInDB(
+    user.firebaseUid,
+    finalPlan,
+    skillAnalysis,
+    pedagogicalAnalysis
+  );
+
+  const createdPlan = createdPlanResponse?.data?.learningPlan;
+  if (!createdPlan || !createdPlan.id) {
+    throw createError("Failed to save the learning plan to the database.", 500);
+  }
+
+  const enrollment = await DataConnectService.createEnrollment({
+    userFirebaseUid: user.firebaseUid,
+    learningPlanId: createdPlan.id,
+    status: 'ACTIVE',
+  });
+
+  const day1Result = await ContentOrchestrator.generateAndSaveContentForDay({
+    userId: user.firebaseUid,
+    learningPlanId: createdPlan.id,
+    dayNumber: 1,
+  });
+
+  res.status(201).json({
+    message: 'Learning plan created successfully!',
+    planId: createdPlan.id,
+    initialContent: day1Result.success ? day1Result.data : null,
+  });
+};
+
+/**
+ * Controlador para obtener todos los 'enrollments' de un usuario.
+ */
+export const getUserEnrollmentsController = async (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    throw createError('User not authenticated.', 401);
+  }
+
+  const enrollments = await DataConnectService.getUserEnrollments(user.firebaseUid);
+  
+  if (!enrollments || enrollments.length === 0) {
+    throw createError('No enrollments found for this user.', 404);
+  }
+
+  res.status(200).json({
+    message: 'Enrollments retrieved successfully.',
+    data: enrollments,
+  });
+};
+
+/**
+ * Controlador para obtener todos los planes de aprendizaje de un usuario.
+ */
+export const getUserLearningPlansController = async (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    throw createError('User not authenticated.', 401);
+  }
+
+  const learningPlans = await DataConnectService.getUserLearningPlans(user.firebaseUid);
+
+  if (!learningPlans || learningPlans.length === 0) {
+    throw createError('No learning plans found for this user.', 404);
+  }
+
+  res.status(200).json({
+    message: 'Learning plans retrieved successfully.',
+    data: learningPlans,
+  });
+};
+
+/**
+ * Controlador para inscribir a un usuario en un plan de aprendizaje.
+ */
+export const enrollInLearningPlanController = async (req: AuthenticatedRequest, res: Response) => {
+  const { learningPlanId } = EnrollInputSchema.parse(req.body);
+  
+  const user = req.user;
+  if (!user) {
+    throw createError('User not authenticated.', 401);
+  }
+
+  const plan = await DataConnectService.getLearningPlanStructure(learningPlanId);
+  if (!plan) {
+    throw createError('Learning plan not found.', 404);
+  }
+  if (plan.userFirebaseUid !== user.firebaseUid) {
+    throw createError('You can only enroll in your own learning plans.', 403);
+  }
+
+  const enrollment = await DataConnectService.createEnrollment({
+    userFirebaseUid: user.firebaseUid,
+    learningPlanId: learningPlanId,
+    status: 'ACTIVE',
+  });
+
+  res.status(201).json({
+    message: 'User enrolled successfully.',
+    data: enrollment,
+  });
 };
 
 /**
  * Controlador para obtener el plan de aprendizaje actual del usuario autenticado.
  */
 export const getCurrentLearningPlanController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
-
-    // Obtener el plan activo del usuario
-    const currentPlan = await DataConnectService.getCurrentUserLearningPlan(user.firebaseUid);
-
-    if (!currentPlan) {
-      return res.status(404).json({ 
-        message: 'No active learning plan found for the user.' 
-      });
-    }
-
-    res.status(200).json({
-      message: 'Current learning plan retrieved successfully.',
-      plan: currentPlan,
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in getCurrentLearningPlanController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
+  const user = req.user;
+  if (!user) {
+    throw createError('User not authenticated.', 401);
   }
+
+  // Obtener el plan activo del usuario
+  const currentPlan = await DataConnectService.getCurrentUserLearningPlan(user.firebaseUid);
+
+  if (!currentPlan) {
+    throw createError('No active learning plan found for the user.', 404);
+  }
+
+  res.status(200).json({
+    message: 'Current learning plan retrieved successfully.',
+    plan: currentPlan,
+  });
 };
 
 /**
  * Controlador para obtener un plan de aprendizaje específico por ID.
  */
 export const getLearningPlanByIdController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ message: 'Learning plan ID is required.' });
-    }
-
-    // Obtener el plan por ID
-    const plan = await DataConnectService.getLearningPlanStructureById(id);
-
-    if (!plan) {
-      return res.status(404).json({ 
-        message: 'Learning plan not found.' 
-      });
-    }
-
-    // Verificar que el plan pertenece al usuario autenticado
-    if (plan.userFirebaseUid !== user.firebaseUid) {
-      return res.status(403).json({ 
-        message: 'Access denied. You can only access your own learning plans.' 
-      });
-    }
-
-    res.status(200).json({
-      message: 'Learning plan retrieved successfully.',
-      plan: plan,
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in getLearningPlanByIdController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
+  const user = req.user;
+  if (!user) {
+    throw createError('User not authenticated.', 401);
   }
-};
+  const { id } = req.params;
 
-/**
- * ✅ NUEVO - Obtiene todas las inscripciones del usuario
- */
-export const getUserEnrollmentsController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
-
-    const enrollments = await DataConnectService.getUserEnrollments(user.firebaseUid);
-
-    if (!enrollments) {
-      return res.status(404).json({ 
-        message: 'No enrollments found for user.' 
-      });
-    }
-
-    res.status(200).json({
-      message: 'User enrollments retrieved successfully.',
-      enrollments: enrollments,
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in getUserEnrollmentsController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
+  if (!id) {
+    throw createError('Learning plan ID is required.', 400);
   }
-};
 
-/**
- * ✅ NUEVO - Obtiene todos los planes de aprendizaje del usuario
- */
-export const getUserLearningPlansController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
+  // Obtener el plan por ID
+  const plan = await DataConnectService.getLearningPlanStructure(id);
 
-    const learningPlans = await DataConnectService.getUserLearningPlans(user.firebaseUid);
-
-    if (!learningPlans) {
-      return res.status(404).json({ 
-        message: 'No learning plans found for user.' 
-      });
-    }
-
-    res.status(200).json({
-      message: 'User learning plans retrieved successfully.',
-      learningPlans: learningPlans,
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in getUserLearningPlansController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
+  if (!plan) {
+    throw createError('Learning plan not found.', 404);
   }
-};
 
-/**
- * ✅ NUEVO - Crea una nueva inscripción para el usuario autenticado
- */
-export const createEnrollmentController = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({ message: 'User not authenticated.' });
-    }
-
-    const { learningPlanId, status = 'ACTIVE' } = req.body;
-
-    if (!learningPlanId) {
-      return res.status(400).json({ message: 'Learning plan ID is required.' });
-    }
-
-    // Verificar que el plan existe y pertenece al usuario
-    const plan = await DataConnectService.getLearningPlanStructureById(learningPlanId);
-    if (!plan) {
-      return res.status(404).json({ message: 'Learning plan not found.' });
-    }
-
-    if (plan.userFirebaseUid !== user.firebaseUid) {
-      return res.status(403).json({ 
-        message: 'Access denied. You can only enroll in your own learning plans.' 
-      });
-    }
-
-    const enrollment = await DataConnectService.createEnrollmentUser({
-      learningPlanId,
-      status
-    });
-
-    if (!enrollment) {
-      return res.status(500).json({ message: 'Failed to create enrollment.' });
-    }
-
-    res.status(201).json({
-      message: 'Enrollment created successfully.',
-      enrollment: enrollment,
-    });
-
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Error in createEnrollmentController:', errorMessage);
-    res.status(500).json({ message: 'Internal server error.' });
+  // Verificar que el plan pertenece al usuario autenticado
+  if (plan.userFirebaseUid !== user.firebaseUid) {
+    throw createError('Access denied. You can only access your own learning plans.', 403);
   }
+
+  res.status(200).json({
+    message: 'Learning plan retrieved successfully.',
+    plan: plan,
+  });
 };

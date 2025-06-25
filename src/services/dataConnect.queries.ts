@@ -11,161 +11,142 @@ import * as Types from './dataConnect.types';
  * GetUserByFirebaseUid - Obtiene un usuario por su Firebase UID
  */
 export const getUserByFirebaseUid = async (firebaseUid: string): Promise<Types.DbUser | null> => {
-  try {
-    logger.info(`[Admin SDK] Getting user by Firebase UID: ${firebaseUid}`);
-    
-    const dc = getDataConnect();
-    const query = `
-      query GetUserByFirebaseUid($firebaseUid: String!) {
-        user(key: { firebaseUid: $firebaseUid }) {
-          firebaseUid
-          email
-          name
-          authProvider
-          platform
-          photoUrl
-          emailVerified
-          appleUserIdentifier
-          fcmTokens
-          createdAt
-          updatedAt
-        }
-      }`;
-    
-    const response = await dc.executeGraphql(query, { variables: { firebaseUid } });
-    return (response as any).data.user as Types.DbUser ?? null;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error getting user by Firebase UID: ${errorMessage}`);
-    throw error;
-  }
+  logger.info(`[Admin SDK] Getting user by Firebase UID: ${firebaseUid}`);
+  
+  const dataConnect = getDataConnect();
+  const query = `
+    query GetUserByFirebaseUid($firebaseUid: String!) {
+      user(key: { firebaseUid: $firebaseUid }) {
+        firebaseUid
+        email
+        name
+        authProvider
+        platform
+        photoUrl
+        emailVerified
+        appleUserIdentifier
+        fcmTokens
+        createdAt
+        updatedAt
+      }
+    }`;
+  
+  const response = await dataConnect.executeGraphql(query, { variables: { firebaseUid } });
+  return (response as any).data.user as Types.DbUser ?? null;
 };
 
 /**
  * GetLearningPlanStructure - Obtiene la estructura completa de un plan de aprendizaje
  */
 export const getLearningPlanStructure = async (learningPlanId: string): Promise<any | null> => {
-  try {
-    logger.info(`[Admin SDK] Getting learning plan structure: ${learningPlanId}`);
-    
-    const dc = getDataConnect();
-    const query = `
-      query GetLearningPlanStructure($learningPlanId: UUID!) {
-        learningPlans(where: { id: { eq: $learningPlanId } }) {
+  logger.info(`[Admin SDK] Getting learning plan structure: ${learningPlanId}`);
+  
+  const dataConnect = getDataConnect();
+  const query = `
+    query GetLearningPlanStructure($learningPlanId: UUID!) {
+      learningPlans(where: { id: { eq: $learningPlanId } }) {
+        id
+        userFirebaseUid
+        skillName
+        sections: planSections_on_learningPlan {
           id
-          userFirebaseUid
-          skillName
-          sections: planSections_on_learningPlan {
+          title
+          order
+          days: dayContents_on_section {
             id
+            dayNumber
             title
-            order
-            days: dayContents_on_section {
-              id
-              dayNumber
-              title
-              focusArea
-              isActionDay
-              objectives
-              completionStatus
-            }
-          }
-          skillAnalysis: skillAnalysis_on_learningPlan {
-            skillCategory
-            marketDemand
-            isSkillValid
-            learningPathRecommendation
-            realWorldApplications
-            complementarySkills
-            components: skillComponentDatas_on_skillAnalysis {
-              name
-              description
-              difficultyLevel
-              prerequisitesText
-              estimatedLearningHours
-              practicalApplications
-              order
-            }
+            focusArea
+            isActionDay
+            objectives
+            completionStatus
           }
         }
-      }`;
-    
-    const response = await dc.executeGraphql(query, { variables: { learningPlanId } });
-    return (response as any).data.learningPlans?.[0] ?? null;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error getting learning plan structure: ${errorMessage}`);
-    throw error;
-  }
+        skillAnalysis: skillAnalysis_on_learningPlan {
+          skillCategory
+          marketDemand
+          isSkillValid
+          learningPathRecommendation
+          realWorldApplications
+          complementarySkills
+          components: skillComponentDatas_on_skillAnalysis {
+            name
+            description
+            difficultyLevel
+            prerequisitesText
+            estimatedLearningHours
+            practicalApplications
+            order
+          }
+        }
+      }
+    }`;
+  
+  const response = await dataConnect.executeGraphql(query, { variables: { learningPlanId } });
+  return (response as any).data.learningPlans?.[0] ?? null;
 };
 
 /**
  * GetCurrentUserLearningPlan - Obtiene el plan activo más reciente del usuario
  */
 export const getCurrentUserLearningPlan = async (userFirebaseUid: string): Promise<any | null> => {
-  try {
-    logger.info(`[Admin SDK] Getting current user learning plan: ${userFirebaseUid}`);
-    
-    const dc = getDataConnect();
-    const query = `
-      query GetCurrentUserLearningPlan($userFirebaseUid: String!) {
-        learningPlans(
-          where: { 
-            userFirebaseUid: { eq: $userFirebaseUid }
-          }
-          orderBy: { generatedAt: DESC }
-          limit: 1
-        ) {
+  logger.info(`[Admin SDK] Getting current user learning plan: ${userFirebaseUid}`);
+  const dataConnect = getDataConnect();
+  const query = `
+    query GetCurrentUserLearningPlan($userFirebaseUid: String!) {
+      learningPlans(
+        where: { 
+          userFirebaseUid: { eq: $userFirebaseUid }
+        }
+        orderBy: { generatedAt: DESC }
+        limit: 1
+      ) {
+        id
+        userFirebaseUid
+        skillName
+        generatedAt
+        totalDurationWeeks
+        dailyTimeMinutes
+        skillLevelTarget
+        milestones
+        progressMetrics
+        flexibilityOptions
+        sections: planSections_on_learningPlan {
           id
-          userFirebaseUid
-          skillName
-          generatedAt
-          totalDurationWeeks
-          dailyTimeMinutes
-          skillLevelTarget
-          milestones
-          progressMetrics
-          flexibilityOptions
-          sections: planSections_on_learningPlan {
+          title
+          order
+          days: dayContents_on_section {
             id
+            dayNumber
             title
-            order
-            days: dayContents_on_section {
-              id
-              dayNumber
-              title
-              focusArea
-              isActionDay
-              objectives
-              completionStatus
-            }
-          }
-          skillAnalysis: skillAnalysis_on_learningPlan {
-            skillCategory
-            marketDemand
-            isSkillValid
-            learningPathRecommendation
-            realWorldApplications
-            complementarySkills
-            components: skillComponentDatas_on_skillAnalysis {
-              name
-              description
-              difficultyLevel
-              prerequisitesText
-              estimatedLearningHours
-              practicalApplications
-              order
-            }
+            focusArea
+            isActionDay
+            objectives
+            completionStatus
           }
         }
-      }`;
-    
-    const response = await dc.executeGraphql(query, { variables: { userFirebaseUid } });
-    return (response as any).data.learningPlans?.[0] ?? null;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error getting current user learning plan: ${errorMessage}`);
-    throw error;
-  }
+        skillAnalysis: skillAnalysis_on_learningPlan {
+          skillCategory
+          marketDemand
+          isSkillValid
+          learningPathRecommendation
+          realWorldApplications
+          complementarySkills
+          components: skillComponentDatas_on_skillAnalysis {
+            name
+            description
+            difficultyLevel
+            prerequisitesText
+            estimatedLearningHours
+            practicalApplications
+            order
+          }
+        }
+      }
+    }`;
+  
+  const response = await dataConnect.executeGraphql(query, { variables: { userFirebaseUid } });
+  return (response as any).data.learningPlans?.[0] ?? null;
 };
 
 /**
@@ -298,101 +279,95 @@ export const calculateUserXP = async (userFirebaseUid: string): Promise<Types.Us
 };
 
 /**
- * GetDayContent - Obtiene el contenido de un día específico
+ * GetDayContent - Obtiene el contenido de un día
  */
 export const getDayContent = async (learningPlanId: string, dayNumber: number): Promise<any | null> => {
-  try {
-    logger.info(`[Admin SDK] Getting day content: Plan ${learningPlanId}, Day ${dayNumber}`);
-    
-    const dc = getDataConnect();
-    const query = `
-      query GetDayContent($learningPlanId: UUID!, $dayNumber: Int!) {
-        dayContents(
-          where: {
-            section: { learningPlan: { id: { eq: $learningPlanId } } },
-            dayNumber: { eq: $dayNumber }
-          },
-          limit: 1
-        ) {
+  logger.info(`[Admin SDK] Getting content for day ${dayNumber} in plan ${learningPlanId}`);
+
+  const dataConnect = getDataConnect();
+  const query = `
+    query GetDayContent($learningPlanId: UUID!, $dayNumber: Int!) {
+      dayContents(
+        where: {
+          section: { learningPlan: { id: { eq: $learningPlanId } } },
+          dayNumber: { eq: $dayNumber }
+        },
+        limit: 1
+      ) {
+        id
+        title
+        focusArea
+        isActionDay
+        objectives
+        completionStatus
+        mainContentItem_on_dayContent {
           id
           title
-          focusArea
-          isActionDay
-          objectives
-          completionStatus
-          mainContentItem_on_dayContent {
+          textContent
+          audioUrl
+          estimatedReadTimeMinutes
+          audioDurationSeconds
+          funFact
+          xp
+          keyConcepts_on_mainContentItem {
+            concept
+            explanation
+            emoji
+          }
+        }
+        contentBlockItems_on_dayContent(orderBy: { order: ASC }) {
+          id
+          blockType
+          title
+          xp
+          order
+          estimatedMinutes
+          quizDetails {
             id
-            title
-            textContent
-            audioUrl
-            estimatedReadTimeMinutes
-            audioDurationSeconds
-            funFact
-            xp
-            keyConcepts_on_mainContentItem {
-              concept
+            description
+            quizQuestionDatas_on_quizDetails {
+              question
+              questionType
               explanation
-              emoji
-            }
-          }
-          contentBlockItems_on_dayContent(orderBy: { order: ASC }) {
-            id
-            blockType
-            title
-            xp
-            order
-            estimatedMinutes
-            quizDetails {
-              id
-              description
-              quizQuestionDatas_on_quizDetails {
-                question
-                questionType
-                explanation
-                quizOptionDatas_on_question {
-                  optionText
-                  isCorrect
-                }
-              }
-            }
-            exerciseDetails {
-              id
-              instructions
-              exerciseType
-              matchPairs_on_exercise {
-                prompt
-                correctAnswer
+              quizOptionDatas_on_question {
+                optionText
+                isCorrect
               }
             }
           }
-          actionTaskItem_on_dayContent {
+          exerciseDetails {
             id
-            title
-            challengeDescription
-            timeEstimateString
-            tips
-            realWorldContext
-            successCriteria
-            toviMotivation
-            difficultyAdaptation
-            xp
-            actionStepItems_on_actionTaskItem(orderBy: { stepNumber: ASC }) {
-              stepNumber
-              description
-              estimatedTimeSeconds
-              isCompleted
+            instructions
+            exerciseType
+            matchPairs_on_exercise {
+              prompt
+              correctAnswer
             }
           }
         }
-      }`;
-    
-    const response = await dc.executeGraphql(query, { variables: { learningPlanId, dayNumber } });
-    return (response as any).data.dayContents?.[0] ?? null;
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error getting day content: ${errorMessage}`);
-    throw error;
-  }
+        actionTaskItem_on_dayContent {
+          id
+          title
+          challengeDescription
+          timeEstimateString
+          tips
+          realWorldContext
+          successCriteria
+          toviMotivation
+          difficultyAdaptation
+          xp
+          actionStepItems_on_actionTaskItem(orderBy: { stepNumber: ASC }) {
+            stepNumber
+            description
+            estimatedTimeSeconds
+            isCompleted
+          }
+        }
+      }
+    }`;
+
+  const response = await dataConnect.executeGraphql(query, { variables: { learningPlanId, dayNumber } });
+  return (response as any).data.dayContents?.[0] ?? null;
 };
 
 /**
@@ -517,61 +492,41 @@ export const getToviMessages = async (userFirebaseUid: string, situation: string
 };
 
 /**
- * GetUserEnrollments - Obtiene todas las inscripciones del usuario
+ * GetUserEnrollments - Obtiene todas las inscripciones (activas y pausadas) de un usuario
  */
 export const getUserEnrollments = async (userFirebaseUid: string): Promise<Types.Enrollment[]> => {
-  try {
-    logger.info(`[Admin SDK] Getting user enrollments: ${userFirebaseUid}`);
-    
-    const dc = getDataConnect();
-    const query = `
-      query GetUserEnrollments($userFirebaseUid: String!) {
-        enrollments(
-          where: { userFirebaseUid: { eq: $userFirebaseUid } }
-        ) {
-          id
-          status
-          learningPlan {
-            id
-            skillName
-          }
-        }
-      }`;
-    
-    const response = await dc.executeGraphql(query, { variables: { userFirebaseUid } });
-    return (response as any).data.enrollments || [];
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error getting user enrollments: ${errorMessage}`);
-    throw error;
-  }
-};
-
-/**
- * GetUserLearningPlans - Obtiene todos los planes de aprendizaje del usuario
- */
-export const getUserLearningPlans = async (userFirebaseUid: string): Promise<any[]> => {
-  try {
-    logger.info(`[Admin SDK] Getting user learning plans: ${userFirebaseUid}`);
-    
-    const dc = getDataConnect();
-    const query = `
-      query GetUserLearningPlans($userFirebaseUid: String!) {
-        learningPlans(
-          where: { userFirebaseUid: { eq: $userFirebaseUid } }
-        ) {
+  logger.info(`[Admin SDK] Getting enrollments for user: ${userFirebaseUid}`);
+  const dataConnect = getDataConnect();
+  const query = `
+    query GetUserEnrollments($userFirebaseUid: String!) {
+      enrollments(where: { userFirebaseUid: { eq: $userFirebaseUid } }) {
+        id
+        status
+        learningPlan {
           id
           skillName
         }
-      }`;
-    
-    const response = await dc.executeGraphql(query, { variables: { userFirebaseUid } });
-    return (response as any).data.learningPlans || [];
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error(`[Admin SDK] Error getting user learning plans: ${errorMessage}`);
-    throw error;
-  }
+      }
+    }`;
+  const response = await dataConnect.executeGraphql(query, { variables: { userFirebaseUid } });
+  return (response as any).data.enrollments ?? [];
+};
+
+/**
+ * GetUserLearningPlans - Obtiene todos los planes de aprendizaje de un usuario
+ */
+export const getUserLearningPlans = async (userFirebaseUid: string): Promise<any[]> => {
+  logger.info(`[Admin SDK] Getting learning plans for user: ${userFirebaseUid}`);
+  const dataConnect = getDataConnect();
+  const query = `
+    query GetUserLearningPlans($userFirebaseUid: String!) {
+      learningPlans(where: { userFirebaseUid: { eq: $userFirebaseUid } }) {
+        id
+        skillName
+      }
+    }`;
+  const response = await dataConnect.executeGraphql(query, { variables: { userFirebaseUid } });
+  return (response as any).data.learningPlans ?? [];
 };
 
 /**

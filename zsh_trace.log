@@ -1,0 +1,113 @@
++/etc/zprofile:6> [ -x /usr/libexec/path_helper ']'
++/etc/zprofile:7> /usr/libexec/path_helper -s
++/etc/zprofile:7> eval 'PATH="/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/lucamazzarello_/.pnpm-global/bin:/opt/anaconda3/condabin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/lucamazzarello_/.cursor/extensions/ms-python.python-2024.12.3-darwin-arm64/python_files/deactivate/zsh:/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/agents/venv/bin";' export 'PATH;'
++(eval):1> PATH=/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/lucamazzarello_/.pnpm-global/bin:/opt/anaconda3/condabin:/opt/homebrew/bin:/opt/homebrew/sbin:/Users/lucamazzarello_/.cursor/extensions/ms-python.python-2024.12.3-darwin-arm64/python_files/deactivate/zsh:/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/agents/venv/bin 
++(eval):1> export PATH
++/Users/lucamazzarello_/.zprofile:2> /opt/homebrew/bin/brew shellenv
++/Users/lucamazzarello_/.zprofile:2> eval $'export HOMEBREW_PREFIX="/opt/homebrew";\nexport HOMEBREW_CELLAR="/opt/homebrew/Cellar";\nexport HOMEBREW_REPOSITORY="/opt/homebrew";\nfpath[1,0]="/opt/homebrew/share/zsh/site-functions";\nPATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/lucamazzarello_/.pnpm-global/bin:/opt/anaconda3/condabin:/Users/lucamazzarello_/.cursor/extensions/ms-python.python-2024.12.3-darwin-arm64/python_files/deactivate/zsh:/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/agents/venv/bin"; export PATH;\n[ -z "${MANPATH-}" ] || export MANPATH=":${MANPATH#:}";\nexport INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";'
++(eval):1> export HOMEBREW_PREFIX=/opt/homebrew
++(eval):2> export HOMEBREW_CELLAR=/opt/homebrew/Cellar
++(eval):3> export HOMEBREW_REPOSITORY=/opt/homebrew
++(eval):4> fpath[1,0]=/opt/homebrew/share/zsh/site-functions 
++(eval):5> PATH=/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/lucamazzarello_/.pnpm-global/bin:/opt/anaconda3/condabin:/Users/lucamazzarello_/.cursor/extensions/ms-python.python-2024.12.3-darwin-arm64/python_files/deactivate/zsh:/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/agents/venv/bin 
++(eval):5> export PATH
++(eval):6> [ -z '' ']'
++(eval):7> export INFOPATH=/opt/homebrew/share/info:/opt/homebrew/share/info:
++/etc/zshrc:7> [[+/etc/zshrc:7> locale LC_CTYPE
++/etc/zshrc:7> [[ UTF-8 == UTF-8 ]]
++/etc/zshrc:8> setopt COMBINING_CHARS
++/etc/zshrc:12> disable log
++/etc/zshrc:15> HISTFILE=/Users/lucamazzarello_/.zsh_history 
++/etc/zshrc:16> HISTSIZE=2000 
++/etc/zshrc:17> SAVEHIST=1000 
++/etc/zshrc:20> setopt BEEP
++/etc/zshrc:24> [[ -r /Users/lucamazzarello_/.zkbd/xterm-256color-apple ]]
++/etc/zshrc:27> typeset -g -A key
++/etc/zshrc:29> [[ -n $'\C-[OP' ]]
++/etc/zshrc:29> key[F1]=$'\C-[OP' 
++/etc/zshrc:30> [[ -n $'\C-[OQ' ]]
++/etc/zshrc:30> key[F2]=$'\C-[OQ' 
++/etc/zshrc:31> [[ -n $'\C-[OR' ]]
++/etc/zshrc:31> key[F3]=$'\C-[OR' 
++/etc/zshrc:32> [[ -n $'\C-[OS' ]]
++/etc/zshrc:32> key[F4]=$'\C-[OS' 
++/etc/zshrc:33> [[ -n $'\C-[[15~' ]]
++/etc/zshrc:33> key[F5]=$'\C-[[15~' 
++/etc/zshrc:34> [[ -n $'\C-[[17~' ]]
++/etc/zshrc:34> key[F6]=$'\C-[[17~' 
++/etc/zshrc:35> [[ -n $'\C-[[18~' ]]
++/etc/zshrc:35> key[F7]=$'\C-[[18~' 
++/etc/zshrc:36> [[ -n $'\C-[[19~' ]]
++/etc/zshrc:36> key[F8]=$'\C-[[19~' 
++/etc/zshrc:37> [[ -n $'\C-[[20~' ]]
++/etc/zshrc:37> key[F9]=$'\C-[[20~' 
++/etc/zshrc:38> [[ -n $'\C-[[21~' ]]
++/etc/zshrc:38> key[F10]=$'\C-[[21~' 
++/etc/zshrc:39> [[ -n $'\C-[[23~' ]]
++/etc/zshrc:39> key[F11]=$'\C-[[23~' 
++/etc/zshrc:40> [[ -n $'\C-[[24~' ]]
++/etc/zshrc:40> key[F12]=$'\C-[[24~' 
++/etc/zshrc:41> [[ -n $'\C-[[1;2P' ]]
++/etc/zshrc:41> key[F13]=$'\C-[[1;2P' 
++/etc/zshrc:42> [[ -n $'\C-[[1;2Q' ]]
++/etc/zshrc:42> key[F14]=$'\C-[[1;2Q' 
++/etc/zshrc:43> [[ -n $'\C-[[1;2R' ]]
++/etc/zshrc:43> key[F15]=$'\C-[[1;2R' 
++/etc/zshrc:44> [[ -n $'\C-[[1;2S' ]]
++/etc/zshrc:44> key[F16]=$'\C-[[1;2S' 
++/etc/zshrc:45> [[ -n $'\C-[[15;2~' ]]
++/etc/zshrc:45> key[F17]=$'\C-[[15;2~' 
++/etc/zshrc:46> [[ -n $'\C-[[17;2~' ]]
++/etc/zshrc:46> key[F18]=$'\C-[[17;2~' 
++/etc/zshrc:47> [[ -n $'\C-[[18;2~' ]]
++/etc/zshrc:47> key[F19]=$'\C-[[18;2~' 
++/etc/zshrc:48> [[ -n $'\C-[[19;2~' ]]
++/etc/zshrc:48> key[F20]=$'\C-[[19;2~' 
++/etc/zshrc:49> [[ -n $'\C-H' ]]
++/etc/zshrc:49> key[Backspace]=$'\C-H' 
++/etc/zshrc:50> [[ -n $'\C-[[2~' ]]
++/etc/zshrc:50> key[Insert]=$'\C-[[2~' 
++/etc/zshrc:51> [[ -n $'\C-[[3~' ]]
++/etc/zshrc:51> key[Delete]=$'\C-[[3~' 
++/etc/zshrc:52> [[ -n $'\C-[OH' ]]
++/etc/zshrc:52> key[Home]=$'\C-[OH' 
++/etc/zshrc:53> [[ -n $'\C-[OF' ]]
++/etc/zshrc:53> key[End]=$'\C-[OF' 
++/etc/zshrc:54> [[ -n $'\C-[[5~' ]]
++/etc/zshrc:54> key[PageUp]=$'\C-[[5~' 
++/etc/zshrc:55> [[ -n $'\C-[[6~' ]]
++/etc/zshrc:55> key[PageDown]=$'\C-[[6~' 
++/etc/zshrc:56> [[ -n $'\C-[OA' ]]
++/etc/zshrc:56> key[Up]=$'\C-[OA' 
++/etc/zshrc:57> [[ -n $'\C-[OD' ]]
++/etc/zshrc:57> key[Left]=$'\C-[OD' 
++/etc/zshrc:58> [[ -n $'\C-[OB' ]]
++/etc/zshrc:58> key[Down]=$'\C-[OB' 
++/etc/zshrc:59> [[ -n $'\C-[OC' ]]
++/etc/zshrc:59> key[Right]=$'\C-[OC' 
++/etc/zshrc:63> [[ -n $'\C-[[3~' ]]
++/etc/zshrc:63> bindkey $'\C-[[3~' delete-char
++/etc/zshrc:64> [[ -n $'\C-[OH' ]]
++/etc/zshrc:64> bindkey $'\C-[OH' beginning-of-line
++/etc/zshrc:65> [[ -n $'\C-[OF' ]]
++/etc/zshrc:65> bindkey $'\C-[OF' end-of-line
++/etc/zshrc:66> [[ -n $'\C-[OA' ]]
++/etc/zshrc:66> bindkey $'\C-[OA' up-line-or-search
++/etc/zshrc:67> [[ -n $'\C-[OB' ]]
++/etc/zshrc:67> bindkey $'\C-[OB' down-line-or-search
++/etc/zshrc:70> PS1='%n@%m %1~ %# ' 
++/etc/zshrc:73> [ -r /etc/zshrc_vscode ']'
++/Users/lucamazzarello_/.zshrc:4> __conda_setup=+/Users/lucamazzarello_/.zshrc:4> /opt/anaconda3/bin/conda shell.zsh hook
++/Users/lucamazzarello_/.zshrc:4> __conda_setup='' 
++/Users/lucamazzarello_/.zshrc:5> [ 1 -eq 0 ']'
++/Users/lucamazzarello_/.zshrc:8> [ -f /opt/anaconda3/etc/profile.d/conda.sh ']'
++/Users/lucamazzarello_/.zshrc:9> . /opt/anaconda3/etc/profile.d/conda.sh
++/opt/anaconda3/etc/profile.d/conda.sh:1> export CONDA_EXE=/opt/anaconda3/bin/conda
++/opt/anaconda3/etc/profile.d/conda.sh:2> export _CE_M=''
++/opt/anaconda3/etc/profile.d/conda.sh:3> export _CE_CONDA=''
++/opt/anaconda3/etc/profile.d/conda.sh:4> export CONDA_PYTHON_EXE=/opt/anaconda3/bin/python
++/opt/anaconda3/etc/profile.d/conda.sh:58> [ -z x ']'
++/Users/lucamazzarello_/.zshrc:14> unset __conda_setup
++/Users/lucamazzarello_/.zshrc:17> export PATH=/Users/lucamazzarello_/.pnpm-global/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Users/lucamazzarello_/.pnpm-global/bin:/opt/anaconda3/condabin:/Users/lucamazzarello_/.cursor/extensions/ms-python.python-2024.12.3-darwin-arm64/python_files/deactivate/zsh:/Users/lucamazzarello_/Desktop/Repositories/skillix-backend/agents/venv/bin
++/Users/lucamazzarello_/.zshrc:19> PROMPT='%n %1~ %# ' 
++zsh:1> exit

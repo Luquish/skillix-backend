@@ -1,6 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 
+// Wrapper para controladores asíncronos que asegura que los errores se pasen a next()
+export const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => 
+  (req: Request, res: Response, next: NextFunction) => {
+    return Promise
+      .resolve(fn(req, res, next))
+      .catch(next);
+};
+
 export interface ApiError extends Error {
   statusCode?: number;
   code?: string;
@@ -29,23 +37,7 @@ export const errorHandler = (
     timestamp: new Date().toISOString()
   });
 
-  // Prioridad 1: Manejo de errores de Firebase Auth (mantener 403)
-  if ((error as ApiError).code?.startsWith('auth/')) {
-    return res.status(403).json({
-      message: 'Invalid or expired token.',
-      code: (error as ApiError).code
-    });
-  }
-
-  // Prioridad 2: Manejo de errores con statusCode específico (respetar códigos 401, 403, 404, etc.)
-  const statusCode = (error as ApiError).statusCode;
-  if (statusCode) {
-    return res.status(statusCode).json({
-      message: error.message || 'An error occurred'
-    });
-  }
-
-  // Prioridad 3: Manejo de errores de validación Zod (solo si no hay statusCode específico)
+  // Prioridad 1: Manejo de errores de validación Zod (ahora debería funcionar aquí)
   if (error instanceof ZodError) {
     return res.status(400).json({
       message: 'Invalid input data.',
@@ -54,6 +46,22 @@ export const errorHandler = (
         message: err.message,
         code: err.code
       }))
+    });
+  }
+
+  // Prioridad 2: Manejo de errores de Firebase Auth
+  if ((error as ApiError).code?.startsWith('auth/')) {
+    return res.status(403).json({
+      message: 'Invalid or expired token.',
+      code: (error as ApiError).code
+    });
+  }
+
+  // Prioridad 3: Manejo de errores con statusCode específico
+  const statusCode = (error as ApiError).statusCode;
+  if (statusCode) {
+    return res.status(statusCode).json({
+      message: error.message || 'An error occurred'
     });
   }
 

@@ -27,7 +27,7 @@ export const generateAndSaveContentForDay = async (
   const { userId, learningPlanId, dayNumber, performanceSummary } = input;
   // 1. Obtener toda la información necesaria en paralelo
   const [plan, user] = await Promise.all([
-    DataConnectService.getLearningPlanStructureById(learningPlanId),
+    DataConnectService.getLearningPlanStructure(learningPlanId),
     DataConnectService.getUserByFirebaseUid(userId),
   ]);
 

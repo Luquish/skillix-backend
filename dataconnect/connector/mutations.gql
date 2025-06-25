@@ -236,6 +236,26 @@ mutation UpdateDayCompletionStatus($dayContentId: UUID!, $status: String!) @auth
   )
 }
 
+# Elimina un usuario por su firebaseUid. 
+# @auth(level: NO_ACCESS) porque esta acción se realiza desde el backend con credenciales de admin.
 mutation DeleteUser($firebaseUid: String!) @auth(level: NO_ACCESS) {
-    user_delete(key: { firebaseUid: $firebaseUid })
+  user_delete(key: { firebaseUid: $firebaseUid })
+}
+
+# Actualiza el perfil de un usuario por su firebaseUid.
+# @auth(level: NO_ACCESS) porque esta acción se realiza desde el backend con credenciales de admin.
+mutation UpdateUser(
+  $firebaseUid: String!,
+  $name: String,
+  $language: String,
+  $learningObjective: String
+) @auth(level: NO_ACCESS) {
+  user_update(
+    key: { firebaseUid: $firebaseUid },
+    data: {
+      name: $name,
+      language: $language,
+      learningObjective: $learningObjective
+    }
+  )
 }

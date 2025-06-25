@@ -1,10 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../middleware/auth.middleware';
-import { 
-  generateNextDayContentController,
-  getDayContentController,
-  createActionStepController
-} from '../controllers/content.controller';
+import * as ContentController from '../controllers/content.controller';
+import { asyncHandler } from '../utils/errorHandler';
 
 const router = Router();
 
@@ -18,11 +15,7 @@ const router = Router();
  * Valida que el usuario sea el propietario del plan, calcula el día siguiente,
  * y orquesta la generación y guardado del nuevo contenido a través del LLM.
  */
-router.post(
-  '/generate-next',
-  isAuthenticated,
-  generateNextDayContentController
-);
+router.post('/generate-next', isAuthenticated, asyncHandler(ContentController.generateNextDayContentController));
 
 /**
  * @route   GET /api/content/day/:learningPlanId/:dayNumber
@@ -30,11 +23,7 @@ router.post(
  * @access  Private
  * @params  learningPlanId: string, dayNumber: number
  */
-router.get(
-  '/day/:learningPlanId/:dayNumber',
-  isAuthenticated,
-  getDayContentController
-);
+router.get('/day/:learningPlanId/:dayNumber', isAuthenticated, asyncHandler(ContentController.getDayContentController));
 
 /**
  * @route   POST /api/content/action-step
@@ -42,10 +31,6 @@ router.get(
  * @access  Private
  * @body    { actionTaskItemId: string, stepNumber: number, description: string, estimatedTimeSeconds: number }
  */
-router.post(
-  '/action-step',
-  isAuthenticated,
-  createActionStepController
-);
+router.post('/action-step', isAuthenticated, asyncHandler(ContentController.createActionStepController));
 
 export default router;

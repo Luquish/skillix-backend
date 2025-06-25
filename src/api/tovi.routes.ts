@@ -1,26 +1,27 @@
 import { Router } from 'express';
 import { isAuthenticated } from '../middleware/auth.middleware';
-import { 
-  getToviMessagesController,
-  getToviMessagesBySituationController
-} from '../controllers/tovi.controller';
+import * as ToviController from '../controllers/tovi.controller';
+import { asyncHandler } from '../utils/errorHandler';
 
 const router = Router();
 
-/**
- * @route   GET /api/tovi/messages/:situation
- * @desc    Obtiene los mensajes de Tovi para una situación específica (path param)
- * @access  Private (Requiere token de Firebase)
- * @params  situation: string
- */
-router.get('/messages/:situation', isAuthenticated, getToviMessagesController);
+// --- RUTAS DE TOVI ---
 
-/**
- * @route   GET /api/tovi/messages
- * @desc    Obtiene los mensajes de Tovi para una situación específica (query param)
- * @access  Private (Requiere token de Firebase)
- * @query   situation: string
- */
-router.get('/messages', isAuthenticated, getToviMessagesBySituationController);
+// Ruta para obtener mensajes de Tovi por parámetro de RUTA
+// EJ: /api/tovi/messages/daily_greeting
+router.get(
+    '/messages/:situation', 
+    isAuthenticated, 
+    asyncHandler(ToviController.getToviMessageFromPath)
+);
+
+// Ruta para obtener mensajes de Tovi por QUERY string
+// EJ: /api/tovi/messages?situation=milestone_achieved
+router.get(
+    '/messages', 
+    isAuthenticated, 
+    asyncHandler(ToviController.getToviMessageFromQuery)
+);
+
 
 export default router; 

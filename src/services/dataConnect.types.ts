@@ -23,13 +23,15 @@ export interface DbUser {
   displayName?: string | null;
   photoURL?: string | null;
   photoUrl?: string | null;
-  authProvider?: string;
+  authProvider?: string | null;
   platform?: string | null;
   emailVerified?: boolean | null;
   appleUserIdentifier?: string | null;
   fcmTokens?: string[] | null;
-  createdAt?: string;
+  createdAt?: Date | null;
   updatedAt?: string;
+  language?: string | null;
+  learningObjective?: string | null;
 }
 
 // --- USER PREFERENCE TYPES ---
@@ -187,6 +189,21 @@ export interface Enrollment {
     skillName: string;
     totalDurationWeeks?: number;
   };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface User_KeyOutput {
+  id: string;
+}
+
+export interface UserPreference {
+  id: string;
+  language: string;
+  timezone: string;
+  notificationsEnabled: boolean;
+  emailNotifications: boolean;
+  darkMode: boolean;
   createdAt?: string;
   updatedAt?: string;
 } 
