@@ -31,9 +31,7 @@ export const createUser = async (
         photoUrl: $photoUrl,
         emailVerified: $emailVerified,
         appleUserIdentifier: $appleUserIdentifier
-      }) {
-        id
-      }
+      })
     }
   `;
 

@@ -1524,3 +1524,12 @@ Generated sources: main/relation.gql [151946B] main/query.gql [38876B] main/muta
 [debug] [2025-06-25T19:20:12.707Z] I0625 16:20:12.707716    1071 engine.go:170] [/emulator/skillix-db-service 9730] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
  {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0625 16:20:12.707716    1071 engine.go:170] [/emulator/skillix-db-service 9730] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
 [debug] [2025-06-25T19:20:33.291Z] [Firebase Plugin] Received emulators shutdown notification.
+[debug] [2025-06-25T19:21:22.509Z] [Firebase Plugin] Received emulators started notification. Running detection.
+[debug] [2025-06-25T19:21:22.509Z] >>> [apiv2][query] GET http://127.0.0.1:4400/emulators [none]
+[debug] [2025-06-25T19:21:22.513Z] <<< [apiv2][status] GET http://127.0.0.1:4400/emulators 200
+[debug] [2025-06-25T19:21:22.513Z] <<< [apiv2][body] GET http://127.0.0.1:4400/emulators {"hub":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"name":"hub","host":"127.0.0.1","port":4400},"logging":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"name":"logging","host":"127.0.0.1","port":4500},"auth":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"name":"auth","host":"127.0.0.1","port":9099},"dataconnect":{"listen":[{"address":"127.0.0.1","family":"IPv4","port":9399},{"address":"::1","family":"IPv6","port":9399}],"name":"dataconnect","host":"127.0.0.1","port":9399,"pid":25641,"timeout":10000}}
+[debug] [2025-06-25T19:21:22.632Z] I0625 16:21:22.632079    1071 engine.go:170] [/emulator/skillix-db-service 9730] ExecuteGraphqlRead IntrospectionQuery: succeeded. 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I0625 16:21:22.632079    1071 engine.go:170] [/emulator/skillix-db-service 9730] ExecuteGraphqlRead IntrospectionQuery: succeeded. \n"}}
+[debug] [2025-06-25T19:23:46.329Z] [Firebase Plugin] Received emulators shutdown notification.
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[warn] ⚠  Data Connect Emulator has exited upon receiving signal: SIGINT 
